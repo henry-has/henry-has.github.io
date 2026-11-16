@@ -81,7 +81,7 @@ details summary{cursor:pointer;font-size:12px}
 .ctip{position:absolute;pointer-events:none;background:var(--bg);border:1px solid var(--line);padding:4px 6px;font-size:11px;white-space:nowrap}
 .cell{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:start}
 #xsec{width:120px;height:240px;display:block}
-.kv{display:grid;grid-template-columns:auto auto;justify-content:space-between;gap:2px 10px;font-size:12px}
+.kv{display:grid;align-content:start;grid-template-columns:auto auto;justify-content:space-between;gap:2px 10px;font-size:12px}
 .kv span:nth-child(odd){color:var(--ink-2)}
 .kv span:nth-child(even){font-family:ui-monospace,Menlo,Consolas,monospace;text-align:right}
 .rmwrap{display:grid;grid-template-columns:minmax(0,1fr) 190px;gap:10px}
@@ -110,11 +110,11 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
 
   <div class="readout" id="readout">
     <div class="ro"><div class="k">Time</div><div class="v" id="r-time">0:00</div><div class="d" id="r-phase">Lap 1</div></div>
-    <div class="ro" id="ro-core"><div class="k">Hottest jelly roll</div><div class="v" id="r-core">–</div><div class="d" id="r-corewho">–</div></div>
-    <div class="ro"><div class="k">BMS (− terminal)</div><div class="v" id="r-neg">–</div><div class="d" id="r-negd">–</div></div>
-    <div class="ro"><div class="k">State of energy</div><div class="v" id="r-soe">–</div><div class="d" id="r-soed">–</div><div class="d2" id="r-soed2">–</div></div>
+    <div class="ro" id="ro-core"><div class="k">Hottest cell core</div><div class="v" id="r-core">–</div><div class="d" id="r-corewho">–</div></div>
+    <div class="ro"><div class="k">BMS reading (− terminal)</div><div class="v" id="r-neg">–</div><div class="d" id="r-negd">–</div></div>
+    <div class="ro"><div class="k">Hottest cell R, heat (10 s avg)</div><div class="v" id="r-rq">–</div><div class="d" id="r-rqd">–</div></div>
     <div class="ro"><div class="k">Pack</div><div class="v" id="r-pack">–</div><div class="d" id="r-packd">–</div></div>
-    <div class="ro"><div class="k">Hottest cell, 10 s avg</div><div class="v" id="r-rq">–</div><div class="d" id="r-rqd">–</div><div class="d2" id="r-rqd2">–</div></div>
+    <div class="ro"><div class="k">Energy left</div><div class="v" id="r-soe">–</div><div class="d" id="r-soed">–</div></div>
   </div>
 
   <div class="top">
@@ -123,11 +123,7 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
       <div class="hud" id="hud"></div>
       <div class="zoombar"><button type="button" data-z="main" data-d="-1" aria-label="Zoom in">+</button><button type="button" data-z="main" data-d="1" aria-label="Zoom out">−</button></div>
       <div class="viewbar">
-        <div class="seg" role="group" aria-label="Render mode">
-          <button type="button" data-view="surface" aria-pressed="false">Surface</button>
-          <button type="button" data-view="cut" aria-pressed="true">Cutaway</button>
-        </div>
-        <span class="hint">drag: rotate · ctrl/⌘+scroll: zoom · click: inspect cell</span>
+        <span class="hint">drag to rotate · hover a cell · ctrl/⌘+scroll to zoom</span>
       </div>
       <div class="cbar">°C<div class="grad" id="grad"></div><div class="ticks num" id="cticks"></div></div>
       <div class="tip" id="tip" hidden></div>
@@ -141,7 +137,6 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
           <button type="button" data-lvl="2" aria-pressed="false">Axial</button>
           <button type="button" data-lvl="3" aria-pressed="true">Radial + axial</button>
         </div>
-        <span class="note" id="lvl-desc"></span>
       </div>
 
       <div class="grp">
@@ -150,7 +145,7 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
           <button type="button" data-prof="endu" aria-pressed="true">Endurance</button>
           <button type="button" data-prof="const" aria-pressed="false">Constant</button>
         </div>
-        <div class="sl"><label for="p-rms">Pack RMS current</label><output id="o-rms"></output><input id="p-rms" type="range" min="20" max="70" step="1" value="40"></div>
+        <div class="sl"><label for="p-rms">Pack current (RMS)</label><output id="o-rms"></output><input id="p-rms" type="range" min="20" max="70" step="1" value="40"></div>
       </div>
 
       <div class="grp">
@@ -160,16 +155,16 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
           <button type="button" data-fan="on" aria-pressed="true">Fans on</button>
           <button type="button" data-fan="auto" aria-pressed="false">Auto</button>
         </div>
-        <div class="sl"><label for="p-cfm">Airflow (pack)</label><output id="o-cfm"></output><input id="p-cfm" type="range" min="0" max="100" step="1" value="38"><small id="hinfo"></small></div>
-        <div class="sl" id="thr-wrap" hidden><label for="p-thr">Auto on at − terminal</label><output id="o-thr"></output><input id="p-thr" type="range" min="30" max="58" step="0.5" value="45"></div>
+        <div class="sl"><label for="p-cfm">Airflow (pack)</label><output id="o-cfm"></output><input id="p-cfm" type="range" min="0" max="100" step="1" value="38"></div>
+        <div class="sl" id="thr-wrap" hidden><label for="p-thr">Auto: on above</label><output id="o-thr"></output><input id="p-thr" type="range" min="30" max="58" step="0.5" value="45"></div>
         <div class="sl"><label for="p-amb">Ambient</label><output id="o-amb"></output><input id="p-amb" type="range" min="15" max="45" step="0.5" value="35"></div>
-        <div class="sl"><label for="p-t0">Start temp</label><output id="o-t0"></output><input id="p-t0" type="range" min="15" max="45" step="0.5" value="35"></div>
+        <div class="sl"><label for="p-t0">Cell start temp</label><output id="o-t0"></output><input id="p-t0" type="range" min="15" max="45" step="0.5" value="35"></div>
       </div>
 
       <div class="grp">
         <div class="lab">Layout</div>
         <div class="sl"><label for="p-st">Cell pitch</label><output id="o-st"></output><input id="p-st" type="range" min="23" max="45" step="0.01" value="36.12"></div>
-        <div class="sl"><label for="p-sl">Row pitch (along flow)</label><output id="o-sl"></output><input id="p-sl" type="range" min="11" max="30" step="0.1" value="15.5"><small id="gapinfo"></small></div>
+        <div class="sl"><label for="p-sl">Row pitch</label><output id="o-sl"></output><input id="p-sl" type="range" min="11" max="30" step="0.1" value="15.5"></div>
         <label for="p-alt" style="font-size:12px">Every other module</label>
         <select id="p-alt">
           <option value="z" selected>180° about Z</option>
@@ -180,15 +175,10 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
 
       <div class="grp">
         <div class="lab">Cell</div>
-        <div class="sl"><label for="p-rscale">DCIR map scale</label><output id="o-rscale"></output><input id="p-rscale" type="range" min="0.5" max="1.8" step="0.01" value="1"></div>
-        <div class="row" style="flex-wrap:wrap" id="presets">
-          <button type="button" data-r="1">×1.00</button>
-          <button type="button" id="fitbtn" data-r="1.2">Fit 40 A run</button>
-          <button type="button" data-r="1.1">+10 %</button>
-        </div>
-        <div class="sl"><label for="p-cv">DCIR spread (CV)</label><output id="o-cv"></output><input id="p-cv" type="range" min="0" max="6" step="0.5" value="2"></div>
+        <div class="sl"><label for="p-rscale">Resistance scale</label><output id="o-rscale"></output><input id="p-rscale" type="range" min="0.5" max="1.8" step="0.01" value="1"><small>1.00 = About:Energy DCIR map. 1.32 matches their 40 A run.</small></div>
+        <div class="sl"><label for="p-cv">Cell-to-cell spread</label><output id="o-cv"></output><input id="p-cv" type="range" min="0" max="6" step="0.5" value="2"></div>
         <details>
-          <summary>Thermal parameters</summary>
+          <summary>Advanced</summary>
           <div class="grp" style="margin-top:6px">
             <div class="sl"><label for="p-kr">k radial</label><output id="o-kr"></output><input id="p-kr" type="range" min="0.3" max="3" step="0.05" value="0.9"></div>
             <div class="sl"><label for="p-kz">k axial</label><output id="o-kz"></output><input id="p-kz" type="range" min="5" max="45" step="1" value="28"></div>
@@ -198,15 +188,6 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
             <label class="row" style="font-size:12px"><input type="checkbox" id="p-rev" checked> Reversible heat</label>
           </div>
         </details>
-      </div>
-
-      <div class="grp">
-        <div class="lab">Colors</div>
-        <div class="seg" role="group" aria-label="Color scale" id="scale">
-          <button type="button" data-scale="fixed" aria-pressed="true">Fixed</button>
-          <button type="button" data-scale="auto" aria-pressed="false">Auto</button>
-          <button type="button" data-scale="cell" aria-pressed="false">Per cell</button>
-        </div>
       </div>
     </aside>
   </div>
@@ -220,7 +201,7 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
       <div class="chartbox"><canvas id="ichart" data-h="80"></canvas></div>
     </section>
     <section class="card">
-      <h2 id="cell-title">Cell</h2>
+      <h2 id="cell-title">Hottest cell</h2>
       <div class="cell">
         <div>
           <canvas id="xsec" width="240" height="480" aria-label="Temperature section of the selected cell"></canvas>
@@ -232,21 +213,15 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
     </section>
   </div>
 
-  <div class="lower">
-    <section class="card">
+  <section class="card">
       <h2>DCIR map</h2>
-      <div class="legend"><span><i style="background:var(--s2)"></i><span id="rm-who">Hottest cell</span> path, dot = now</span></div>
+      <div class="legend"><span><i style="background:var(--s2)"></i><span id="rm-who">Hottest cell</span>: path so far, dot = now. Hover the surface to read values.</span></div>
       <div class="rmwrap">
-        <div class="rmbox" id="rmapbox"><div class="zoombar"><button type="button" data-z="rm" data-d="-1" aria-label="Zoom in">+</button><button type="button" data-z="rm" data-d="1" aria-label="Zoom out">−</button></div><canvas id="rmap" aria-label="DCIR against temperature and SOC with the tracked cell's path"></canvas></div>
+        <div class="rmbox" id="rmapbox"><div class="zoombar"><button type="button" data-z="rm" data-d="-1" aria-label="Zoom in">+</button><button type="button" data-z="rm" data-d="1" aria-label="Zoom out">−</button></div><canvas id="rmap" aria-label="DCIR against temperature and SOC with the tracked cell's path"></canvas><div class="tip" id="rmtip" hidden></div></div>
         <div class="kv" id="rm-kv"></div>
       </div>
-    </section>
-    <section class="card" id="valcard">
-      <h2>Check vs About:Energy (40 A, 1 cell)</h2>
-      <div class="legend"><span><i style="background:var(--s1)"></i>h 15</span><span><i style="background:var(--s2)"></i>h 30</span><span>solid = A:E, dashed = this model</span><span id="valerr" class="num"></span></div>
-      <div class="chartbox"><canvas id="vchart" data-h="200"></canvas></div>
-    </section>
-  </div>
+  </section>
+
 
   <footer>Assumes 22 rows × 3 cells per module, Žukauskas tube-bank h, FR4 holders adiabatic, generic OCV below 58 % SOC. Not yet validated against LHR pack data.</footer>
 </div>
@@ -682,11 +657,11 @@ function makeMesh(half){
   mesh.frustumCulled=false;
   scene.add(mesh);return mesh;
 }
-const meshFull=makeMesh(false), meshCut=makeMesh(true);
-function updateFlips(){for(const mesh of [meshFull,meshCut]){const a=mesh.geometry.attributes.aFlip;for(let i=0;i<NCELL;i++)a.array[i]=cells[i].flip;a.needsUpdate=true;}}
+const meshFull=makeMesh(false);
+function updateFlips(){for(const mesh of [meshFull]){const a=mesh.geometry.attributes.aFlip;for(let i=0;i<NCELL;i++)a.array[i]=cells[i].flip;a.needsUpdate=true;}}
 function placeMeshes(){
   const M=new THREE.Matrix4(),Rx=new THREE.Matrix4().makeRotationX(Math.PI/2);
-  for(const mesh of [meshFull,meshCut]){for(let i=0;i<NCELL;i++){M.makeTranslation(cells[i].x,cells[i].y,cells[i].z).multiply(Rx);mesh.setMatrixAt(i,M);}mesh.instanceMatrix.needsUpdate=true;}
+  for(const mesh of [meshFull]){for(let i=0;i<NCELL;i++){M.makeTranslation(cells[i].x,cells[i].y,cells[i].z).multiply(Rx);mesh.setMatrixAt(i,M);}mesh.instanceMatrix.needsUpdate=true;}
 }
 placeMeshes();
 
@@ -751,7 +726,7 @@ const ray=new THREE.Raycaster(), mouse=new THREE.Vector2();
 let hoverCi=-1, selCi=-1, selAuto=true;
 function pick(ev){
   const r=canvas.getBoundingClientRect();mouse.set((ev.clientX-r.left)/r.width*2-1,-(ev.clientY-r.top)/r.height*2+1);
-  ray.setFromCamera(mouse,camera);const hit=ray.intersectObject(P.view==='cut'?meshCut:meshFull);
+  ray.setFromCamera(mouse,camera);const hit=ray.intersectObject(meshFull);
   return hit.length?hit[0].instanceId:-1;
 }
 function cellName(ci){const c=cells[ci];return `Module ${c.m+1} · S${c.m*LAY.groups+c.g+1} · cell ${c.k+1} of 3`;}
@@ -771,13 +746,7 @@ canvas.addEventListener('pointermove',ev=>{
   tip.style.left=x+'px';tip.style.top=y+'px';
 });
 canvas.addEventListener('pointerleave',()=>{tip.hidden=true;hoverCi=-1;uniforms.uHover.value=-1;});
-let downAt=null;
-canvas.addEventListener('pointerdown',ev=>{downAt=[ev.clientX,ev.clientY];});
-canvas.addEventListener('pointerup',ev=>{
-  if(!downAt)return;const d=Math.hypot(ev.clientX-downAt[0],ev.clientY-downAt[1]);downAt=null;
-  if(d>5)return;const ci=pick(ev);if(ci>=0){selCi=ci;selAuto=false;}else{selAuto=true;}
-  drawCell();
-});
+
 
 /* ---------------- charts ---------------- */
 const SERIES=[['core','Hottest jelly roll','--s1'],['can','Hottest can surface','--s2'],['neg','Hottest − terminal (BMS)','--s3'],['air','Air outlet / case air','--s4']];
@@ -837,7 +806,7 @@ tbox.addEventListener('pointerleave',()=>{chartHover=null;drawCharts();});
 const xs=document.getElementById('xsec');
 function drawCell(){
   const ci=selAuto?STATS.coreCi:selCi;if(ci<0)return;
-  uniforms.uSel.value=ci;
+  uniforms.uSel.value=-1;
   updateTrace(ci);
   const ctx=xs.getContext('2d');const W=xs.width,H=xs.height;
   const img=ctx.createImageData(W,H);
@@ -867,15 +836,12 @@ function drawCell(){
   ctx.font='600 20px Archivo, sans-serif';ctx.fillStyle='rgba(255,255,255,0.85)';ctx.textAlign='left';ctx.textBaseline='bottom';ctx.fillText('+',8,padTop+28);ctx.textBaseline='top';ctx.fillText('−',8,H-padBot-28);
   let core=-1e9,coreMean=0,nj=0;for(const id of NET.jellyLoc[ci]){core=Math.max(core,T[id]);coreMean+=T[id];nj++;}coreMean/=nj;
   let canMax=-1e9,canMin=1e9;for(let iz=0;iz<NET.Nz;iz++){const v=T[map[NET.L_CAN+iz]];canMax=Math.max(canMax,v);canMin=Math.min(canMin,v);}
-  document.getElementById('cell-title').textContent=(selAuto?'Hottest cell · ':'')+cellName(ci);
+  document.getElementById('cell-title').textContent='Hottest cell · '+cellName(ci);
   const rows=[
     ['Jelly roll max',core.toFixed(1)+' °C'],['Jelly roll mean',coreMean.toFixed(1)+' °C'],
     ['Can surface',canMin.toFixed(1)+'–'+canMax.toFixed(1)+' °C'],
     ['− terminal (BMS)',T[map[NET.L_NEG]].toFixed(1)+' °C'],['+ cap',T[map[NET.L_CAP]].toFixed(1)+' °C'],
-    ['Core − sensor gap',(core-T[map[NET.L_NEG]]).toFixed(1)+' K'],
-    ['Cell current',NET.Icell[ci].toFixed(1)+' A'],['Live R (node temps, spread)',(NET.Rcell[ci]*1e3).toFixed(2)+' mΩ'],
-    ['DCIR vs batch mean',((cells[ci].mult-1)*100>=0?'+':'')+((cells[ci].mult-1)*100).toFixed(1)+' %'],
-    ['Heat now',NET.Qcell[ci].toFixed(2)+' W'],['SOC',(NET.soc[ci]*100).toFixed(0)+' %']];
+    ['Resistance vs average',((cells[ci].mult-1)*100>=0?'+':'')+((cells[ci].mult-1)*100).toFixed(1)+' %']];
   document.getElementById('cell-kv').innerHTML=rows.map(r=>`<span>${r[0]}</span><span>${r[1]}</span>`).join('');
 }
 
@@ -895,13 +861,13 @@ function updateReadouts(){
   document.getElementById('r-pack').innerHTML=I.toFixed(0)+'<small>A</small> '+(ocv-I*Rp).toFixed(0)+'<small>V</small>';
   document.getElementById('r-packd').textContent='Cells making '+(S.qs/1000).toFixed(2)+' kW heat';
   {const kWh=3.6e6;document.getElementById('r-soe').innerHTML=(S.soe*100).toFixed(1)+'<small>%</small> '+(S.eRem/kWh).toFixed(2)+'<small>kWh</small>';
-   document.getElementById('r-soed').textContent='of '+(S.eFull/kWh).toFixed(2)+' kWh · SOC '+(S.soc*100).toFixed(1)+' %';
-   document.getElementById('r-soed2').textContent='Delivered '+(NET.eTerm/kWh).toFixed(2)+' kWh · heat '+(NET.eHeat/kWh).toFixed(3)+' kWh';}
+   document.getElementById('r-soed').textContent='of '+(S.eFull/kWh).toFixed(2)+' kWh · SOC '+(S.soc*100).toFixed(0)+' % · used '+(NET.eTerm/kWh).toFixed(2)+' kWh';
+}
   {const ci=S.coreCi;const R=avg10(RB.R,ci),Qa=avg10(RB.Q,ci),Ir=rms10(RB.I,ci),Qr=avg10(RB.Qr,ci);
    let qp=0;for(let c=0;c<NCELL;c++)qp+=avg10(RB.Q,c);
    document.getElementById('r-rq').innerHTML=(R*1e3).toFixed(2)+'<small>mΩ</small> '+Qa.toFixed(2)+'<small>W</small>';
-   document.getElementById('r-rqd').textContent=Ir.toFixed(1)+' A rms · reversible '+(Qr>=0?'+':'')+Qr.toFixed(2)+' W';
-   document.getElementById('r-rqd2').textContent='Pack avg '+(qp/NCELL).toFixed(2)+' W/cell over the same 10 s';}
+   document.getElementById('r-rqd').textContent=Ir.toFixed(1)+' A rms · pack avg '+(qp/NCELL).toFixed(2)+' W/cell';
+}
   const hud=document.getElementById('hud');
   const chips=[];
   chips.push(`<span class="chip">Fidelity <b>${['','Lumped','Axial','Radial + axial'][P.lvl]}</b></span>`);
@@ -922,7 +888,7 @@ for(const k of Object.keys(fmt)){
   el.addEventListener('input',()=>{P[k]=parseFloat(el.value);show();
     if(k==='cfm'){AIR=airSide();updateHInfo();}
     if(k==='st'||k==='sl'){layoutCells();placeMeshes();buildArrows();AIR=airSide();updateHInfo();updateGap();}
-    if(k==='rscale'||k==='ccell'){drawValidation();buildSurface();}
+    if(k==='rscale')buildSurface();
     if(k==='cv'){seedDCIR();}
     if(RESET_KEYS.has(k))scheduleReset();
     else if(REBUILD_KEYS.has(k))scheduleReset();
@@ -937,7 +903,7 @@ function seg(id,key,attr,cb){
   }));
 }
 const LVL_DESC={1:'1 node per cell.',2:'10 axial slices + can, caps.',3:'4 rings × 10 slices + can, − floor, + collector, cap (53 nodes/cell).'};
-function setLvlDesc(){document.getElementById('lvl-desc').textContent=LVL_DESC[P.lvl];}
+function setLvlDesc(){}
 seg('lvl','lvl','lvl',()=>{setLvlDesc();fullReset();});
 seg('prof','prof','prof',()=>fullReset());
 document.getElementById('p-alt').addEventListener('change',e=>{P.alt=e.target.value;layoutCells();placeMeshes();updateFlips();fullReset();});
@@ -945,11 +911,9 @@ seg('fan','fan','fan',()=>{document.getElementById('thr-wrap').hidden=P.fan!=='a
 document.querySelectorAll('#presets button').forEach(b=>b.addEventListener('click',()=>{
   const r=document.getElementById('p-rscale');r.value=b.dataset.r;r.dispatchEvent(new Event('input'));
 }));
-function updateGap(){const D=21,diag=Math.hypot(P.sl,P.st/2)-D;
+function updateGap(){if(!document.getElementById('gapinfo'))return;const D=21,diag=Math.hypot(P.sl,P.st/2)-D;
   const el=document.getElementById('gapinfo');el.textContent=diag<0.2?`Cells overlap at this pitch (diagonal gap ${diag.toFixed(1)} mm)`:`Air gap between staggered neighbours ${diag.toFixed(1)} mm`;el.style.color=diag<0.2?'var(--crit)':'';}
-seg('scale','scale','scale',()=>{updateRange();drawColorbar();});
-seg('Render mode','view','view',()=>{meshFull.visible=P.view==='surface';meshCut.visible=P.view==='cut';});
-function updateHInfo(){const a=AIR;if(!a)return;document.getElementById('hinfo').textContent=fanOn&&a.mdot>0?`${(P.cfm/LAY.mods).toFixed(1)} CFM per module · ${(a.v||0).toFixed(2)} m/s face · Re ${a.re.toFixed(0)} · h ≈ ${a.h.toFixed(0)} W/m²K`:`Fans off · free convection h ≈ ${a.h.toFixed(1)} W/m²K`;}
+function updateHInfo(){const a=AIR;if(!a||!document.getElementById('hinfo'))return;document.getElementById('hinfo').textContent=fanOn&&a.mdot>0?`${(P.cfm/LAY.mods).toFixed(1)} CFM per module · ${(a.v||0).toFixed(2)} m/s face · Re ${a.re.toFixed(0)} · h ≈ ${a.h.toFixed(0)} W/m²K`:`Fans off · free convection h ≈ ${a.h.toFixed(1)} W/m²K`;}
 let resetTimer=null;function scheduleReset(){clearTimeout(resetTimer);resetTimer=setTimeout(fullReset,220);}
 
 let running=true;
@@ -1071,12 +1035,17 @@ function updateTrace(ci){
   const x=pa[3*(n-1)],y=pa[3*(n-1)+1],z=pa[3*(n-1)+2];trDot.position.set(x,y,z);
   const d=dropGeo.attributes.position.array;d.set([x,y,z,x,0,z]);dropGeo.attributes.position.needsUpdate=true;drop.computeLineDistances();
   const rm=P.rscale*rMap(Tn,sn), I=NET.Icell[ci];
-  document.getElementById('rm-who').textContent=(selAuto?'Hottest cell':'Selected cell')+', '+cellName(ci).replace('Module ','M').replace(' of 3','');
-  const rows=[['Jelly roll mean',Tn.toFixed(1)+' °C'],['SOC',(sn*100).toFixed(1)+' %'],['DCIR from map',rm.toFixed(2)+' mΩ'],['× cell spread',(cells[ci].mult).toFixed(3)],
-    ['Live R, all nodes',(NET.Rcell[ci]*1e3).toFixed(2)+' mΩ'],['Cell current',I.toFixed(1)+' A'],['Joule heat I²R',(NET.Qcell[ci]-NET.Qrev[ci]).toFixed(2)+' W'],
-    ['Reversible heat',(NET.Qrev[ci]>=0?'+':'')+NET.Qrev[ci].toFixed(2)+' W'],['Total heat now',NET.Qcell[ci].toFixed(2)+' W'],['Heat, 10 s avg',avg10(RB.Q,ci).toFixed(2)+' W'],['R, 10 s avg',(avg10(RB.R,ci)*1e3).toFixed(2)+' mΩ']];
+  const rows=[['Avg temp',Tn.toFixed(1)+' °C'],['SOC',(sn*100).toFixed(1)+' %'],['DCIR',rm.toFixed(2)+' mΩ'],['Current',I.toFixed(1)+' A'],
+    ['Heat now',NET.Qcell[ci].toFixed(2)+' W'],['  of which reversible',(NET.Qrev[ci]>=0?'+':'')+NET.Qrev[ci].toFixed(2)+' W'],['Heat, 10 s avg',avg10(RB.Q,ci).toFixed(2)+' W']];
   document.getElementById('rm-kv').innerHTML=rows.map(r=>`<span>${r[0]}</span><span>${r[1]}</span>`).join('');
 }
+{const rmTip=document.getElementById('rmtip'),rr=new THREE.Raycaster(),mv=new THREE.Vector2();
+ rmCanvas.addEventListener('pointermove',ev=>{if(!rmSurf)return;const b=rmCanvas.getBoundingClientRect();mv.set((ev.clientX-b.left)/b.width*2-1,-(ev.clientY-b.top)/b.height*2+1);
+  rr.setFromCamera(mv,rmCam);const h=rr.intersectObject(rmSurf);if(!h.length){rmTip.hidden=true;return;}
+  const p=h[0].point,soc=95-p.x/100*90,T=10+p.z/100*50,r=P.rscale*rMap(T,soc/100);
+  rmTip.innerHTML=`<div class="r"><span>Temp</span><span class="num">${T.toFixed(1)} °C</span></div><div class="r"><span>SOC</span><span class="num">${soc.toFixed(0)} %</span></div><div class="r"><span>DCIR</span><span class="num">${r.toFixed(2)} mΩ</span></div><div class="r"><span>Heat at 13.3 A</span><span class="num">${(13.3*13.3*r/1000).toFixed(2)} W</span></div>`;
+  rmTip.hidden=false;const bx=rmBox.getBoundingClientRect();let x=ev.clientX-bx.left+12,y=ev.clientY-bx.top+12;if(x+180>bx.width)x-=195;if(y+90>bx.height)y-=100;rmTip.style.left=x+'px';rmTip.style.top=y+'px';});
+ rmCanvas.addEventListener('pointerleave',()=>{rmTip.hidden=true;});}
 new ResizeObserver(()=>{const w=rmBox.clientWidth,h=rmBox.clientHeight;rmRen.setSize(w,h,false);rmCam.aspect=w/h;rmCam.updateProjectionMatrix();}).observe(rmBox);
 
 /* ---------------- loop ---------------- */
@@ -1100,9 +1069,8 @@ function frame(now){
   if(rmVis){rmCtl.update();rmRen.render(rmScene,rmCam);}
   requestAnimationFrame(frame);
 }
-meshFull.visible=false;
-buildSurface();buildStatic();rmColors();fitScale();
-setLvlDesc();themeBg();resize();updateGap();fullReset();drawValidation();
+buildSurface();buildStatic();rmColors();
+setLvlDesc();themeBg();resize();fullReset();
 requestAnimationFrame(frame);
 window.__sim={P,get NET(){return NET},get STATS(){return STATS},step,fullReset,get simT(){return simT}};
 })();
