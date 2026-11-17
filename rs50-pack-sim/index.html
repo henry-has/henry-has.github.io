@@ -131,15 +131,15 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
 
     <aside class="panel">
       <div class="grp">
-        <label class="lab" for="p-prof">Drive cycle</label>
-        <select id="p-prof">
-          <option value="wwu26" selected>WWU MI 26 (EMRAX 228 + CM200)</option>
-          <option value="cp26">Cal Poly MI 26</option>
-          <option value="pitt26">Pitt MI 26</option>
-          <option value="gfr26">GFR MI 26</option>
-          <option value="endu">Synthetic</option>
-          <option value="const">Constant</option>
-        </select>
+        <div class="lab">Drive cycle</div>
+        <div class="seg" role="group" aria-label="Drive cycle" id="prof">
+          <button type="button" data-prof="wwu26" aria-pressed="true">WWU MI 26</button>
+          <button type="button" data-prof="cp26" aria-pressed="false">Cal Poly MI 26</button>
+          <button type="button" data-prof="pitt26" aria-pressed="false">Pitt MI 26</button>
+          <button type="button" data-prof="gfr26" aria-pressed="false">GFR MI 26</button>
+          <button type="button" data-prof="endu" aria-pressed="false">Synthetic</button>
+          <button type="button" data-prof="const" aria-pressed="false">Constant</button>
+        </div>
         <span class="note" id="lognote"></span>
       </div>
       <div class="grp">
@@ -176,12 +176,6 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
           <div class="lab">Layout</div>
           <div class="sl"><label for="p-st">Cell pitch</label><output id="o-st"></output><input id="p-st" type="range" min="23" max="45" step="0.01" value="36.12"></div>
           <div class="sl"><label for="p-sl">Row pitch</label><output id="o-sl"></output><input id="p-sl" type="range" min="11" max="30" step="0.1" value="15.5"></div>
-          <label for="p-alt" style="font-size:12px">Every other module</label>
-          <select id="p-alt">
-            <option value="z" selected>180° about Z</option>
-            <option value="y">180° about vertical</option>
-            <option value="none">Not rotated</option>
-          </select>
 
           <div class="lab">Cell</div>
           <div class="sl"><label for="p-rscale">Resistance scale</label><output id="o-rscale"></output><input id="p-rscale" type="range" min="0.5" max="1.8" step="0.01" value="1"><small>1.00 = About:Energy map · 1.32 = fit to their 40 A test</small></div>
@@ -191,7 +185,8 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
           <div class="sl"><label for="p-hneg">− foil-to-can contact</label><output id="o-hneg"></output><input id="p-hneg" type="range" min="1000" max="60000" step="1000" value="30000"></div>
           <div class="sl"><label for="p-gpos">+ collector-to-cap</label><output id="o-gpos"></output><input id="p-gpos" type="range" min="0.05" max="3" step="0.05" value="0.6"></div>
           <div class="sl"><label for="p-ccell">Heat capacity</label><output id="o-ccell"></output><input id="p-ccell" type="range" min="45" max="80" step="0.1" value="60.6"></div>
-          <label class="row" style="font-size:12px"><input type="checkbox" id="p-rev" checked> Reversible heat</label>
+          <label class="row" style="font-size:12px"><input type="checkbox" id="p-rev" checked> Entropic (reversible) heat</label>
+          <span class="note">−I·T·dU/dT. Cell absorbs heat on discharge above ~60 % SOC (About:Energy data) and gives it off lower down. Up to ±0.5 W per cell.</span>
 
           <div class="lab">Model</div>
           <div class="seg" role="group" aria-label="Model fidelity" id="lvl">
@@ -942,8 +937,7 @@ function setLvlDesc(){}
 seg('lvl','lvl','lvl',()=>{setLvlDesc();fullReset();});
 function profUI(){const lg=LOGS[P.prof];document.getElementById('lognote').textContent=lg?lg.note:(P.prof==='endu'?'Made-up lap shape scaled to the RMS input, 180 s driver change.':'Constant current at the RMS input.');document.getElementById('rms-wrap').hidden=!!lg;document.getElementById('ps-wrap').hidden=!lg;document.getElementById('regen-wrap').hidden=P.prof!=='endu';
 }
-document.getElementById('p-prof').addEventListener('change',e=>{P.prof=e.target.value;profUI();fullReset();});
-document.getElementById('p-alt').addEventListener('change',e=>{P.alt=e.target.value;layoutCells();placeMeshes();updateFlips();fullReset();});
+seg('prof','prof','prof',()=>{profUI();fullReset();});
 seg('fan','fan','fan',()=>{document.getElementById('thr-wrap').hidden=P.fan!=='auto';fanControl();updateHInfo();});
 document.querySelectorAll('#presets button').forEach(b=>b.addEventListener('click',()=>{
   const r=document.getElementById('p-rscale');r.value=b.dataset.r;r.dispatchEvent(new Event('input'));
