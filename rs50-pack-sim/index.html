@@ -131,70 +131,76 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
 
     <aside class="panel">
       <div class="grp">
-        <div class="lab">Model</div>
-        <div class="seg" role="group" aria-label="Model fidelity" id="lvl">
-          <button type="button" data-lvl="1" aria-pressed="false">Lumped</button>
-          <button type="button" data-lvl="2" aria-pressed="false">Axial</button>
-          <button type="button" data-lvl="3" aria-pressed="true">Radial + axial</button>
-        </div>
+        <label class="lab" for="p-prof">Drive cycle</label>
+        <select id="p-prof">
+          <option value="wwu26" selected>WWU MI 26 (EMRAX 228 + CM200)</option>
+          <option value="cp26">Cal Poly MI 26</option>
+          <option value="pitt26">Pitt MI 26</option>
+          <option value="gfr26">GFR MI 26</option>
+          <option value="endu">Synthetic</option>
+          <option value="const">Constant</option>
+        </select>
+        <span class="note" id="lognote"></span>
       </div>
-
       <div class="grp">
-        <div class="lab">Load</div>
-        <div class="seg" role="group" aria-label="Current profile" id="prof">
-          <button type="button" data-prof="endu" aria-pressed="false">Synthetic</button>
-          <button type="button" data-prof="const" aria-pressed="false">Constant</button>
-          <button type="button" data-prof="wwu26" aria-pressed="true">WWU MI 26</button>
-          <button type="button" data-prof="cp26" aria-pressed="false">Cal Poly MI 26</button>
-          <button type="button" data-prof="pitt26" aria-pressed="false">Pitt MI 26</button>
-          <button type="button" data-prof="gfr26" aria-pressed="false">GFR MI 26</button>
-        </div>
-        <div class="sl" id="rms-wrap"><label for="p-rms">Pack current (RMS)</label><output id="o-rms"></output><input id="p-rms" type="range" min="10" max="70" step="1" value="40"></div>
-        <div class="sl" id="regen-wrap" hidden><label for="p-regen">Regen peak (% of drive peak)</label><output id="o-regen"></output><input id="p-regen" type="range" min="0" max="100" step="5" value="50"></div>
-        <div class="sl" id="ps-wrap" hidden><label for="p-pscale">Power scale</label><output id="o-pscale"></output><input id="p-pscale" type="range" min="0.5" max="1.5" step="0.01" value="1"><small id="lognote"></small></div>
+        <div class="sl"><label for="p-amb">Ambient</label><output id="o-amb"></output><input id="p-amb" type="range" min="15" max="45" step="0.5" value="35"></div>
       </div>
-
       <div class="grp">
-        <div class="lab">Cooling</div>
+        <div class="lab">Fans</div>
         <div class="seg" role="group" aria-label="Fans" id="fan">
-          <button type="button" data-fan="off" aria-pressed="false">Fans off</button>
-          <button type="button" data-fan="on" aria-pressed="true">Fans on</button>
+          <button type="button" data-fan="off" aria-pressed="false">Off</button>
+          <button type="button" data-fan="on" aria-pressed="true">On</button>
           <button type="button" data-fan="auto" aria-pressed="false">Auto</button>
         </div>
-        <div class="sl"><label for="p-cfm">Airflow (pack)</label><output id="o-cfm"></output><input id="p-cfm" type="range" min="0" max="100" step="1" value="38"></div>
-        <div class="sl" id="thr-wrap" hidden><label for="p-thr">Auto: on above</label><output id="o-thr"></output><input id="p-thr" type="range" min="30" max="58" step="0.5" value="45"></div>
-        <div class="sl"><label for="p-amb">Ambient</label><output id="o-amb"></output><input id="p-amb" type="range" min="15" max="45" step="0.5" value="35"></div>
-        <div class="sl"><label for="p-t0">Cell start temp</label><output id="o-t0"></output><input id="p-t0" type="range" min="15" max="45" step="0.5" value="35"></div>
       </div>
 
-      <div class="grp">
-        <div class="lab">Layout</div>
-        <div class="sl"><label for="p-st">Cell pitch</label><output id="o-st"></output><input id="p-st" type="range" min="23" max="45" step="0.01" value="36.12"></div>
-        <div class="sl"><label for="p-sl">Row pitch</label><output id="o-sl"></output><input id="p-sl" type="range" min="11" max="30" step="0.1" value="15.5"></div>
-        <label for="p-alt" style="font-size:12px">Every other module</label>
-        <select id="p-alt">
-          <option value="z" selected>180° about Z</option>
-          <option value="y">180° about vertical</option>
-          <option value="none">Not rotated</option>
-        </select>
-      </div>
+      <details>
+        <summary>All inputs</summary>
+        <div class="grp" style="margin-top:8px">
+          <div class="lab">Load</div>
+          <div class="sl" id="rms-wrap"><label for="p-rms">Pack current (RMS)</label><output id="o-rms"></output><input id="p-rms" type="range" min="10" max="70" step="1" value="40"></div>
+          <div class="sl" id="regen-wrap" hidden><label for="p-regen">Regen peak (% of drive peak)</label><output id="o-regen"></output><input id="p-regen" type="range" min="0" max="100" step="5" value="50"></div>
+          <div class="sl" id="ps-wrap" hidden><label for="p-pscale">Power scale</label><output id="o-pscale"></output><input id="p-pscale" type="range" min="0.5" max="1.5" step="0.01" value="1"></div>
+          <div class="sl"><label for="p-t0">Cell start temp</label><output id="o-t0"></output><input id="p-t0" type="range" min="15" max="45" step="0.5" value="35"></div>
 
-      <div class="grp">
-        <div class="lab">Cell</div>
-        <div class="sl"><label for="p-rscale">Resistance scale</label><output id="o-rscale"></output><input id="p-rscale" type="range" min="0.5" max="1.8" step="0.01" value="1"><small>1.00 = About:Energy map · 1.32 = fit to their 40 A test</small></div>
-        <div class="sl"><label for="p-cv">Cell-to-cell spread</label><output id="o-cv"></output><input id="p-cv" type="range" min="0" max="6" step="0.5" value="2"></div>
-        <details>
-          <summary>Advanced</summary>
-          <div class="grp" style="margin-top:6px">
-            <div class="sl"><label for="p-kr">k radial</label><output id="o-kr"></output><input id="p-kr" type="range" min="0.3" max="3" step="0.05" value="0.9"></div>
-            <div class="sl"><label for="p-kz">k axial</label><output id="o-kz"></output><input id="p-kz" type="range" min="5" max="45" step="1" value="28"></div>
-            <div class="sl"><label for="p-hneg">− foil-to-can contact</label><output id="o-hneg"></output><input id="p-hneg" type="range" min="1000" max="60000" step="1000" value="30000"></div>
-            <div class="sl"><label for="p-gpos">+ collector-to-cap</label><output id="o-gpos"></output><input id="p-gpos" type="range" min="0.05" max="3" step="0.05" value="0.6"></div>
-            <div class="sl"><label for="p-ccell">Heat capacity</label><output id="o-ccell"></output><input id="p-ccell" type="range" min="45" max="80" step="0.1" value="60.6"></div>
-            <label class="row" style="font-size:12px"><input type="checkbox" id="p-rev" checked> Reversible heat</label>
+          <div class="lab">Fans on</div>
+          <div class="sl"><label for="p-cfm">Airflow (pack)</label><output id="o-cfm"></output><input id="p-cfm" type="range" min="0" max="100" step="1" value="38"></div>
+          <div class="sl" id="thr-wrap" hidden><label for="p-thr">Auto: on above</label><output id="o-thr"></output><input id="p-thr" type="range" min="30" max="58" step="0.5" value="45"></div>
+
+          <div class="lab">Fans off (vented case)</div>
+          <div class="sl"><label for="p-vent">Effective vent area</label><output id="o-vent"></output><input id="p-vent" type="range" min="0" max="100" step="1" value="20"></div>
+          <div class="sl"><label for="p-vavg">Avg car speed</label><output id="o-vavg"></output><input id="p-vavg" type="range" min="5" max="25" step="0.5" value="15"></div>
+          <div class="sl"><label for="p-uawall">Case wall UA</label><output id="o-uawall"></output><input id="p-uawall" type="range" min="0" max="15" step="0.5" value="4"></div>
+          <span class="note">Vent flow from ram pressure (½ρv²) + buoyancy, same method as LHR's vented model fit to Pickle drive day. 20 cm² is a placeholder until refit.</span>
+
+          <div class="lab">Layout</div>
+          <div class="sl"><label for="p-st">Cell pitch</label><output id="o-st"></output><input id="p-st" type="range" min="23" max="45" step="0.01" value="36.12"></div>
+          <div class="sl"><label for="p-sl">Row pitch</label><output id="o-sl"></output><input id="p-sl" type="range" min="11" max="30" step="0.1" value="15.5"></div>
+          <label for="p-alt" style="font-size:12px">Every other module</label>
+          <select id="p-alt">
+            <option value="z" selected>180° about Z</option>
+            <option value="y">180° about vertical</option>
+            <option value="none">Not rotated</option>
+          </select>
+
+          <div class="lab">Cell</div>
+          <div class="sl"><label for="p-rscale">Resistance scale</label><output id="o-rscale"></output><input id="p-rscale" type="range" min="0.5" max="1.8" step="0.01" value="1"><small>1.00 = About:Energy map · 1.32 = fit to their 40 A test</small></div>
+          <div class="sl"><label for="p-cv">Cell-to-cell spread</label><output id="o-cv"></output><input id="p-cv" type="range" min="0" max="6" step="0.5" value="2"></div>
+          <div class="sl"><label for="p-kr">k radial</label><output id="o-kr"></output><input id="p-kr" type="range" min="0.3" max="3" step="0.05" value="0.9"></div>
+          <div class="sl"><label for="p-kz">k axial</label><output id="o-kz"></output><input id="p-kz" type="range" min="5" max="45" step="1" value="28"></div>
+          <div class="sl"><label for="p-hneg">− foil-to-can contact</label><output id="o-hneg"></output><input id="p-hneg" type="range" min="1000" max="60000" step="1000" value="30000"></div>
+          <div class="sl"><label for="p-gpos">+ collector-to-cap</label><output id="o-gpos"></output><input id="p-gpos" type="range" min="0.05" max="3" step="0.05" value="0.6"></div>
+          <div class="sl"><label for="p-ccell">Heat capacity</label><output id="o-ccell"></output><input id="p-ccell" type="range" min="45" max="80" step="0.1" value="60.6"></div>
+          <label class="row" style="font-size:12px"><input type="checkbox" id="p-rev" checked> Reversible heat</label>
+
+          <div class="lab">Model</div>
+          <div class="seg" role="group" aria-label="Model fidelity" id="lvl">
+            <button type="button" data-lvl="1" aria-pressed="false">Lumped</button>
+            <button type="button" data-lvl="2" aria-pressed="false">Axial</button>
+            <button type="button" data-lvl="3" aria-pressed="true">Radial + axial</button>
           </div>
-        </details>
-      </div>
+        </div>
+      </details>
     </aside>
   </div>
 
@@ -251,7 +257,7 @@ const VR=8, VZ=28, TILES_X=32;
 const TEX_W=VR*TILES_X, TEX_H=VZ*Math.ceil(NCELL/TILES_X);
 const DT=0.25;
 
-const P={lvl:3,prof:'wwu26',rms:40,fan:'on',cfm:38,thr:45,amb:35,t0:35,rscale:1,cv:2,kr:0.9,kz:28,hneg:30000,gpos:0.6,ccell:60.6,st:36.12,sl:15.5,rev:true,scale:'fixed',view:'cut',alt:'z',pscale:1,regen:50};
+const P={lvl:3,prof:'wwu26',rms:40,fan:'on',cfm:38,thr:45,amb:35,t0:35,rscale:1,cv:2,kr:0.9,kz:28,hneg:30000,gpos:0.6,ccell:60.6,st:36.12,sl:15.5,rev:true,scale:'fixed',view:'cut',alt:'z',pscale:1,regen:50,vent:20,vavg:15,uawall:4};
 let fanOn=true, fanTick=0;
 
 /* ---------------- helpers ---------------- */
@@ -452,12 +458,13 @@ function sampleW(r,z,Nr,Nz,dr,dz,L_CAN,L_NEG,L_CAP){
 function sampleCell(ci,r,z){const ws=sampleW(r,z,NET.Nr,NET.Nz,NET.dr,NET.dz,NET.L_CAN,NET.L_NEG,NET.L_CAP),map=NET.cellMap[ci];let s=0;for(const [l,w] of ws)s+=w*NET.T[map[l]];return s;}
 
 /* ---------------- air side ---------------- */
-function airSide(){
+function airSide(cfmIn){
   const D=21e-3, ST=LAY.ST*MM, SL=LAY.SL*MM;
   const nu=1.7e-5, kA=0.0272, Pr=0.71, rho=1.13, cpA=1007;
   const hNat=5.5;
-  if(!fanOn||P.cfm<=0)return {h:hNat,mdot:0,re:0,v:0};
-  const Q=P.cfm*4.719e-4/LAY.mods;
+  const cfm=cfmIn!==undefined?cfmIn:(fanOn?P.cfm:0);
+  if(cfm<=0)return {h:hNat,mdot:0,re:0,v:0,cpA};
+  const Q=cfm*4.719e-4/LAY.mods;
   const Af=(LAY.perRow*LAY.ST+LAY.ST/2)*MM*GEO.L;
   const V=Q/Af, SD=Math.hypot(SL,ST/2);
   const Vmax=V*Math.max(ST/(ST-D),ST/(2*(SD-D)));
@@ -469,6 +476,7 @@ function airSide(){
   return {h:Math.cbrt(hF*hF*hF+hNat*hNat*hNat),mdot:rho*Q,re:Re,v:V,vmax:Vmax,cpA};
 }
 let AIR=null;
+function carSpeed(t){if(t>=PROF.tEnd)return 0;if(PROF.change>0&&t>=PROF.changeAt&&t<PROF.changeAt+PROF.change)return 0;return P.vavg;}
 
 /* ---------------- step ---------------- */
 let simT=0;
@@ -538,9 +546,14 @@ function step(dt){
     for(let m=0;m<LAY.mods;m++){let Tin=P.amb;for(let r=0;r<LAY.groups;r++){const z=m*LAY.groups+r;Tz[z]=Tin+0.5*Qz[z]/mc;Tin+=Qz[z]/mc;}}
   }else{
     let Qs=0;for(let z=0;z<net.nZones;z++)Qs+=Qz[z];
-    const Cenc=1800, UA=4.0;
-    net.Tenc=(Cenc/dt*net.Tenc+Qs+UA*P.amb)/(Cenc/dt+UA);
+    const Cenc=1800, rho=1.13, cpA=1007, v=carSpeed(simT);
+    const dp=0.5*rho*v*v*0.5+rho*9.81*0.15*Math.max(0,net.Tenc-P.amb)/(P.amb+273.15);
+    const md=rho*0.6*P.vent*1e-4*Math.sqrt(2*dp/rho);
+    net.ventMd=md;
+    const G=md*cpA+P.uawall;
+    net.Tenc=(Cenc/dt*net.Tenc+Qs+G*P.amb)/(Cenc/dt+G);
     Tz.fill(net.Tenc);
+    AIR=airSide(md/rho/4.719e-4);
   }
   // 10 s rolling window of per-cell R and heat
   {const k=RB.pos*NCELL;for(let ci=0;ci<NCELL;ci++){RB.R[k+ci]=net.Rcell[ci];RB.Q[k+ci]=net.Qcell[ci];RB.I[k+ci]=net.Icell[ci];RB.Qr[k+ci]=net.Qrev[ci];}
@@ -899,13 +912,13 @@ function updateReadouts(){
   const chips=[];
   chips.push(`<span class="chip">Fans <b>${fanOn?'on':'off'}</b>${P.fan==='auto'?' (auto)':''}</span>`);
   if(fanOn)chips.push(`<span class="chip">h <b class="num">${AIR.h.toFixed(0)}</b> W/m²K · air out <b class="num">${S.airOut.toFixed(1)}</b> °C</span>`);
-  else chips.push(`<span class="chip">Case air <b class="num">${S.airOut.toFixed(1)}</b> °C</span>`);
+  else chips.push(`<span class="chip">Case air <b class="num">${S.airOut.toFixed(1)}</b> °C · vent <b class="num">${((NET.ventMd||0)*1000).toFixed(0)}</b> g/s · h <b class="num">${AIR.h.toFixed(0)}</b></span>`);
   if(S.core>=60)chips.push(`<span class="chip crit"><b>Over 60 °C</b> at ${fmtT(simT)}</span>`);
   hud.innerHTML=chips.join('');
 }
 
 /* ---------------- controls ---------------- */
-const fmt={regen:v=>v+' %',pscale:v=>'×'+(+v).toFixed(2),rms:v=>v+' A',cfm:v=>v+' CFM',thr:v=>v+' °C',st:v=>(+v).toFixed(2)+' mm',sl:v=>(+v).toFixed(1)+' mm',rscale:v=>'×'+(+v).toFixed(2),ccell:v=>(+v).toFixed(1)+' J/K',amb:v=>v+' °C',t0:v=>v+' °C',cv:v=>v+' %',kr:v=>(+v).toFixed(2)+' W/m·K',kz:v=>v+' W/m·K',hneg:v=>(v/1000).toFixed(0)+'k W/m²K',gpos:v=>(+v).toFixed(2)+' W/K'};
+const fmt={vent:v=>v+' cm²',vavg:v=>(+v).toFixed(1)+' m/s',uawall:v=>(+v).toFixed(1)+' W/K',regen:v=>v+' %',pscale:v=>'×'+(+v).toFixed(2),rms:v=>v+' A',cfm:v=>v+' CFM',thr:v=>v+' °C',st:v=>(+v).toFixed(2)+' mm',sl:v=>(+v).toFixed(1)+' mm',rscale:v=>'×'+(+v).toFixed(2),ccell:v=>(+v).toFixed(1)+' J/K',amb:v=>v+' °C',t0:v=>v+' °C',cv:v=>v+' %',kr:v=>(+v).toFixed(2)+' W/m·K',kz:v=>v+' W/m·K',hneg:v=>(v/1000).toFixed(0)+'k W/m²K',gpos:v=>(+v).toFixed(2)+' W/K'};
 const RESET_KEYS=new Set(['rms','t0','cv','pscale','regen']);
 const REBUILD_KEYS=new Set(['kr','kz','hneg','gpos','ccell']);
 for(const k of Object.keys(fmt)){
@@ -931,9 +944,9 @@ function seg(id,key,attr,cb){
 const LVL_DESC={1:'1 node per cell.',2:'10 axial slices + can, caps.',3:'4 rings × 10 slices + can, − floor, + collector, cap (53 nodes/cell).'};
 function setLvlDesc(){}
 seg('lvl','lvl','lvl',()=>{setLvlDesc();fullReset();});
-function profUI(){const lg=LOGS[P.prof];document.getElementById('rms-wrap').hidden=!!lg;document.getElementById('ps-wrap').hidden=!lg;document.getElementById('regen-wrap').hidden=P.prof!=='endu';
-  if(lg)document.getElementById('lognote').textContent=lg.note;}
-seg('prof','prof','prof',()=>{profUI();fullReset();});
+function profUI(){const lg=LOGS[P.prof];document.getElementById('lognote').textContent=lg?lg.note:(P.prof==='endu'?'Made-up lap shape scaled to the RMS input, 180 s driver change.':'Constant current at the RMS input.');document.getElementById('rms-wrap').hidden=!!lg;document.getElementById('ps-wrap').hidden=!lg;document.getElementById('regen-wrap').hidden=P.prof!=='endu';
+}
+document.getElementById('p-prof').addEventListener('change',e=>{P.prof=e.target.value;profUI();fullReset();});
 document.getElementById('p-alt').addEventListener('change',e=>{P.alt=e.target.value;layoutCells();placeMeshes();updateFlips();fullReset();});
 seg('fan','fan','fan',()=>{document.getElementById('thr-wrap').hidden=P.fan!=='auto';fanControl();updateHInfo();});
 document.querySelectorAll('#presets button').forEach(b=>b.addEventListener('click',()=>{
