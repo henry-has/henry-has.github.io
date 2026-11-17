@@ -336,16 +336,17 @@ function buildProfile(){
   const dt=0.5, rng=mulberry(42);
   const lap=[[2.0,1.0],[2.5,0.55],[1.5,-0.35],[3,0.3],[2,0.85],[2.5,0.6],[1.5,-0.3],[3.5,0.35],[2.5,0.95],[3,0.65],[1.5,-0.4],[3,0.4],[2,0.8],[3,0.55],[1.2,-0.3],[4,0.45],[2.5,0.9],[2,0.5],[1.5,-0.25],[3.5,0.4],[2,0.75],[2.5,0.6],[1.5,-0.3],[3,0.45],[3,0.7]];
   let raw=[], drive=[], lapStart=[];
-  const laps=22, half=11, change=180;
+  const laps=22, half=11, change=180, DRIVE=1600; // driving time, s (GFR, the endurance winner, drove 1436 s)
+  const lapLen=lap.reduce((a,x)=>a+x[0],0), ks=DRIVE/(laps*lapLen);
   if(P.prof==='const'){
-    const n=Math.round(1650/dt);for(let i=0;i<n;i++){raw.push(1);drive.push(true);}
-    for(let l=0;l<laps;l++)lapStart.push(l*1650/laps);
+    const n=Math.round(DRIVE/dt);for(let i=0;i<n;i++){raw.push(1);drive.push(true);}
+    for(let l=0;l<laps;l++)lapStart.push(l*DRIVE/laps);
   }else{
     let t=0;
     for(let l=0;l<laps;l++){
       if(l===half){for(let i=0;i<change/dt;i++){raw.push(0);drive.push(false);}t+=change;}
       lapStart.push(t);
-      for(const [d,a0] of lap){const a=a0<0?a0/0.35*(P.regen/100):a0;const j=1+0.12*(rng()-0.5)*2;const n=Math.round(d*(0.95+0.1*rng())/dt);for(let i=0;i<n;i++){raw.push(a*j);drive.push(true);}t+=n*dt;}
+      for(const [d,a0] of lap){const a=a0<0?a0/0.35*(P.regen/100):a0;const j=1+0.12*(rng()-0.5)*2;const n=Math.round(d*ks*(0.95+0.1*rng())/dt);for(let i=0;i<n;i++){raw.push(a*j);drive.push(true);}t+=n*dt;}
     }
     let y=0;const k=dt/(0.6+dt);for(let i=0;i<raw.length;i++){y+=k*(raw[i]-y);raw[i]=drive[i]?y:0;}
   }
@@ -939,7 +940,7 @@ function seg(id,key,attr,cb){
 const LVL_DESC={1:'1 node per cell.',2:'10 axial slices + can, caps.',3:'4 rings × 10 slices + can, − floor, + collector, cap (53 nodes/cell).'};
 function setLvlDesc(){}
 seg('lvl','lvl','lvl',()=>{setLvlDesc();fullReset();});
-function profUI(){const lg=LOGS[P.prof];document.getElementById('lognote').textContent=lg?lg.note:(P.prof==='endu'?'Made-up lap shape scaled to the RMS input, 180 s driver change.':'Constant current at the RMS input.');document.getElementById('rms-wrap').hidden=!!lg;document.getElementById('ps-wrap').hidden=!lg;document.getElementById('regen-wrap').hidden=P.prof!=='endu';
+function profUI(){const lg=LOGS[P.prof];document.getElementById('lognote').textContent=lg?lg.note:(P.prof==='endu'?'Made-up lap shape scaled to the RMS input · 1600 s driving + 180 s driver change':'Constant current at the RMS input · 1600 s');document.getElementById('rms-wrap').hidden=!!lg;document.getElementById('ps-wrap').hidden=!lg;document.getElementById('regen-wrap').hidden=P.prof!=='endu';
 }
 seg('prof','prof','prof',()=>{profUI();fullReset();});
 seg('fan','fan','fan',()=>{document.getElementById('thr-wrap').hidden=P.fan!=='auto';fanControl();updateHInfo();});
