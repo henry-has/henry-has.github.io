@@ -154,6 +154,15 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
         </div>
       </div>
 
+      <div class="grp">
+        <div class="lab">Model</div>
+        <div class="seg" role="group" aria-label="Model fidelity" id="lvl">
+          <button type="button" data-lvl="1" aria-pressed="false">Lumped</button>
+          <button type="button" data-lvl="2" aria-pressed="false">Axial</button>
+          <button type="button" data-lvl="3" aria-pressed="true">Radial + axial</button>
+        </div>
+      </div>
+
       <details>
         <summary>All inputs</summary>
         <div class="grp" style="margin-top:8px">
@@ -188,12 +197,6 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
           <label class="row" style="font-size:12px"><input type="checkbox" id="p-rev" checked> Entropic (reversible) heat</label>
           <span class="note">−I·T·dU/dT. Cell absorbs heat on discharge above ~60 % SOC (About:Energy data) and gives it off lower down. Up to ±0.5 W per cell.</span>
 
-          <div class="lab">Model</div>
-          <div class="seg" role="group" aria-label="Model fidelity" id="lvl">
-            <button type="button" data-lvl="1" aria-pressed="false">Lumped</button>
-            <button type="button" data-lvl="2" aria-pressed="false">Axial</button>
-            <button type="button" data-lvl="3" aria-pressed="true">Radial + axial</button>
-          </div>
         </div>
       </details>
     </aside>
