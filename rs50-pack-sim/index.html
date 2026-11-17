@@ -88,9 +88,6 @@ details summary{cursor:pointer;font-size:12px}
 footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);padding-top:8px}
 .err{padding:16px;color:var(--crit)}
 [hidden]{display:none!important}
-.src{font-size:12px;color:var(--ink-2);border-top:1px solid var(--line);padding-top:8px}
-.src p{margin:0 0 6px}
-.src a{color:var(--accent)}
 </style>
 
 <div class="wrap">
@@ -172,7 +169,8 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
           <div class="sl"><label for="p-t0">Cell start temp</label><output id="o-t0"></output><input id="p-t0" type="range" min="15" max="45" step="0.5" value="35"></div>
 
           <div class="lab">Fans on</div>
-          <div class="sl"><label for="p-cfm">Airflow (pack)</label><output id="o-cfm"></output><input id="p-cfm" type="range" min="0" max="100" step="1" value="38"></div>
+          <div class="sl"><label for="p-cfm">Airflow per module</label><output id="o-cfm"></output><input id="p-cfm" type="range" min="0" max="15" step="0.5" value="3"></div>
+          <span class="note">3 CFM: team CFD at 36.12 × 15.5 mm, one 15 mm fan each end, case holes + mesh. Redo if pitch changes.</span>
           <div class="sl" id="thr-wrap" hidden><label for="p-thr">Auto: on above</label><output id="o-thr"></output><input id="p-thr" type="range" min="30" max="58" step="0.5" value="45"></div>
 
           <div class="lab">Fans off</div>
@@ -231,26 +229,6 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
 
 
   <footer>Assumed: 22 × 3 cells per module, Žukauskas h, adiabatic holders, generic OCV below 58 % SOC. Logs: FSAE Michigan 2026 energy meter, with each team's driver-change gap.</footer>
-  <section class="src">
-    <h2>Sources</h2>
-    <p><b>Drive cycles and measured temps</b> (FSAE Michigan 2026 energy meter):
-      <a href="https://emeter.fsaeonline.com/TeamData.aspx?CompetitionID=07af50d8-cbb6-4b9b-aaf8-5ff6a7e44057&amp;TeamID=fa2d5a38-b57c-441c-b1b4-dbc7963160a6">GFR / Oregon State #1</a> ·
-      <a href="https://emeter.fsaeonline.com/TeamData.aspx?CompetitionID=07af50d8-cbb6-4b9b-aaf8-5ff6a7e44057&amp;TeamID=4b553794-a636-48f6-ab3b-f41dd0d48169">Cal Poly #62</a> ·
-      <a href="https://emeter.fsaeonline.com/TeamData.aspx?CompetitionID=07af50d8-cbb6-4b9b-aaf8-5ff6a7e44057&amp;TeamID=bc6cf518-fb42-4404-9802-c2c1555794a1">Pitt #6</a> ·
-      <a href="https://emeter.fsaeonline.com/TeamData.aspx?CompetitionID=07af50d8-cbb6-4b9b-aaf8-5ff6a7e44057&amp;TeamID=50b69ce4-50e3-43cc-87c1-5fc7b0cd559c">WWU #26</a> ·
-      <a href="https://www.fsaeonline.com/CompResources/2026/07af50d8-cbb6-4b9b-aaf8-5ff6a7e44057/FSAE_2026_MI6_results.pdf">official results (PDF)</a> ·
-      <a href="https://results.fsaeonline.com/MyResults.aspx">results site</a>.
-      LHR 6/12 and 6/7: Orion log-sync / Grafana exports, via <a href="https://fsae-endurance-atlas.kumonaldenbridge.chatgpt.site/">Endurance Atlas</a>.</p>
-    <p><b>Cell</b>: About:Energy RS50 dataset (DCIR map, heat capacity, dU/dT), LHR internal. <b>Fans off</b>: 63 W from Orion's 6/12 cooldown, LHR Notion "Heat Sink – Slack Questions".</p>
-    <p><b>Heat transfer</b>:
-      heat generation and entropic term, <a href="https://doi.org/10.1149/1.2113792">Bernardi et al. 1985</a>, <a href="https://doi.org/10.1016/j.jpowsour.2009.11.103">Viswanathan et al. 2010</a> ·
-      radial/axial conductivity, <a href="https://doi.org/10.1016/j.jpowsour.2013.11.107">Drake et al. 2014</a> ·
-      tube bank h with fans, <a href="https://doi.org/10.1016/S0065-2717(08)70038-8">Žukauskas 1972</a> ·
-      still-air h, <a href="https://doi.org/10.1016/0017-9310(75)90222-7">Churchill &amp; Chu 1975</a> ·
-      forced + natural combined, <a href="https://doi.org/10.1002/aic.690230103">Churchill 1977</a> ·
-      cell-to-cell gap conduction, parallel-cylinder shape factor (Incropera, <i>Fundamentals of Heat and Mass Transfer</i>, Table 4.1).</p>
-    <p>Estimates, not from a study: − weld 30 000 W/m²K, + collector 0.6 W/K, gasket 0.03 W/K, jelly→can 1500 W/m²K, emissivity 0.8, gap-exposure factor 0.35.</p>
-  </section>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -272,7 +250,7 @@ const VR=8, VZ=28, TILES_X=32;
 const TEX_W=VR*TILES_X, TEX_H=VZ*Math.ceil(NCELL/TILES_X);
 const DT=0.25;
 
-const P={lvl:3,prof:'o612',rms:40,fan:'on',cfm:38,thr:45,amb:35,t0:35,rscale:1,cv:2,kr:0.9,kz:28,hneg:30000,gpos:0.6,ccell:60.6,st:36.12,sl:15.5,rev:true,scale:'fixed',view:'cut',alt:'z',pscale:1,regen:50,qoff:63};
+const P={lvl:3,prof:'o612',rms:40,fan:'on',cfm:3,thr:45,amb:35,t0:35,rscale:1,cv:2,kr:0.9,kz:28,hneg:30000,gpos:0.6,ccell:60.6,st:36.12,sl:15.5,rev:true,scale:'fixed',view:'cut',alt:'z',pscale:1,regen:50,qoff:63};
 let fanOn=true, fanTick=0;
 
 /* ---------------- helpers ---------------- */
@@ -492,7 +470,7 @@ function airSide(cfmIn){
   const hNat=5.5;
   const cfm=cfmIn!==undefined?cfmIn:(fanOn?P.cfm:0);
   if(cfm<=0)return {h:hNat,mdot:0,re:0,v:0,cpA};
-  const Q=cfm*4.719e-4/LAY.mods;
+  const Q=cfm*4.719e-4;
   const Af=(LAY.perRow*LAY.ST+LAY.ST/2)*MM*GEO.L;
   const V=Q/Af, SD=Math.hypot(SL,ST/2);
   const Vmax=V*Math.max(ST/(ST-D),ST/(2*(SD-D)));
@@ -958,7 +936,7 @@ function updateReadouts(){
 }
 
 /* ---------------- controls ---------------- */
-const fmt={qoff:v=>v+' W',regen:v=>v+' %',pscale:v=>'×'+(+v).toFixed(2),rms:v=>v+' A',cfm:v=>v+' CFM',thr:v=>v+' °C',st:v=>(+v).toFixed(2)+' mm',sl:v=>(+v).toFixed(1)+' mm',rscale:v=>'×'+(+v).toFixed(2),ccell:v=>(+v).toFixed(1)+' J/K',amb:v=>v+' °C',t0:v=>v+' °C',cv:v=>v+' %',kr:v=>(+v).toFixed(2)+' W/m·K',kz:v=>v+' W/m·K',hneg:v=>(v/1000).toFixed(0)+'k W/m²K',gpos:v=>(+v).toFixed(2)+' W/K'};
+const fmt={qoff:v=>v+' W',regen:v=>v+' %',pscale:v=>'×'+(+v).toFixed(2),rms:v=>v+' A',cfm:v=>(+v).toFixed(1)+' CFM',thr:v=>v+' °C',st:v=>(+v).toFixed(2)+' mm',sl:v=>(+v).toFixed(1)+' mm',rscale:v=>'×'+(+v).toFixed(2),ccell:v=>(+v).toFixed(1)+' J/K',amb:v=>v+' °C',t0:v=>v+' °C',cv:v=>v+' %',kr:v=>(+v).toFixed(2)+' W/m·K',kz:v=>v+' W/m·K',hneg:v=>(v/1000).toFixed(0)+'k W/m²K',gpos:v=>(+v).toFixed(2)+' W/K'};
 const RESET_KEYS=new Set(['rms','t0','cv','pscale','regen']);
 const REBUILD_KEYS=new Set(['kr','kz','hneg','gpos','ccell']);
 for(const k of Object.keys(fmt)){
@@ -993,7 +971,7 @@ document.querySelectorAll('#presets button').forEach(b=>b.addEventListener('clic
 }));
 function updateGap(){if(!document.getElementById('gapinfo'))return;const D=21,diag=Math.hypot(P.sl,P.st/2)-D;
   const el=document.getElementById('gapinfo');el.textContent=diag<0.2?`Cells overlap at this pitch (diagonal gap ${diag.toFixed(1)} mm)`:`Air gap between staggered neighbours ${diag.toFixed(1)} mm`;el.style.color=diag<0.2?'var(--crit)':'';}
-function updateHInfo(){const a=AIR;if(!a||!document.getElementById('hinfo'))return;document.getElementById('hinfo').textContent=fanOn&&a.mdot>0?`${(P.cfm/LAY.mods).toFixed(1)} CFM per module · ${(a.v||0).toFixed(2)} m/s face · Re ${a.re.toFixed(0)} · h ≈ ${a.h.toFixed(0)} W/m²K`:`Fans off · free convection h ≈ ${a.h.toFixed(1)} W/m²K`;}
+function updateHInfo(){const a=AIR;if(!a||!document.getElementById('hinfo'))return;document.getElementById('hinfo').textContent=fanOn&&a.mdot>0?`${(+P.cfm).toFixed(1)} CFM per module · ${(a.v||0).toFixed(2)} m/s face · Re ${a.re.toFixed(0)} · h ≈ ${a.h.toFixed(0)} W/m²K`:`Fans off · free convection h ≈ ${a.h.toFixed(1)} W/m²K`;}
 let resetTimer=null;function scheduleReset(){clearTimeout(resetTimer);resetTimer=setTimeout(fullReset,220);}
 
 let running=true;
