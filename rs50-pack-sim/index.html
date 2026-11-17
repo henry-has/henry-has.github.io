@@ -470,6 +470,17 @@ function airSide(cfmIn){
   return {h:Math.cbrt(hF*hF*hF+hNat*hNat*hNat),mdot:rho*Q,re:Re,v:V,vmax:Vmax,cpA};
 }
 let AIR=null;
+// Fans off: still-air h per node. Count near neighbours (≤32 mm: 4 diagonal + 2 in-line);
+// covered sides lose most of their natural convection and all net radiation (they see cells at the same temp).
+const H_NAT=5.5, H_RAD=6.0, F_GAP=0.35;
+function exposure(ci){const c=cells[ci];let n=0;
+  for(let dg=-2;dg<=2;dg++)for(let dk=-1;dk<=1;dk++){if(!dg&&!dk)continue;const g=c.g+dg,k=c.k+dk;
+    if(g<0||g>=LAY.groups||k<0||k>=LAY.perRow)continue;
+    const dx=dg*LAY.SL,dy=(dk+((g%2)-(c.g%2))/2)*LAY.ST;if(Math.hypot(dx,dy)<=32)n++;}
+  return Math.max(0,1-n/6);}
+function buildHOff(net){const hv=new Float64Array(net.N).fill(H_NAT+H_RAD);
+  for(let ci=0;ci<NCELL;ci++){const f=exposure(ci),hc=H_NAT*(F_GAP+(1-F_GAP)*f)+H_RAD*f;for(const id of new Set(Object.values(net.cellMap[ci])))if(id<net.collBase)hv[id]=hc;}
+  return hv;}
 
 /* ---------------- step ---------------- */
 let simT=0;
@@ -525,15 +536,16 @@ function step(dt){
   }
   // implicit Gauss-Seidel sweep
   const h=AIR.h, C=net.C, area=net.area, zone=net.zone, Tz=net.Tz, deg=net.deg, nbr=net.nbr, gv=net.gv;
+  const hv=(fanOn&&AIR.mdot>0)?null:(net.hOff||(net.hOff=buildHOff(net)));
   for(let i=0;i<N;i++){
-    const ci=C[i]/dt, hA=h*area[i];
+    const ci=C[i]/dt, hA=(hv?hv[i]:h)*area[i];
     let num=ci*T[i]+Q[i]+hA*Tz[zone[i]], den=ci+hA;
     for(let e=deg[i];e<deg[i+1];e++){num+=gv[e]*T[nbr[e]];den+=gv[e];}
     T[i]=num/den;
   }
   // air update
   const Qz=net.Qz;Qz.fill(0);
-  for(let i=0;i<N;i++){const a=area[i];if(a>0)Qz[zone[i]]+=h*a*(T[i]-Tz[zone[i]]);}
+  for(let i=0;i<N;i++){const a=area[i];if(a>0)Qz[zone[i]]+=(hv?hv[i]:h)*a*(T[i]-Tz[zone[i]]);}
   if(fanOn&&AIR.mdot>0){
     const mc=AIR.mdot*AIR.cpA;
     for(let m=0;m<LAY.mods;m++){let Tin=P.amb;for(let r=0;r<LAY.groups;r++){const z=m*LAY.groups+r;Tz[z]=Tin+0.5*Qz[z]/mc;Tin+=Qz[z]/mc;}}
