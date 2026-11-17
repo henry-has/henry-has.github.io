@@ -415,6 +415,14 @@ function buildNetwork(){
     const cNeg=collBase+c.m*nCollPerMod+c.g, cPos=collBase+c.m*nCollPerMod+c.g+1;
     edges.push(map[L_NEG],cNeg,G_NI);edges.push(map[L_CAP],cPos,G_NI);
   }
+  // cell-to-cell through the bank: air-gap conduction (two parallel cylinders, halved for the cells around them) + radiation
+  for(let ci=0;ci<NCELL;ci++){const c=cells[ci];
+    for(let dg=1;dg<=2;dg++)for(let dk=-1;dk<=1;dk++){const g=c.g+dg,k=c.k+dk;if(g>=LAY.groups||k<0||k>=LAY.perRow)continue;
+      const s_=Math.hypot(dg*LAY.SL,(dk+((g%2)-(c.g%2))/2)*LAY.ST);if(s_>32)continue;
+      const cj=(c.m*LAY.groups+g)*LAY.perRow+k, d=2*GEO.R*1000;
+      const Gp=(0.5*Math.PI*0.027/Math.acosh(s_/d)+H_RAD*2*Math.PI*GEO.R*(s_<26?0.13:0.08))*GEO.L;
+      const mi=cellMap[ci],mj=cellMap[cj],rev=cells[cj].flip!==c.flip;
+      for(let iz=0;iz<Nz;iz++)edges.push(mi[L_CAN+iz],mj[L_CAN+(rev?Nz-1-iz:iz)],Gp/Nz);}}
   // CSR
   const N=n, deg=new Int32Array(N+1);
   for(let e=0;e<edges.length;e+=3){deg[edges[e]+1]++;deg[edges[e+1]+1]++;}
