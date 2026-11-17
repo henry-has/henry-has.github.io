@@ -962,7 +962,8 @@ function seg(id,key,attr,cb){
 const LVL_DESC={1:'1 node per cell.',2:'10 axial slices + can, caps.',3:'4 rings × 10 slices + can, − floor, + collector, cap (53 nodes/cell).'};
 function setLvlDesc(){}
 seg('lvl','lvl','lvl',()=>{setLvlDesc();fullReset();});
-function profUI(){legendUI();const lg=LOGS[P.prof];document.getElementById('lognote').textContent=lg?lg.note:(P.prof==='endu'?'Made-up lap shape scaled to the RMS input · 1600 s driving + 180 s driver change':'Constant current at the RMS input · 1600 s');document.getElementById('rms-wrap').hidden=!!lg;document.getElementById('ps-wrap').hidden=!lg;document.getElementById('regen-wrap').hidden=P.prof!=='endu';
+function logRms(lg){let q=0;for(const v of lg.P)q+=v*v*100;return Math.sqrt(q/lg.P.length)/488;}
+function profUI(){legendUI();const lg=LOGS[P.prof];document.getElementById('lognote').textContent=lg?lg.note+` · ≈${logRms(lg).toFixed(0)} A RMS on our pack`:(P.prof==='endu'?'Made-up lap shape scaled to the RMS input · 1600 s driving + 180 s driver change':'Constant current at the RMS input · 1600 s');document.getElementById('rms-wrap').hidden=!!lg;document.getElementById('ps-wrap').hidden=!lg;document.getElementById('regen-wrap').hidden=P.prof!=='endu';
 }
 seg('prof','prof','prof',()=>{profUI();fullReset();});
 seg('fan','fan','fan',()=>{legendUI();document.getElementById('thr-wrap').hidden=P.fan!=='auto';fanControl();updateHInfo();});
