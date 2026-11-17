@@ -171,7 +171,7 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
           <div class="sl"><label for="p-vent">Effective vent area</label><output id="o-vent"></output><input id="p-vent" type="range" min="0" max="100" step="1" value="20"></div>
           <div class="sl"><label for="p-vavg">Avg car speed</label><output id="o-vavg"></output><input id="p-vavg" type="range" min="5" max="25" step="0.5" value="15"></div>
           <div class="sl"><label for="p-uawall">Case wall UA</label><output id="o-uawall"></output><input id="p-uawall" type="range" min="0" max="15" step="0.5" value="4"></div>
-          <span class="note">Vent flow from ram pressure (½ρv²) + buoyancy, same method as LHR's vented model fit to Pickle drive day. 20 cm² is a placeholder until refit.</span>
+          <span class="note">Parked: wall UA + buoyancy ≈ 4.5 W/K, close to Orion's no-fan cooldowns (63 W on 6/12, 174 W on 4/11 ≈ 4–10 W/K). Moving: ram air through vents, not yet checked against data.</span>
 
           <div class="lab">Layout</div>
           <div class="sl"><label for="p-st">Cell pitch</label><output id="o-st"></output><input id="p-st" type="range" min="23" max="45" step="0.01" value="36.12"></div>
