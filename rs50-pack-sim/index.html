@@ -88,6 +88,9 @@ details summary{cursor:pointer;font-size:12px}
 footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);padding-top:8px}
 .err{padding:16px;color:var(--crit)}
 [hidden]{display:none!important}
+.src{font-size:12px;color:var(--ink-2);border-top:1px solid var(--line);padding-top:8px}
+.src p{margin:0 0 6px}
+.src a{color:var(--accent)}
 </style>
 
 <div class="wrap">
@@ -228,6 +231,26 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
 
 
   <footer>Assumed: 22 × 3 cells per module, Žukauskas h, adiabatic holders, generic OCV below 58 % SOC. Logs: FSAE Michigan 2026 energy meter, with each team's driver-change gap.</footer>
+  <section class="src">
+    <h2>Sources</h2>
+    <p><b>Drive cycles and measured temps</b> (FSAE Michigan 2026 energy meter):
+      <a href="https://emeter.fsaeonline.com/TeamData.aspx?CompetitionID=07af50d8-cbb6-4b9b-aaf8-5ff6a7e44057&amp;TeamID=fa2d5a38-b57c-441c-b1b4-dbc7963160a6">GFR / Oregon State #1</a> ·
+      <a href="https://emeter.fsaeonline.com/TeamData.aspx?CompetitionID=07af50d8-cbb6-4b9b-aaf8-5ff6a7e44057&amp;TeamID=4b553794-a636-48f6-ab3b-f41dd0d48169">Cal Poly #62</a> ·
+      <a href="https://emeter.fsaeonline.com/TeamData.aspx?CompetitionID=07af50d8-cbb6-4b9b-aaf8-5ff6a7e44057&amp;TeamID=bc6cf518-fb42-4404-9802-c2c1555794a1">Pitt #6</a> ·
+      <a href="https://emeter.fsaeonline.com/TeamData.aspx?CompetitionID=07af50d8-cbb6-4b9b-aaf8-5ff6a7e44057&amp;TeamID=50b69ce4-50e3-43cc-87c1-5fc7b0cd559c">WWU #26</a> ·
+      <a href="https://www.fsaeonline.com/CompResources/2026/07af50d8-cbb6-4b9b-aaf8-5ff6a7e44057/FSAE_2026_MI6_results.pdf">official results (PDF)</a> ·
+      <a href="https://results.fsaeonline.com/MyResults.aspx">results site</a>.
+      LHR 6/12 and 6/7: Orion log-sync / Grafana exports, via <a href="https://fsae-endurance-atlas.kumonaldenbridge.chatgpt.site/">Endurance Atlas</a>.</p>
+    <p><b>Cell</b>: About:Energy RS50 dataset (DCIR map, heat capacity, dU/dT), LHR internal. <b>Fans off</b>: 63 W from Orion's 6/12 cooldown, LHR Notion "Heat Sink – Slack Questions".</p>
+    <p><b>Heat transfer</b>:
+      heat generation and entropic term, <a href="https://doi.org/10.1149/1.2113792">Bernardi et al. 1985</a>, <a href="https://doi.org/10.1016/j.jpowsour.2009.11.103">Viswanathan et al. 2010</a> ·
+      radial/axial conductivity, <a href="https://doi.org/10.1016/j.jpowsour.2013.11.107">Drake et al. 2014</a> ·
+      tube bank h with fans, <a href="https://doi.org/10.1016/S0065-2717(08)70038-8">Žukauskas 1972</a> ·
+      still-air h, <a href="https://doi.org/10.1016/0017-9310(75)90222-7">Churchill &amp; Chu 1975</a> ·
+      forced + natural combined, <a href="https://doi.org/10.1002/aic.690230103">Churchill 1977</a> ·
+      cell-to-cell gap conduction, parallel-cylinder shape factor (Incropera, <i>Fundamentals of Heat and Mass Transfer</i>, Table 4.1).</p>
+    <p>Estimates, not from a study: − weld 30 000 W/m²K, + collector 0.6 W/K, gasket 0.03 W/K, jelly→can 1500 W/m²K, emissivity 0.8, gap-exposure factor 0.35.</p>
+  </section>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
