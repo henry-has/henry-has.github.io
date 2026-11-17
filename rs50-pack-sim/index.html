@@ -804,7 +804,7 @@ canvas.addEventListener('pointerleave',()=>{tip.hidden=true;hoverCi=-1;uniforms.
 /* ---------------- charts ---------------- */
 const SERIES=[['core','Hottest jelly roll','--s1'],['can','Hottest can surface','--s2'],['neg','Hottest − terminal (BMS)','--s3'],['air','Air out','--s4']];
 function measAt(t){const M=PROF.meas;let j=0;while(j<M.length-2&&M[j+2]<=t)j+=2;return M[j+1];}
-function legendUI(){document.getElementById('legend').innerHTML=SERIES.map(s=>`<span><i style="background:var(${s[2]})"></i>${s[1]}</span>`).join('')+(LOGS[P.prof]&&LOGS[P.prof].meas?`<span><i style="height:0;border-top:2px dashed var(--ink)"></i>Team's measured max cell temp</span>`:'')+`<span><i style="background:var(--crit);height:0;border-top:2px dashed var(--crit)"></i>60 °C limit (EV.8.5.2)</span>`;}
+function legendUI(){SERIES[3][1]=P.fan==='on'?'Air out':P.fan==='off'?'Case air':'Air out (fans on) / case air (off)';document.getElementById('legend').innerHTML=SERIES.map(s=>`<span><i style="background:var(${s[2]})"></i>${s[1]}</span>`).join('')+(LOGS[P.prof]&&LOGS[P.prof].meas?`<span><i style="height:0;border-top:2px dashed var(--ink)"></i>Team's measured max cell temp</span>`:'')+`<span><i style="background:var(--crit);height:0;border-top:2px dashed var(--crit)"></i>60 °C limit (EV.8.5.2)</span>`;}
 legendUI();
 function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
 function setupCanvas(cv){const dpr=Math.min(window.devicePixelRatio||1,2);const w=cv.clientWidth,h=parseInt(cv.dataset.h||'200');cv.style.height=h+'px';if(cv.width!==Math.round(w*dpr)){cv.width=Math.round(w*dpr);}cv.height=Math.round(h*dpr);const ctx=cv.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);return {ctx,w,h};}
@@ -964,7 +964,7 @@ seg('lvl','lvl','lvl',()=>{setLvlDesc();fullReset();});
 function profUI(){legendUI();const lg=LOGS[P.prof];document.getElementById('lognote').textContent=lg?lg.note:(P.prof==='endu'?'Made-up lap shape scaled to the RMS input · 1600 s driving + 180 s driver change':'Constant current at the RMS input · 1600 s');document.getElementById('rms-wrap').hidden=!!lg;document.getElementById('ps-wrap').hidden=!lg;document.getElementById('regen-wrap').hidden=P.prof!=='endu';
 }
 seg('prof','prof','prof',()=>{profUI();fullReset();});
-seg('fan','fan','fan',()=>{document.getElementById('thr-wrap').hidden=P.fan!=='auto';fanControl();updateHInfo();});
+seg('fan','fan','fan',()=>{legendUI();document.getElementById('thr-wrap').hidden=P.fan!=='auto';fanControl();updateHInfo();});
 document.querySelectorAll('#presets button').forEach(b=>b.addEventListener('click',()=>{
   const r=document.getElementById('p-rscale');r.value=b.dataset.r;r.dispatchEvent(new Event('input'));
 }));
