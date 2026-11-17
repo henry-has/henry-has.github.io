@@ -169,8 +169,8 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
           <div class="sl"><label for="p-t0">Cell start temp</label><output id="o-t0"></output><input id="p-t0" type="range" min="15" max="45" step="0.5" value="35"></div>
 
           <div class="lab">Fans on</div>
-          <div class="sl"><label for="p-cfm">Airflow per module</label><output id="o-cfm"></output><input id="p-cfm" type="range" min="0" max="15" step="0.5" value="3"></div>
-          <span class="note">3 CFM: team CFD at 36.12 × 15.5 mm, one 15 mm fan each end, case holes + mesh. Redo if pitch changes.</span>
+          <div class="sl"><label for="p-cfm">Airflow per module</label><output id="o-cfm"></output><input id="p-cfm" type="range" min="0" max="15" step="0.1" value="4.3"></div>
+          <span class="note">4.3 CFM: 15 mm push-pull fan curve vs team CFD at 36.12 × 15.5 mm (module + case holes + mesh both sides, summed at equal flow). Redo if pitch changes.</span>
           <div class="sl" id="thr-wrap" hidden><label for="p-thr">Auto: on above</label><output id="o-thr"></output><input id="p-thr" type="range" min="30" max="58" step="0.5" value="45"></div>
 
           <div class="lab">Fans off</div>
@@ -250,7 +250,7 @@ const VR=8, VZ=28, TILES_X=32;
 const TEX_W=VR*TILES_X, TEX_H=VZ*Math.ceil(NCELL/TILES_X);
 const DT=0.25;
 
-const P={lvl:3,prof:'o612',rms:40,fan:'on',cfm:3,thr:45,amb:35,t0:35,rscale:1,cv:2,kr:0.9,kz:28,hneg:30000,gpos:0.6,ccell:60.6,st:36.12,sl:15.5,rev:true,scale:'fixed',view:'cut',alt:'z',pscale:1,regen:50,qoff:63};
+const P={lvl:3,prof:'o612',rms:40,fan:'on',cfm:4.3,thr:45,amb:35,t0:35,rscale:1,cv:2,kr:0.9,kz:28,hneg:30000,gpos:0.6,ccell:60.6,st:36.12,sl:15.5,rev:true,scale:'fixed',view:'cut',alt:'z',pscale:1,regen:50,qoff:63};
 let fanOn=true, fanTick=0;
 
 /* ---------------- helpers ---------------- */
