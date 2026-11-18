@@ -196,8 +196,6 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
           <div class="sl"><label for="p-kz">k axial <i class="src">Drake 2014</i></label><output id="o-kz"></output><input id="p-kz" type="range" min="5" max="45" step="1" value="28"></div>
           <div class="sl"><label for="p-hneg">− foil-to-can contact <i class="src">estimate</i></label><output id="o-hneg"></output><input id="p-hneg" type="range" min="1000" max="60000" step="1000" value="30000"></div>
           <div class="sl"><label for="p-gpos">+ collector-to-cap <i class="src">estimate</i></label><output id="o-gpos"></output><input id="p-gpos" type="range" min="0.05" max="3" step="0.05" value="0.6"></div>
-          <div class="sl"><label for="p-nweld">Spot welds per terminal <i class="src">design</i></label><output id="o-nweld"></output><input id="p-nweld" type="range" min="1" max="8" step="1" value="4"></div>
-          <div class="sl"><label for="p-rspot">Resistance per weld <i class="src">estimate</i></label><output id="o-rspot"></output><input id="p-rspot" type="range" min="0.2" max="4" step="0.1" value="1.2"></div>
           <div class="sl"><label for="p-ccell">Heat capacity <i class="src">A:E</i></label><output id="o-ccell"></output><input id="p-ccell" type="range" min="45" max="80" step="0.1" value="60.6"></div>
           <label class="row" style="font-size:12px"><input type="checkbox" id="p-rev" checked> Entropic heat <i class="src">A:E heat maps</i></label>
           <span class="note">Non-ohmic chemical heat: cools the cell on discharge above ~50 % SOC and heats it below. Regen flips it.</span>
@@ -276,13 +274,14 @@ const GEO={R:10.5*MM,L:70.3*MM,tc:0.25*MM,rIn:1.0*MM,rJ:10.15*MM,zb:1.2*MM,zt:64
 GEO.Lj=GEO.zt-GEO.zb;
 const LAY={mods:6,groups:22,perRow:3,ST:36.12,SL:15.5,modGap:30};
 const NCELL=LAY.mods*LAY.groups*LAY.perRow;
-let R_WELD=0.3e-3;const CAP_AH=5.0, KS=40, G_GASKET=0.03, G_NI=0.08, H_JC=1500, RG=8.314;
+const R_WELD=0.3e-3; // per terminal: 4 spot welds × ~1.2 mΩ in parallel (estimate)
+const CAP_AH=5.0, KS=40, G_GASKET=0.03, G_NI=0.08, H_JC=1500, RG=8.314;
 const C_COLL=17, A_COLL=3.0e-3;
 const VR=8, VZ=28, TILES_X=32;
 const TEX_W=VR*TILES_X, TEX_H=VZ*Math.ceil(NCELL/TILES_X);
 const DT=0.25;
 
-const P={lvl:3,prof:'o612',rms:40,fan:'on',cfm:4.8,amb:35,t0:35,rscale:1,cv:2,kr:0.9,kz:28,hneg:30000,gpos:0.6,ccell:60.6,st:36.12,sl:15.5,rev:true,scale:'fixed',view:'cut',alt:'z',pscale:1,regen:50,uawall:4,nweld:4,rspot:1.2};
+const P={lvl:3,prof:'o612',rms:40,fan:'on',cfm:4.8,amb:35,t0:35,rscale:1,cv:2,kr:0.9,kz:28,hneg:30000,gpos:0.6,ccell:60.6,st:36.12,sl:15.5,rev:true,scale:'fixed',view:'cut',alt:'z',pscale:1,regen:50,uawall:4};
 let fanOn=true, fanTick=0;
 
 /* ---------------- helpers ---------------- */
@@ -986,7 +985,7 @@ function updateReadouts(){
 }
 
 /* ---------------- controls ---------------- */
-const fmt={nweld:v=>v+' (×2 ends)',rspot:v=>(+v).toFixed(1)+' mΩ',cv:v=>v+' %',uawall:v=>(+v).toFixed(1)+' W/K',regen:v=>v+' %',rms:v=>v+' A',cfm:v=>(+v).toFixed(1)+' CFM',st:v=>(+v).toFixed(2)+' mm',sl:v=>(+v).toFixed(1)+' mm',ccell:v=>(+v).toFixed(1)+' J/K',amb:v=>v+' °C',kr:v=>(+v).toFixed(2)+' W/m·K',kz:v=>v+' W/m·K',hneg:v=>(v/1000).toFixed(0)+'k W/m²K',gpos:v=>(+v).toFixed(2)+' W/K'};
+const fmt={cv:v=>v+' %',uawall:v=>(+v).toFixed(1)+' W/K',regen:v=>v+' %',rms:v=>v+' A',cfm:v=>(+v).toFixed(1)+' CFM',st:v=>(+v).toFixed(2)+' mm',sl:v=>(+v).toFixed(1)+' mm',ccell:v=>(+v).toFixed(1)+' J/K',amb:v=>v+' °C',kr:v=>(+v).toFixed(2)+' W/m·K',kz:v=>v+' W/m·K',hneg:v=>(v/1000).toFixed(0)+'k W/m²K',gpos:v=>(+v).toFixed(2)+' W/K'};
 const RESET_KEYS=new Set(['rms','t0','cv','pscale','regen']);
 const REBUILD_KEYS=new Set(['kr','kz','hneg','gpos','ccell']);
 for(const k of Object.keys(fmt)){
@@ -995,7 +994,6 @@ for(const k of Object.keys(fmt)){
   el.addEventListener('input',()=>{P[k]=parseFloat(el.value);show();
     if(k==='cfm'){AIR=airSide();updateHInfo();}
     if(k==='amb'){P.t0=P.amb;scheduleReset();}
-    if(k==='nweld'||k==='rspot'){R_WELD=P.rspot*1e-3/P.nweld;setHeatRef();}
     if(k==='st'||k==='sl'){layoutCells();placeMeshes();buildArrows();AIR=airSide();updateHInfo();updateGap();}
     if(k==='rscale')buildSurface();
     if(k==='cv'){seedDCIR();}
@@ -1203,7 +1201,7 @@ function frame(now){
   PLOTS.forEach(p=>p.render());
   requestAnimationFrame(frame);
 }
-R_WELD=P.rspot*1e-3/P.nweld;buildStatic();buildSurface();rmColors();setHeatRef();
+buildStatic();buildSurface();rmColors();setHeatRef();
 setLvlDesc();themeBg();resize();profUI();fullReset();
 requestAnimationFrame(frame);
 window.__sim={P,get HIST(){return HIST},get NET(){return NET},get STATS(){return STATS},step,fullReset,get simT(){return simT}};
