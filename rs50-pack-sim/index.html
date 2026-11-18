@@ -246,7 +246,7 @@ const GEO={R:10.5*MM,L:70.3*MM,tc:0.25*MM,rIn:1.0*MM,rJ:10.15*MM,zb:1.2*MM,zt:64
 GEO.Lj=GEO.zt-GEO.zb;
 const LAY={mods:6,groups:22,perRow:3,ST:36.12,SL:15.5,modGap:30};
 const NCELL=LAY.mods*LAY.groups*LAY.perRow;
-const R_WELD=0.3e-3; // per terminal: 4 spot welds × ~1.2 mΩ in parallel (estimate)
+let GS_SWEEPS=3;const R_WELD=0.3e-3; // per terminal: 4 spot welds × ~1.2 mΩ in parallel (estimate)
 const CAP_AH=5.0, KS=40, G_GASKET=0.03, G_NI=0.08, H_JC=1500, RG=8.314;
 const C_COLL=17, A_COLL=3.0e-3;
 const VR=8, VZ=28, TILES_X=32;
@@ -566,9 +566,10 @@ function step(dt){
   const h=AIR.h, C=net.C, area=net.area, zone=net.zone, Tz=net.Tz, deg=net.deg, nbr=net.nbr, gv=net.gv;
   const hv0=(fanOn&&AIR.mdot>0)?null:(net.hOff||(net.hOff=buildHOff(net)));
   let hv=hv0;if(hv0){const hf3=Math.max(0,AIR.h**3-H_NAT**3);hv=net.hTmp||(net.hTmp=new Float64Array(N));for(let i=0;i<N;i++)hv[i]=Math.cbrt(hv0[i]**3+hf3);}
-  for(let i=0;i<N;i++){
+  const To=net.Told||(net.Told=new Float64Array(N));To.set(T);
+  for(let sw=0;sw<GS_SWEEPS;sw++)for(let i=0;i<N;i++){
     const ci=C[i]/dt, hA=(hv?hv[i]:h)*area[i];
-    let num=ci*T[i]+Q[i]+hA*Tz[zone[i]], den=ci+hA;
+    let num=ci*To[i]+Q[i]+hA*Tz[zone[i]], den=ci+hA;
     for(let e=deg[i];e<deg[i+1];e++){num+=gv[e]*T[nbr[e]];den+=gv[e];}
     T[i]=num/den;
   }
@@ -1176,7 +1177,7 @@ function frame(now){
 buildStatic();buildSurface();rmColors();setHeatRef();
 setLvlDesc();themeBg();resize();profUI();fullReset();
 requestAnimationFrame(frame);
-window.__sim={P,get HIST(){return HIST},get NET(){return NET},get STATS(){return STATS},step,fullReset,get simT(){return simT}};
+window.__sim={setSweeps:n=>{GS_SWEEPS=n},P,get HIST(){return HIST},get NET(){return NET},get STATS(){return STATS},step,fullReset,get simT(){return simT}};
 })();
 </script>
 
