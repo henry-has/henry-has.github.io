@@ -171,13 +171,13 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
           <div class="lab">Load</div>
           <div class="sl" id="rms-wrap"><label for="p-rms">Pack current (RMS)</label><output id="o-rms"></output><input id="p-rms" type="range" min="10" max="70" step="1" value="40"></div>
           <div class="sl" id="regen-wrap" hidden><label for="p-regen">Regen peak (% of drive peak)</label><output id="o-regen"></output><input id="p-regen" type="range" min="0" max="100" step="5" value="50"></div>
-          <div class="sl" id="ps-wrap" hidden><label for="p-pscale">Power scale</label><output id="o-pscale"></output><input id="p-pscale" type="range" min="0.5" max="1.5" step="0.01" value="1"></div>
 
           <div class="lab">Fans: tube-bank h, air heats row by row</div>
           <div class="sl"><label for="p-cfm">Airflow per module <i class="src">fan curve × Kelvin CFD</i></label><output id="o-cfm"></output><input id="p-cfm" type="range" min="0" max="15" step="0.1" value="4.8"></div>
 
           <div class="lab">Passive: sealed case, walls only</div>
-          <div class="sl"><label for="p-uawall">Case walls to ambient <i class="src">estimate</i></label><output id="o-uawall"></output><input id="p-uawall" type="range" min="0" max="15" step="0.5" value="4"></div>
+          <div class="sl"><label for="p-uawall">Case walls to ambient <i class="src">estimate tuned from cooldown data</i></label><output id="o-uawall"></output><input id="p-uawall" type="range" min="0" max="15" step="0.5" value="4"></div>
+          <span class="note" id="uaout"></span>
 
           <div class="lab">Layout</div>
           <div class="sl"><label for="p-st">Transverse pitch <i class="src">design</i></label><output id="o-st"></output><input id="p-st" type="range" min="23" max="45" step="0.01" value="36.12"></div>
@@ -935,6 +935,7 @@ function updateReadouts(){
   let ocv=0;const soc=S.soc;ocv=interp(SOCX,OCV,soc)*132;
   const Rp=NET.Rcell[S.coreCi]*132/3;
   document.getElementById('r-pack').innerHTML=I.toFixed(0)+'<small>A</small> '+(ocv-I*Rp).toFixed(0)+'<small>V</small>';
+  {const e=document.getElementById('uaout');if(e)e.textContent=fanOn?'':'Out through the walls now: '+Math.max(0,NET.qRej||0).toFixed(0)+' W';}
   document.getElementById('r-packd').textContent='heat '+Math.max(0,S.qs/1000).toFixed(2)+' kW';
   {const kWh=3.6e6;document.getElementById('r-soe').innerHTML=(S.soe*100).toFixed(1)+'<small>%</small> '+(S.eRem/kWh).toFixed(2)+'<small>kWh</small>';
    document.getElementById('r-soed').textContent='of '+(S.eFull/kWh).toFixed(2)+' kWh · SOC '+(S.soc*100).toFixed(0)+' %';
@@ -954,7 +955,7 @@ function updateReadouts(){
 }
 
 /* ---------------- controls ---------------- */
-const fmt={cv:v=>v+' %',uawall:v=>(+v).toFixed(1)+' W/K',regen:v=>v+' %',pscale:v=>'×'+(+v).toFixed(2),rms:v=>v+' A',cfm:v=>(+v).toFixed(1)+' CFM',st:v=>(+v).toFixed(2)+' mm',sl:v=>(+v).toFixed(1)+' mm',ccell:v=>(+v).toFixed(1)+' J/K',amb:v=>v+' °C',kr:v=>(+v).toFixed(2)+' W/m·K',kz:v=>v+' W/m·K',hneg:v=>(v/1000).toFixed(0)+'k W/m²K',gpos:v=>(+v).toFixed(2)+' W/K'};
+const fmt={cv:v=>v+' %',uawall:v=>(+v).toFixed(1)+' W/K',regen:v=>v+' %',rms:v=>v+' A',cfm:v=>(+v).toFixed(1)+' CFM',st:v=>(+v).toFixed(2)+' mm',sl:v=>(+v).toFixed(1)+' mm',ccell:v=>(+v).toFixed(1)+' J/K',amb:v=>v+' °C',kr:v=>(+v).toFixed(2)+' W/m·K',kz:v=>v+' W/m·K',hneg:v=>(v/1000).toFixed(0)+'k W/m²K',gpos:v=>(+v).toFixed(2)+' W/K'};
 const RESET_KEYS=new Set(['rms','t0','cv','pscale','regen']);
 const REBUILD_KEYS=new Set(['kr','kz','hneg','gpos','ccell']);
 for(const k of Object.keys(fmt)){
@@ -986,7 +987,7 @@ function logRms(lg){let soc=1,q=0,Iprev=0;const ns=LAY.mods*LAY.groups;
   for(const v of lg.P){const Pw=v*10*P.pscale,Voc=ns*interp(SOCX,OCV,soc),Rt=ns*(P.rscale*1e-3*rMap(40,soc,Iprev/LAY.perRow)+2*R_WELD)/LAY.perRow;
     const I=(Voc-Math.sqrt(Math.max(0,Voc*Voc-4*Rt*Pw)))/(2*Rt);Iprev=I;q+=I*I;soc=Math.max(0,soc-I*0.5/(3600*CAP_AH*LAY.perRow));}
   return Math.sqrt(q/lg.P.length);}
-function profUI(){legendUI();if(typeof PLOTS!=='undefined')setHeatRef();const lg=LOGS[P.prof];document.getElementById('lognote').textContent=lg?lg.note+` · ${logRms(lg).toFixed(0)} A RMS here`:(P.prof==='endu'?'Synthetic lap at the RMS input · 1600 s + 180 s change':'Constant RMS current · 1600 s');document.getElementById('rms-wrap').hidden=!!lg;document.getElementById('ps-wrap').hidden=!lg;document.getElementById('regen-wrap').hidden=P.prof!=='endu';
+function profUI(){legendUI();if(typeof PLOTS!=='undefined')setHeatRef();const lg=LOGS[P.prof];document.getElementById('lognote').textContent=lg?lg.note+` · ${logRms(lg).toFixed(0)} A RMS here`:(P.prof==='endu'?'Synthetic lap at the RMS input · 1600 s + 180 s change':'Constant RMS current · 1600 s');document.getElementById('rms-wrap').hidden=!!lg;document.getElementById('regen-wrap').hidden=P.prof!=='endu';
 }
 seg('prof','prof','prof',()=>{profUI();fullReset();});
 seg('fan','fan','fan',()=>{legendUI();fanControl();updateHInfo();});
