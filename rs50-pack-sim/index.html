@@ -90,13 +90,6 @@ details summary{cursor:pointer;font-size:12px}
 footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);padding-top:8px}
 .err{padding:16px;color:var(--crit)}
 [hidden]{display:none!important}
-.flow{display:grid;gap:0;max-width:760px}
-.flow .st{border:1px solid var(--line);padding:6px 10px;display:grid;grid-template-columns:22px 150px minmax(0,1fr);gap:8px;align-items:baseline;font-size:12px}
-.flow .st b{font-size:13px}.flow .n{color:var(--ink-3);font-family:ui-monospace,Menlo,Consolas,monospace}
-.flow .ar{height:14px;margin-left:30px;border-left:2px solid var(--ink-3);position:relative}
-.flow .ar:after{content:"";position:absolute;left:-6px;bottom:-1px;border:5px solid transparent;border-top:6px solid var(--ink-3)}
-.flow .loop{font-size:12px;color:var(--ink-2);margin-top:6px}
-@media (max-width:600px){.flow .st{grid-template-columns:22px minmax(0,1fr)}.flow .st span:last-child{grid-column:2}}
 </style>
 
 <div class="wrap">
@@ -238,27 +231,6 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
       </div>
   </section>
 
-  <section class="card">
-      <h2>What each 0.25 s step does</h2>
-      <div class="flow">
-        <div class="st"><span class="n">1</span><b>Load</b><span>Power from the drive cycle at time t (Synthetic/Constant: current).</span></div>
-        <div class="ar"></div>
-        <div class="st"><span class="n">2</span><b>Resistance</b><span>DCIR per jelly-roll node from the A:E maps at that node’s temperature, the cell’s SOC and the cell’s last current. Each cell × its ±2 % offset.</span></div>
-        <div class="ar"></div>
-        <div class="st"><span class="n">3</span><b>Pack current</b><span>Solve P = I·(Voc − I·R). Voc = Σ OCV(SOC) of the 132 groups; R = Σ group resistance incl. spot welds.</span></div>
-        <div class="ar"></div>
-        <div class="st"><span class="n">4</span><b>Parallel split</b><span>Each 3P group shares its current by 1/(R_cell + welds).</span></div>
-        <div class="ar"></div>
-        <div class="st"><span class="n">5</span><b>Heat</b><span>I²R into the jelly-roll nodes, + entropic −I·T·dU/dT, + I²R of the welds at each terminal. SOC from charge counted.</span></div>
-        <div class="ar"></div>
-        <div class="st"><span class="n">6</span><b>Conduction</b><span>Implicit solve over ~21k nodes: radial and axial in the jelly roll, roll → can, − floor and + collector → busbars, can → neighbouring cans.</span></div>
-        <div class="ar"></div>
-        <div class="st"><span class="n">7</span><b>Air</b><span>Fans: each row is a heat exchanger, air warms inlet → outlet. Passive: one case-air temperature, heat out only through the walls.</span></div>
-        <div class="ar"></div>
-        <div class="st"><span class="n">8</span><b>Record</b><span>Energy, SOE, 10 s averages; about once a second: hottest core, BMS (− terminal) reading, air out, charts, 3D colours.</span></div>
-        <div class="loop">↻ back to 1 with t + 0.25 s</div>
-      </div>
-  </section>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
