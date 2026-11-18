@@ -146,7 +146,6 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
         <div class="seg" role="group" aria-label="Fans" id="fan">
           <button type="button" data-fan="off" aria-pressed="false">Off</button>
           <button type="button" data-fan="on" aria-pressed="true">On</button>
-          <button type="button" data-fan="auto" aria-pressed="false">Auto</button>
         </div>
       </div>
 
@@ -171,7 +170,6 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
           <div class="lab">Fans on</div>
           <div class="sl"><label for="p-cfm">Airflow per module</label><output id="o-cfm"></output><input id="p-cfm" type="range" min="0" max="15" step="0.1" value="4.3"></div>
           <span class="note">4.3 CFM: 15 mm push-pull fan curve vs team CFD at 36.12 × 15.5 mm (module + case holes + mesh both sides, summed at equal flow). Redo if pitch changes.</span>
-          <div class="sl" id="thr-wrap" hidden><label for="p-thr">Auto: on above</label><output id="o-thr"></output><input id="p-thr" type="range" min="30" max="58" step="0.5" value="45"></div>
 
           <div class="lab">Fans off</div>
           <div class="sl"><label for="p-ram">Ram pressure at vents</label><output id="o-ram"></output><input id="p-ram" type="range" min="0" max="100" step="5" value="30"></div>
@@ -202,7 +200,7 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
       <h2>Temperature</h2>
       <div class="legend" id="legend"></div>
       <div class="chartbox" id="tbox"><canvas id="tchart" data-h="220"></canvas><div class="ctip" id="ttip" hidden></div></div>
-      <div class="legend" style="margin-top:4px"><span><i style="background:var(--accent);opacity:.55"></i>fans on</span><span><i style="background:var(--ink-2)"></i>pack current, A</span></div>
+      <div class="legend" style="margin-top:4px"><span><i style="background:var(--ink-2)"></i>pack current, A</span></div>
       <div class="chartbox"><canvas id="ichart" data-h="80"></canvas></div>
     </section>
     <section class="card">
@@ -250,7 +248,7 @@ const VR=8, VZ=28, TILES_X=32;
 const TEX_W=VR*TILES_X, TEX_H=VZ*Math.ceil(NCELL/TILES_X);
 const DT=0.25;
 
-const P={lvl:3,prof:'o612',rms:40,fan:'on',cfm:4.3,thr:45,amb:35,t0:35,rscale:1,cv:2,kr:0.9,kz:28,hneg:30000,gpos:0.6,ccell:60.6,st:36.12,sl:15.5,rev:true,scale:'fixed',view:'cut',alt:'z',pscale:1,regen:50,ram:30};
+const P={lvl:3,prof:'o612',rms:40,fan:'on',cfm:4.3,amb:35,t0:35,rscale:1,cv:2,kr:0.9,kz:28,hneg:30000,gpos:0.6,ccell:60.6,st:36.12,sl:15.5,rev:true,scale:'fixed',view:'cut',alt:'z',pscale:1,regen:50,ram:30};
 let fanOn=true, fanTick=0;
 
 /* ---------------- helpers ---------------- */
@@ -510,8 +508,7 @@ function setFan(on){
   AIR=airSide();updateHInfo();buildArrows();
 }
 function fanControl(){
-  if(P.fan==='on')setFan(true);else if(P.fan==='off')setFan(false);
-  else{if(!STATS||(fanTick++%8===0))computeStats();if(!fanOn&&STATS.neg>=P.thr)setFan(true);else if(fanOn&&STATS.neg<P.thr-2)setFan(false);}
+  setFan(P.fan==='on');
 }
 function step(dt){
   fanControl();
@@ -814,7 +811,7 @@ canvas.addEventListener('pointerleave',()=>{tip.hidden=true;hoverCi=-1;uniforms.
 /* ---------------- charts ---------------- */
 const SERIES=[['core','Hottest jelly roll','--s1'],['can','Hottest can surface','--s2'],['neg','Hottest − terminal (BMS)','--s3'],['air','Air out','--s4']];
 function measAt(t){const M=PROF.meas;let j=0;while(j<M.length-2&&M[j+2]<=t)j+=2;return M[j+1];}
-function legendUI(){SERIES[3][1]=P.fan==='on'?'Air out':P.fan==='off'?'Case air':'Air out (fans on) / case air (off)';document.getElementById('legend').innerHTML=SERIES.map(s=>`<span><i style="background:var(${s[2]})"></i>${s[1]}</span>`).join('')+(LOGS[P.prof]&&LOGS[P.prof].meas?`<span><i style="height:0;border-top:2px dashed var(--ink)"></i>Team's measured max cell temp</span>`:'')+`<span><i style="background:var(--crit);height:0;border-top:2px dashed var(--crit)"></i>60 °C limit (EV.8.5.2)</span>`;}
+function legendUI(){SERIES[3][1]=P.fan==='on'?'Air out':'Case air';document.getElementById('legend').innerHTML=SERIES.map(s=>`<span><i style="background:var(${s[2]})"></i>${s[1]}</span>`).join('')+(LOGS[P.prof]&&LOGS[P.prof].meas?`<span><i style="height:0;border-top:2px dashed var(--ink)"></i>Team's measured max cell temp</span>`:'')+`<span><i style="background:var(--crit);height:0;border-top:2px dashed var(--crit)"></i>60 °C limit (EV.8.5.2)</span>`;}
 legendUI();
 function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
 function setupCanvas(cv){const dpr=Math.min(window.devicePixelRatio||1,2);const w=cv.clientWidth,h=parseInt(cv.dataset.h||'200');cv.style.height=h+'px';if(cv.width!==Math.round(w*dpr)){cv.width=Math.round(w*dpr);}cv.height=Math.round(h*dpr);const ctx=cv.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);return {ctx,w,h};}
@@ -836,7 +833,6 @@ function drawCharts(){
   ctx.textAlign='center';ctx.textBaseline='top';
   for(let m=0;m<=tmax/60;m+=5){const x=X(m*60);ctx.fillText(m+' min',x,h-padB+6);}
   if(PROF.change>0){ctx.fillStyle=css('--line');ctx.globalAlpha=0.5;ctx.fillRect(X(PROF.changeAt),padT,X(PROF.changeAt+PROF.change)-X(PROF.changeAt),ph);ctx.globalAlpha=1;ctx.fillStyle=css('--ink-3');ctx.textBaseline='top';ctx.fillText('driver change',(X(PROF.changeAt)+X(PROF.changeAt+PROF.change))/2,padT+2);}
-  {ctx.fillStyle=css('--accent');ctx.globalAlpha=0.55;for(let i=1;i<HIST.t.length;i++)if(HIST.fan[i])ctx.fillRect(X(HIST.t[i-1]),padT+ph-4,X(HIST.t[i])-X(HIST.t[i-1])+0.5,4);ctx.globalAlpha=1;}
   ctx.setLineDash([5,4]);ctx.strokeStyle=css('--crit');ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(padL,Y(60));ctx.lineTo(w-padR,Y(60));ctx.stroke();ctx.setLineDash([]);
   for(const [k,,c] of SERIES){
     const arr=HIST[k];if(!arr.length)continue;ctx.strokeStyle=css(c);ctx.lineWidth=2;ctx.lineJoin='round';ctx.beginPath();
@@ -937,7 +933,7 @@ function updateReadouts(){
 }
   const hud=document.getElementById('hud');
   const chips=[];
-  chips.push(`<span class="chip">Fans <b>${fanOn?'on':'off'}</b>${P.fan==='auto'?' (auto)':''}</span>`);
+  chips.push(`<span class="chip">Fans <b>${fanOn?'on':'off'}</b></span>`);
   if(fanOn)chips.push(`<span class="chip">h <b class="num">${AIR.h.toFixed(0)}</b> W/m²K · air out <b class="num">${S.airOut.toFixed(1)}</b> °C</span>`);
   else chips.push(`<span class="chip">Case air <b class="num">${S.airOut.toFixed(1)}</b> °C · vent <b class="num">${((NET.ventMd||0)*1000).toFixed(0)}</b> g/s · out <b class="num">${(NET.qRej||0).toFixed(0)}</b> W · h <b class="num">${AIR.h.toFixed(0)}</b></span>`);
   if(S.core>=60)chips.push(`<span class="chip crit"><b>Over 60 °C</b> at ${fmtT(simT)}</span>`);
@@ -945,7 +941,7 @@ function updateReadouts(){
 }
 
 /* ---------------- controls ---------------- */
-const fmt={ram:v=>v+' %',regen:v=>v+' %',pscale:v=>'×'+(+v).toFixed(2),rms:v=>v+' A',cfm:v=>(+v).toFixed(1)+' CFM',thr:v=>v+' °C',st:v=>(+v).toFixed(2)+' mm',sl:v=>(+v).toFixed(1)+' mm',rscale:v=>'×'+(+v).toFixed(2),ccell:v=>(+v).toFixed(1)+' J/K',amb:v=>v+' °C',t0:v=>v+' °C',cv:v=>v+' %',kr:v=>(+v).toFixed(2)+' W/m·K',kz:v=>v+' W/m·K',hneg:v=>(v/1000).toFixed(0)+'k W/m²K',gpos:v=>(+v).toFixed(2)+' W/K'};
+const fmt={ram:v=>v+' %',regen:v=>v+' %',pscale:v=>'×'+(+v).toFixed(2),rms:v=>v+' A',cfm:v=>(+v).toFixed(1)+' CFM',st:v=>(+v).toFixed(2)+' mm',sl:v=>(+v).toFixed(1)+' mm',rscale:v=>'×'+(+v).toFixed(2),ccell:v=>(+v).toFixed(1)+' J/K',amb:v=>v+' °C',t0:v=>v+' °C',cv:v=>v+' %',kr:v=>(+v).toFixed(2)+' W/m·K',kz:v=>v+' W/m·K',hneg:v=>(v/1000).toFixed(0)+'k W/m²K',gpos:v=>(+v).toFixed(2)+' W/K'};
 const RESET_KEYS=new Set(['rms','t0','cv','pscale','regen']);
 const REBUILD_KEYS=new Set(['kr','kz','hneg','gpos','ccell']);
 for(const k of Object.keys(fmt)){
@@ -979,7 +975,7 @@ function logRms(lg){let soc=1,q=0;const ns=LAY.mods*LAY.groups;
 function profUI(){legendUI();const lg=LOGS[P.prof];document.getElementById('lognote').textContent=lg?lg.note+` · ≈${logRms(lg).toFixed(0)} A RMS on our pack`:(P.prof==='endu'?'Made-up lap shape scaled to the RMS input · 1600 s driving + 180 s driver change':'Constant current at the RMS input · 1600 s');document.getElementById('rms-wrap').hidden=!!lg;document.getElementById('ps-wrap').hidden=!lg;document.getElementById('regen-wrap').hidden=P.prof!=='endu';
 }
 seg('prof','prof','prof',()=>{profUI();fullReset();});
-seg('fan','fan','fan',()=>{legendUI();document.getElementById('thr-wrap').hidden=P.fan!=='auto';fanControl();updateHInfo();});
+seg('fan','fan','fan',()=>{legendUI();fanControl();updateHInfo();});
 document.querySelectorAll('#presets button').forEach(b=>b.addEventListener('click',()=>{
   const r=document.getElementById('p-rscale');r.value=b.dataset.r;r.dispatchEvent(new Event('input'));
 }));
