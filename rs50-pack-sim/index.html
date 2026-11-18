@@ -81,7 +81,8 @@ details summary{cursor:pointer;font-size:12px}
 .kv{display:grid;align-content:start;grid-template-columns:auto auto;justify-content:space-between;gap:2px 10px;font-size:12px}
 .kv span:nth-child(odd){color:var(--ink-2)}
 .kv span:nth-child(even){font-family:ui-monospace,Menlo,Consolas,monospace;text-align:right}
-.rmwrap{display:grid;grid-template-columns:minmax(0,1fr) 190px;gap:10px}
+.rmwrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 190px;gap:10px}
+@media (max-width:1000px){.rmwrap{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
 @media (max-width:700px){.rmwrap{grid-template-columns:minmax(0,1fr)}}
 .rmbox{position:relative;height:300px;border:1px solid var(--line)}
 #rmap{display:block;width:100%;height:100%;touch-action:pan-y}
@@ -221,10 +222,13 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
   </div>
 
   <section class="card">
-      <h2>DCIR map <span class="sub" style="font-weight:normal">2C (10 A) pulses shown · each cell uses the 0.5C–10C maps at its own current</span></h2>
+      <h2>DCIR and heat generation</h2>
       <div class="legend"><span><i style="background:var(--s2)"></i><span id="rm-who">hottest cell</span></span></div>
       <div class="rmwrap">
-        <div class="rmbox" id="rmapbox"><canvas id="rmap" aria-label="DCIR against temperature and SOC with the tracked cell's path"></canvas><div class="tip" id="rmtip" hidden></div></div>
+        <div><div class="sub">DCIR, 2C (10 A) pulses. Each cell uses the 0.5C–10C maps at its own current.</div>
+        <div class="rmbox" id="rmapbox"><canvas id="rmap" aria-label="DCIR against temperature and SOC with the tracked cell's path"></canvas><div class="tip" id="rmtip" hidden></div></div></div>
+        <div><div class="sub">Heat per cell at <span id="hm-ref"></span>, incl. reversible.</div>
+        <div class="rmbox" id="hmapbox"><canvas id="hmap" aria-label="Heat generation against temperature and SOC with the tracked cell's path"></canvas><div class="tip" id="hmtip" hidden></div></div></div>
         <div class="kv" id="rm-kv"></div>
       </div>
   </section>
@@ -967,7 +971,7 @@ for(const k of Object.keys(fmt)){
     else if(REBUILD_KEYS.has(k))scheduleReset();
   });
 }
-document.getElementById('p-rev').addEventListener('change',e=>{P.rev=e.target.checked;});
+document.getElementById('p-rev').addEventListener('change',e=>{P.rev=e.target.checked;setHeatRef();});
 function seg(id,key,attr,cb){
   const box=document.getElementById(id)||document.querySelector(`[aria-label="${id}"]`);
   box.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
@@ -983,7 +987,7 @@ function logRms(lg){let soc=1,q=0,Iprev=0;const ns=LAY.mods*LAY.groups;
   for(const v of lg.P){const Pw=v*10*P.pscale,Voc=ns*interp(SOCX,OCV,soc),Rt=ns*(P.rscale*1e-3*rMap(40,soc,Iprev/LAY.perRow)+2*R_WELD)/LAY.perRow;
     const I=(Voc-Math.sqrt(Math.max(0,Voc*Voc-4*Rt*Pw)))/(2*Rt);Iprev=I;q+=I*I;soc=Math.max(0,soc-I*0.5/(3600*CAP_AH*LAY.perRow));}
   return Math.sqrt(q/lg.P.length);}
-function profUI(){legendUI();const lg=LOGS[P.prof];document.getElementById('lognote').textContent=lg?lg.note+` · ≈${logRms(lg).toFixed(0)} A RMS on our pack`:(P.prof==='endu'?'Made-up lap shape scaled to the RMS input · 1600 s driving + 180 s driver change':'Constant current at the RMS input · 1600 s');document.getElementById('rms-wrap').hidden=!!lg;document.getElementById('ps-wrap').hidden=!lg;document.getElementById('regen-wrap').hidden=P.prof!=='endu';
+function profUI(){legendUI();if(typeof PLOTS!=='undefined')setHeatRef();const lg=LOGS[P.prof];document.getElementById('lognote').textContent=lg?lg.note+` · ≈${logRms(lg).toFixed(0)} A RMS on our pack`:(P.prof==='endu'?'Made-up lap shape scaled to the RMS input · 1600 s driving + 180 s driver change':'Constant current at the RMS input · 1600 s');document.getElementById('rms-wrap').hidden=!!lg;document.getElementById('ps-wrap').hidden=!lg;document.getElementById('regen-wrap').hidden=P.prof!=='endu';
 }
 seg('prof','prof','prof',()=>{profUI();fullReset();});
 seg('fan','fan','fan',()=>{legendUI();fanControl();updateHInfo();});
@@ -1042,35 +1046,15 @@ function drawValidation(){
   document.getElementById('valerr').textContent='RMS error '+rms.toFixed(2)+' K';
 }
 
-/* ---------------- DCIR map 3D ---------------- */
-const rmCanvas=document.getElementById('rmap'), rmBox=document.getElementById('rmapbox');
-const rmRen=new THREE.WebGLRenderer({canvas:rmCanvas,antialias:true});
-rmRen.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
-const rmScene=new THREE.Scene();
-const rmCam=new THREE.PerspectiveCamera(30,1,1,5000);
-rmCam.position.set(-110,130,240);
-const rmCtl=new THREE.OrbitControls(rmCam,rmCanvas);rmCtl.target.set(50,18,50);rmCtl.enableDamping=true;rmCtl.enablePan=false;rmCtl.minDistance=80;rmCtl.maxDistance=700;rmCtl.enableZoom=false;
-function dolly(cam,ctl,f){const o=cam.position.clone().sub(ctl.target);const d=Math.min(ctl.maxDistance,Math.max(ctl.minDistance,o.length()*f));o.setLength(d);cam.position.copy(ctl.target).add(o);}
-for(const [cv,cam,ctl] of [[canvas,camera,controls],[rmCanvas,rmCam,rmCtl]])cv.addEventListener('wheel',e=>{if(!(e.ctrlKey||e.metaKey))return;e.preventDefault();dolly(cam,ctl,Math.exp(e.deltaY*0.002));},{passive:false});
-let stageVis=true,rmVis=true;
-new IntersectionObserver(es=>es.forEach(e=>{if(e.target===stage)stageVis=e.isIntersecting;else rmVis=e.isIntersecting;})).observe(stage);
-new IntersectionObserver(es=>es.forEach(e=>{rmVis=e.isIntersecting;})).observe(rmBox);
-rmScene.add(new THREE.AmbientLight(0xffffff,0.62));{const dl=new THREE.DirectionalLight(0xffffff,0.55);dl.position.set(-40,160,140);rmScene.add(dl);}
-// axes: x = SOC (95 % at x=0 → 5 % at x=100), z = temperature (10 °C at z=0 → 60 °C at z=100), y = DCIR (0–30 mΩ → 0–60)
-const AX=s=>(95-s)/90*100, AZ=T=>(T-10)/50*100, AY=r=>Math.min(r,32)/30*60;
+/* ---------------- DCIR and heat-generation maps 3D ---------------- */
+// axes: x = SOC (95 % at x=0 → 5 % at x=100), z = temperature (10 °C at z=0 → 60 °C at z=100), y = value (0–yMax → 0–60)
+const AX=s=>(95-s)/90*100, AZ=T=>(T-10)/50*100;
 const BLUE=['#313695','#4575b4','#74add1','#abd9e9','#e0f3f8','#ffffbf','#fee090','#fdae61','#f46d43','#d73027','#a50026'].map(h=>new THREE.Color(h));
 function blueAt(t){t=Math.max(0,Math.min(1,t))*(BLUE.length-1);const i=Math.min(BLUE.length-2,Math.floor(t));return BLUE[i].clone().lerp(BLUE[i+1],t-i);}
-let rmSurf=null,rmWire=null,rmStatic=new THREE.Group();rmScene.add(rmStatic);
-function buildSurface(){
-  if(rmSurf){rmScene.remove(rmSurf);rmScene.remove(rmWire);rmSurf.geometry.dispose();}
-  const nS=46,nT=51,pos=[],col=[],idx=[];
-  for(let j=0;j<nT;j++)for(let i=0;i<nS;i++){const soc=95-i*2,T=10+j;const r=P.rscale*rMap(T,soc/100);pos.push(AX(soc),AY(r),AZ(T));const c=blueAt(Math.log(r/4.5)/Math.log(29/4.5));col.push(c.r,c.g,c.b);}
-  for(let j=0;j<nT-1;j++)for(let i=0;i<nS-1;i++){const a=j*nS+i,b=a+1,c=a+nS,d=c+1;idx.push(a,c,b,b,c,d);}
-  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));g.setIndex(idx);g.computeVertexNormals();
-  rmSurf=new THREE.Mesh(g,new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:1,polygonOffsetUnits:1}));
-  rmWire=new THREE.Mesh(g,new THREE.MeshBasicMaterial({color:new THREE.Color(css('--ink')),wireframe:true,transparent:true,opacity:0.07}));
-  rmScene.add(rmSurf);rmScene.add(rmWire);
-}
+function dolly(cam,ctl,f){const o=cam.position.clone().sub(ctl.target);const d=Math.min(ctl.maxDistance,Math.max(ctl.minDistance,o.length()*f));o.setLength(d);cam.position.copy(ctl.target).add(o);}
+canvas.addEventListener('wheel',e=>{if(!(e.ctrlKey||e.metaKey))return;e.preventDefault();dolly(camera,controls,Math.exp(e.deltaY*0.002));},{passive:false});
+let stageVis=true;
+new IntersectionObserver(es=>es.forEach(e=>{stageVis=e.isIntersecting;})).observe(stage);
 function rmLabel(text,h){
   const c=document.createElement('canvas'),fs=44;let ctx=c.getContext('2d');ctx.font=`500 ${fs}px "JetBrains Mono", ui-monospace, monospace`;
   c.width=Math.ceil(ctx.measureText(text).width)+12;c.height=fs+14;ctx=c.getContext('2d');ctx.font=`500 ${fs}px "JetBrains Mono", ui-monospace, monospace`;
@@ -1078,53 +1062,95 @@ function rmLabel(text,h){
   const t=new THREE.CanvasTexture(c);t.minFilter=THREE.LinearFilter;
   const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,depthWrite:false,depthTest:false}));h=h||4.2;sp.scale.set(h*c.width/c.height,h,1);return sp;
 }
-function buildStatic(){
-  while(rmStatic.children.length){const o=rmStatic.children.pop();o.geometry&&o.geometry.dispose();o.material&&o.material.map&&o.material.map.dispose();}
-  rmScene.background=new THREE.Color(css('--panel'));
-  const lc=new THREE.Color(css('--line')),ink=new THREE.Color(css('--ink-3'));const L=[];
-  const seg=(a,b)=>L.push(a[0],a[1],a[2],b[0],b[1],b[2]);
-  for(const T of [10,20,30,40,50,60]){seg([0,0,AZ(T)],[100,0,AZ(T)]);seg([100,0,AZ(T)],[100,60,AZ(T)]);}
-  for(const sc of [95,80,60,40,20,5]){seg([AX(sc),0,0],[AX(sc),0,100]);seg([AX(sc),0,0],[AX(sc),60,0]);}
-  for(const r of [5,10,15,20,25,30]){seg([0,AY(r),0],[100,AY(r),0]);seg([100,AY(r),0],[100,AY(r),100]);}
-  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(L,3));
-  rmStatic.add(new THREE.LineSegments(g,new THREE.LineBasicMaterial({color:lc})));
-  const ax=[];ax.push(0,0,100,100,0,100, 0,0,100,0,0,0, 0,0,0,0,60,0);const g2=new THREE.BufferGeometry();g2.setAttribute('position',new THREE.Float32BufferAttribute(ax,3));
-  rmStatic.add(new THREE.LineSegments(g2,new THREE.LineBasicMaterial({color:ink})));
-  const put=(sp,x,y,z)=>{sp.position.set(x,y,z);rmStatic.add(sp);};
-  for(const T of [10,20,30,40,50,60])put(rmLabel(String(T)),-7,-2,AZ(T));
-  for(const sc of [95,80,60,40,20,5])put(rmLabel(String(sc)),AX(sc),-3,108);
-  for(const r of [5,10,15,20,25,30])put(rmLabel(String(r)),-6,AY(r),-4);
-  put(rmLabel('Temperature, °C',4.6),-24,-9,50);put(rmLabel('SOC, %',4.6),50,-11,118);put(rmLabel('DCIR, mΩ',4.6),-4,70,-4);
+function niceMax(v){for(const m of [1,1.5,2,3,4,5,6,8,10,12,15,20,25,30,40])if(v<=m)return m;return Math.ceil(v/10)*10;}
+// o: {cv, box, tip, val(T,socFrac), yLabel, unit, digits, fixedMax, logColor:[lo,hi]}
+function makePlot(o){
+  const ren=new THREE.WebGLRenderer({canvas:o.cv,antialias:true});ren.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+  const scene=new THREE.Scene(),cam=new THREE.PerspectiveCamera(30,1,1,5000);cam.position.set(-110,130,240);
+  const ctl=new THREE.OrbitControls(cam,o.cv);ctl.target.set(50,18,50);ctl.enableDamping=true;ctl.enablePan=false;ctl.minDistance=80;ctl.maxDistance=700;ctl.enableZoom=false;
+  o.cv.addEventListener('wheel',e=>{if(!(e.ctrlKey||e.metaKey))return;e.preventDefault();dolly(cam,ctl,Math.exp(e.deltaY*0.002));},{passive:false});
+  scene.add(new THREE.AmbientLight(0xffffff,0.62));{const dl=new THREE.DirectionalLight(0xffffff,0.55);dl.position.set(-40,160,140);scene.add(dl);}
+  const pl={o,ren,scene,cam,ctl,vis:true,surf:null,wire:null,yMax:o.fixedMax||1,stat:new THREE.Group()};scene.add(pl.stat);
+  new IntersectionObserver(es=>es.forEach(e=>{pl.vis=e.isIntersecting;})).observe(o.box);
+  pl.AY=v=>Math.max(0,Math.min(v,pl.yMax*1.07))/pl.yMax*60;
+  pl.buildSurface=()=>{
+    if(pl.surf){scene.remove(pl.surf);scene.remove(pl.wire);pl.surf.geometry.dispose();}
+    const nS=46,nT=51,vals=[];let mx=0;
+    for(let j=0;j<nT;j++)for(let i=0;i<nS;i++){const v=o.val(10+j,(95-i*2)/100);vals.push(v);mx=Math.max(mx,v);}
+    const ny=o.fixedMax||niceMax(mx);const changed=ny!==pl.yMax;pl.yMax=ny;
+    const pos=[],col=[],idx=[];
+    for(let j=0;j<nT;j++)for(let i=0;i<nS;i++){const v=vals[j*nS+i];pos.push(AX(95-i*2),pl.AY(v),AZ(10+j));
+      const t=o.logColor?Math.log(Math.max(v,1e-6)/o.logColor[0])/Math.log(o.logColor[1]/o.logColor[0]):v/pl.yMax;const c=blueAt(t);col.push(c.r,c.g,c.b);}
+    for(let j=0;j<nT-1;j++)for(let i=0;i<nS-1;i++){const a=j*nS+i,b=a+1,c=a+nS,d=c+1;idx.push(a,c,b,b,c,d);}
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));g.setIndex(idx);g.computeVertexNormals();
+    pl.surf=new THREE.Mesh(g,new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:1,polygonOffsetUnits:1}));
+    pl.wire=new THREE.Mesh(g,new THREE.MeshBasicMaterial({color:new THREE.Color(css('--ink')),wireframe:true,transparent:true,opacity:0.07}));
+    scene.add(pl.surf);scene.add(pl.wire);if(changed)pl.buildStatic();
+  };
+  pl.buildStatic=()=>{
+    const st=pl.stat;while(st.children.length){const c=st.children.pop();c.geometry&&c.geometry.dispose();c.material&&c.material.map&&c.material.map.dispose();}
+    scene.background=new THREE.Color(css('--panel'));
+    const lc=new THREE.Color(css('--line')),ink=new THREE.Color(css('--ink-3'));const L=[];
+    const seg=(a,b)=>L.push(a[0],a[1],a[2],b[0],b[1],b[2]);const yt=[1,2,3,4,5].map(k=>pl.yMax*k/5);
+    for(const T of [10,20,30,40,50,60]){seg([0,0,AZ(T)],[100,0,AZ(T)]);seg([100,0,AZ(T)],[100,60,AZ(T)]);}
+    for(const sc of [95,80,60,40,20,5]){seg([AX(sc),0,0],[AX(sc),0,100]);seg([AX(sc),0,0],[AX(sc),60,0]);}
+    for(const r of yt){seg([0,pl.AY(r),0],[100,pl.AY(r),0]);seg([100,pl.AY(r),0],[100,pl.AY(r),100]);}
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(L,3));
+    st.add(new THREE.LineSegments(g,new THREE.LineBasicMaterial({color:lc})));
+    const ax=[0,0,100,100,0,100, 0,0,100,0,0,0, 0,0,0,0,60,0];const g2=new THREE.BufferGeometry();g2.setAttribute('position',new THREE.Float32BufferAttribute(ax,3));
+    st.add(new THREE.LineSegments(g2,new THREE.LineBasicMaterial({color:ink})));
+    const put=(sp,x,y,z)=>{sp.position.set(x,y,z);st.add(sp);};
+    for(const T of [10,20,30,40,50,60])put(rmLabel(String(T)),-7,-2,AZ(T));
+    for(const sc of [95,80,60,40,20,5])put(rmLabel(String(sc)),AX(sc),-3,108);
+    for(const r of yt)put(rmLabel(String(+r.toFixed(o.digits))),-6,pl.AY(r),-4);
+    put(rmLabel('Temperature, °C',4.6),-24,-9,50);put(rmLabel('SOC, %',4.6),50,-11,118);put(rmLabel(o.yLabel,4.6),-4,70,-4);
+  };
+  const TRMAX=4000;
+  const trGeo=new THREE.BufferGeometry();trGeo.setAttribute('position',new THREE.BufferAttribute(new Float32Array(TRMAX*3),3));trGeo.setDrawRange(0,0);
+  const trLine=new THREE.Line(trGeo,new THREE.LineBasicMaterial({color:0xeb6834,depthTest:false,transparent:true}));trLine.renderOrder=5;scene.add(trLine);
+  const trDot=new THREE.Mesh(new THREE.SphereGeometry(2.0,20,14),new THREE.MeshBasicMaterial({color:0xeb6834,depthTest:false,transparent:true}));trDot.renderOrder=6;scene.add(trDot);
+  const dropGeo=new THREE.BufferGeometry();dropGeo.setAttribute('position',new THREE.BufferAttribute(new Float32Array(6),3));
+  const drop=new THREE.Line(dropGeo,new THREE.LineDashedMaterial({color:0xeb6834,dashSize:2,gapSize:2,transparent:true,opacity:0.8}));scene.add(drop);
+  pl.colors=()=>{const c=new THREE.Color(css('--s2'));trLine.material.color=c;trDot.material.color=c;drop.material.color=c;};
+  pl.trace=(pts)=>{const pa=trGeo.attributes.position.array;let n=0;
+    for(const [T,soc] of pts){if(n>=TRMAX)break;pa[3*n]=AX(soc*100);pa[3*n+1]=pl.AY(o.val(Math.max(10,Math.min(60,T)),soc))+0.4;pa[3*n+2]=AZ(Math.max(10,Math.min(60,T)));n++;}
+    trGeo.attributes.position.needsUpdate=true;trGeo.setDrawRange(0,n);if(!n)return;
+    const x=pa[3*(n-1)],y=pa[3*(n-1)+1],z=pa[3*(n-1)+2];trDot.position.set(x,y,z);
+    const d=dropGeo.attributes.position.array;d.set([x,y,z,x,0,z]);dropGeo.attributes.position.needsUpdate=true;drop.computeLineDistances();};
+  const rr=new THREE.Raycaster(),mv=new THREE.Vector2();
+  o.cv.addEventListener('pointermove',ev=>{if(!pl.surf)return;const b=o.cv.getBoundingClientRect();mv.set((ev.clientX-b.left)/b.width*2-1,-(ev.clientY-b.top)/b.height*2+1);
+    rr.setFromCamera(mv,cam);const h=rr.intersectObject(pl.surf);if(!h.length){o.tip.hidden=true;return;}
+    const p=h[0].point,soc=95-p.x/100*90,T=10+p.z/100*50;
+    o.tip.innerHTML=`<div class="r"><span>Temp</span><span class="num">${T.toFixed(1)} °C</span></div><div class="r"><span>SOC</span><span class="num">${soc.toFixed(0)} %</span></div>`+o.tipRows(T,soc/100).map(r=>`<div class="r"><span>${r[0]}</span><span class="num">${r[1]}</span></div>`).join('');
+    o.tip.hidden=false;const bx=o.box.getBoundingClientRect();let x=ev.clientX-bx.left+12,y=ev.clientY-bx.top+12;if(x+180>bx.width)x-=195;if(y+90>bx.height)y-=100;o.tip.style.left=x+'px';o.tip.style.top=y+'px';});
+  o.cv.addEventListener('pointerleave',()=>{o.tip.hidden=true;});
+  new ResizeObserver(()=>{const w=o.box.clientWidth,h=o.box.clientHeight;ren.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();}).observe(o.box);
+  pl.render=()=>{if(pl.vis){ctl.update();ren.render(scene,cam);}};
+  return pl;
 }
-const TRMAX=4000;
-const trGeo=new THREE.BufferGeometry();trGeo.setAttribute('position',new THREE.BufferAttribute(new Float32Array(TRMAX*3),3));trGeo.setDrawRange(0,0);
-const trLine=new THREE.Line(trGeo,new THREE.LineBasicMaterial({color:0xeb6834,depthTest:false,transparent:true}));trLine.renderOrder=5;rmScene.add(trLine);
-const trDot=new THREE.Mesh(new THREE.SphereGeometry(2.0,20,14),new THREE.MeshBasicMaterial({color:0xeb6834,depthTest:false,transparent:true}));trDot.renderOrder=6;rmScene.add(trDot);
-const dropGeo=new THREE.BufferGeometry();dropGeo.setAttribute('position',new THREE.BufferAttribute(new Float32Array(6),3));
-const drop=new THREE.Line(dropGeo,new THREE.LineDashedMaterial({color:0xeb6834,dashSize:2,gapSize:2,transparent:true,opacity:0.8}));rmScene.add(drop);
-function rmColors(){const c=new THREE.Color(css('--s2'));trLine.material.color=c;trDot.material.color=c;drop.material.color=c;}
+// heat per cell at the selected cycle's RMS current per cell: I²R (map at that current) − I·T·dU/dT
+let HREF=10;
+function heatAt(T,soc,I){return I*I*P.rscale*1e-3*rMap(T,soc,I)-(P.rev?I*(T+273.15)*interp(DUDT_X,DUDT,soc):0);}
+const rmCanvas=document.getElementById('rmap'), rmBox=document.getElementById('rmapbox');
+const PLOTS=[
+  makePlot({cv:rmCanvas,box:rmBox,tip:document.getElementById('rmtip'),val:(T,s)=>P.rscale*rMap(T,s),yLabel:'DCIR, mΩ',digits:0,fixedMax:30,logColor:[4.5,29],
+    tipRows:(T,s)=>[['DCIR (2C)',(P.rscale*rMap(T,s)).toFixed(2)+' mΩ']]}),
+  makePlot({cv:document.getElementById('hmap'),box:document.getElementById('hmapbox'),tip:document.getElementById('hmtip'),val:(T,s)=>Math.max(0,heatAt(T,s,HREF)),yLabel:'Heat, W',digits:1,
+    tipRows:(T,s)=>{const q=heatAt(T,s,HREF),j=HREF*HREF*P.rscale*1e-3*rMap(T,s,HREF);return [['Heat at '+HREF.toFixed(1)+' A',q.toFixed(2)+' W'],['  I²R',j.toFixed(2)+' W'],['  reversible',(q-j>=0?'+':'')+(q-j).toFixed(2)+' W']];}})];
+function setHeatRef(){const lg=LOGS[P.prof];HREF=(lg?logRms(lg):P.rms)/LAY.perRow;const e=document.getElementById('hm-ref');if(e)e.textContent=HREF.toFixed(1)+' A per cell, the cycle\'s RMS';PLOTS[1].buildSurface();}
+function buildSurface(){PLOTS.forEach(p=>p.buildSurface());}
+function buildStatic(){PLOTS.forEach(p=>p.buildStatic());}
+function rmColors(){PLOTS.forEach(p=>p.colors());}
 function updateTrace(ci){
   if(ci<0||!HIST)return;
-  const pa=trGeo.attributes.position.array;let n=0;
-  const push=(T,soc)=>{if(n>=TRMAX)return;const r=P.rscale*rMap(T,soc);pa[3*n]=AX(soc*100);pa[3*n+1]=AY(r)+0.4;pa[3*n+2]=AZ(Math.max(10,Math.min(60,T)));n++;};
-  for(let i=0;i<HIST.cT.length;i++)push(HIST.cT[i][ci],HIST.cS[i][ci]);
-  const Tn=jellyMean(ci),sn=NET.soc[ci];push(Tn,sn);
-  trGeo.attributes.position.needsUpdate=true;trGeo.setDrawRange(0,n);
-  const x=pa[3*(n-1)],y=pa[3*(n-1)+1],z=pa[3*(n-1)+2];trDot.position.set(x,y,z);
-  const d=dropGeo.attributes.position.array;d.set([x,y,z,x,0,z]);dropGeo.attributes.position.needsUpdate=true;drop.computeLineDistances();
+  const pts=[];for(let i=0;i<HIST.cT.length;i++)pts.push([HIST.cT[i][ci],HIST.cS[i][ci]]);
+  const Tn=jellyMean(ci),sn=NET.soc[ci];pts.push([Tn,sn]);
+  PLOTS.forEach(p=>p.trace(pts));
   const I=NET.Icell[ci], rm=P.rscale*rMap(Tn,sn,I);
   const rows=[['Avg temp',Tn.toFixed(1)+' °C'],['SOC',(sn*100).toFixed(1)+' %'],['DCIR',rm.toFixed(2)+' mΩ'],['Current',I.toFixed(1)+' A'],
     ['Heat now',NET.Qcell[ci].toFixed(2)+' W'],['  of which reversible',(NET.Qrev[ci]>=0?'+':'')+NET.Qrev[ci].toFixed(2)+' W'],['Heat, 10 s avg',avg10(RB.Q,ci).toFixed(2)+' W']];
   document.getElementById('rm-kv').innerHTML=rows.map(r=>`<span>${r[0]}</span><span>${r[1]}</span>`).join('');
 }
-{const rmTip=document.getElementById('rmtip'),rr=new THREE.Raycaster(),mv=new THREE.Vector2();
- rmCanvas.addEventListener('pointermove',ev=>{if(!rmSurf)return;const b=rmCanvas.getBoundingClientRect();mv.set((ev.clientX-b.left)/b.width*2-1,-(ev.clientY-b.top)/b.height*2+1);
-  rr.setFromCamera(mv,rmCam);const h=rr.intersectObject(rmSurf);if(!h.length){rmTip.hidden=true;return;}
-  const p=h[0].point,soc=95-p.x/100*90,T=10+p.z/100*50,r=P.rscale*rMap(T,soc/100);
-  rmTip.innerHTML=`<div class="r"><span>Temp</span><span class="num">${T.toFixed(1)} °C</span></div><div class="r"><span>SOC</span><span class="num">${soc.toFixed(0)} %</span></div><div class="r"><span>DCIR</span><span class="num">${r.toFixed(2)} mΩ</span></div><div class="r"><span>Heat at 13.3 A</span><span class="num">${(13.3*13.3*r/1000).toFixed(2)} W</span></div>`;
-  rmTip.hidden=false;const bx=rmBox.getBoundingClientRect();let x=ev.clientX-bx.left+12,y=ev.clientY-bx.top+12;if(x+180>bx.width)x-=195;if(y+90>bx.height)y-=100;rmTip.style.left=x+'px';rmTip.style.top=y+'px';});
- rmCanvas.addEventListener('pointerleave',()=>{rmTip.hidden=true;});}
-new ResizeObserver(()=>{const w=rmBox.clientWidth,h=rmBox.clientHeight;rmRen.setSize(w,h,false);rmCam.aspect=w/h;rmCam.updateProjectionMatrix();}).observe(rmBox);
 
 /* ---------------- loop ---------------- */
 let lastFrame=performance.now(), frameN=0;
@@ -1144,10 +1170,10 @@ function frame(now){
   if(frameN%8===0){drawCell();drawCharts();}
   const d=camera.position.clone().sub(controls.target);uniforms.uAz.value=Math.atan2(d.x,-d.y);
   if(stageVis){controls.update();renderer.render(scene,camera);}
-  if(rmVis){rmCtl.update();rmRen.render(rmScene,rmCam);}
+  PLOTS.forEach(p=>p.render());
   requestAnimationFrame(frame);
 }
-buildSurface();buildStatic();rmColors();
+buildStatic();buildSurface();rmColors();setHeatRef();
 setLvlDesc();themeBg();resize();profUI();fullReset();
 requestAnimationFrame(frame);
 window.__sim={P,get NET(){return NET},get STATS(){return STATS},step,fullReset,get simT(){return simT}};
