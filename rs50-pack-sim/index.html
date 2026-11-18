@@ -181,18 +181,17 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
           <div class="sl"><label for="p-uawall">Case walls to ambient <i class="src">estimate</i></label><output id="o-uawall"></output><input id="p-uawall" type="range" min="0" max="15" step="0.5" value="4"></div>
 
           <div class="lab">Layout</div>
-          <div class="sl"><label for="p-st">Cell pitch <i class="src">design</i></label><output id="o-st"></output><input id="p-st" type="range" min="23" max="45" step="0.01" value="36.12"></div>
-          <div class="sl"><label for="p-sl">Row pitch <i class="src">design</i></label><output id="o-sl"></output><input id="p-sl" type="range" min="11" max="30" step="0.1" value="15.5"></div>
+          <div class="sl"><label for="p-st">Transverse pitch <i class="src">design</i></label><output id="o-st"></output><input id="p-st" type="range" min="23" max="45" step="0.01" value="36.12"></div>
+          <div class="sl"><label for="p-sl">Longitudinal pitch <i class="src">design</i></label><output id="o-sl"></output><input id="p-sl" type="range" min="11" max="30" step="0.1" value="15.5"></div>
 
           <div class="lab">Cell</div>
-          <div class="sl"><label for="p-rscale">Resistance scale <i class="src">1 = A:E 0.5–10C maps</i></label><output id="o-rscale"></output><input id="p-rscale" type="range" min="0.5" max="1.8" step="0.01" value="1"></div>
-          <div class="sl"><label for="p-cv">Cell-to-cell spread <i class="src">estimate</i></label><output id="o-cv"></output><input id="p-cv" type="range" min="0" max="6" step="0.5" value="2"></div>
           <div class="sl"><label for="p-kr">k radial <i class="src">estimate</i></label><output id="o-kr"></output><input id="p-kr" type="range" min="0.3" max="3" step="0.05" value="0.9"></div>
           <div class="sl"><label for="p-kz">k axial <i class="src">Drake 2014</i></label><output id="o-kz"></output><input id="p-kz" type="range" min="5" max="45" step="1" value="28"></div>
           <div class="sl"><label for="p-hneg">− foil-to-can contact <i class="src">estimate</i></label><output id="o-hneg"></output><input id="p-hneg" type="range" min="1000" max="60000" step="1000" value="30000"></div>
           <div class="sl"><label for="p-gpos">+ collector-to-cap <i class="src">estimate</i></label><output id="o-gpos"></output><input id="p-gpos" type="range" min="0.05" max="3" step="0.05" value="0.6"></div>
           <div class="sl"><label for="p-ccell">Heat capacity <i class="src">A:E</i></label><output id="o-ccell"></output><input id="p-ccell" type="range" min="45" max="80" step="0.1" value="60.6"></div>
           <label class="row" style="font-size:12px"><input type="checkbox" id="p-rev" checked> Entropic heat <i class="src">A:E heat maps</i></label>
+          <span class="note">q = −I·T·dU/dT, from the cell's entropy change. On discharge it cools the cell above ~50 % SOC (dU/dT ≈ +0.08 to +0.14 mV/K) and heats it below (down to −0.48 mV/K at 10 %); regen flips both. Linear in I, so it matters most at moderate current: about −25 % of total heat early in 6/12, adding heat in the last third. dU/dT = (Q − I²·DCIR)/(−I·T) from the 0.5–2C charge and discharge maps, extrapolated to zero current and averaged; ±0.1–0.2 mV/K below 40 %.</span>
 
         </div>
       </details>
@@ -255,7 +254,7 @@ const VR=8, VZ=28, TILES_X=32;
 const TEX_W=VR*TILES_X, TEX_H=VZ*Math.ceil(NCELL/TILES_X);
 const DT=0.25;
 
-const P={lvl:3,prof:'o612',rms:40,fan:'on',cfm:3,amb:35,t0:35,rscale:1,cv:2,kr:0.9,kz:28,hneg:30000,gpos:0.6,ccell:60.6,st:36.12,sl:15.5,rev:true,scale:'fixed',view:'cut',alt:'z',pscale:1,regen:50,uawall:4};
+const P={lvl:3,prof:'o612',rms:40,fan:'on',cfm:3,amb:35,t0:35,rscale:1,cv:0,kr:0.9,kz:28,hneg:30000,gpos:0.6,ccell:60.6,st:36.12,sl:15.5,rev:true,scale:'fixed',view:'cut',alt:'z',pscale:1,regen:50,uawall:4};
 let fanOn=true, fanTick=0;
 
 /* ---------------- helpers ---------------- */
@@ -434,13 +433,13 @@ function buildNetwork(){
     E(L_CAN,L_NEG,KS*2*Math.PI*GEO.R*GEO.tc/(dz/2+GEO.zb));
     E(L_CAN+Nz-1,L_CAP,G_GASKET);
     for(let iz=0;iz<Nz;iz++)area[map[L_CAN+iz]]+=2*Math.PI*GEO.R*dz;
-    area[map[L_NEG]]+=2*Math.PI*GEO.R*GEO.zb+0.25*Math.PI*GEO.R*GEO.R;
-    area[map[L_CAP]]+=2*Math.PI*GEO.R*(GEO.L-GEO.zt)+0.25*Math.PI*GEO.R*GEO.R;
+    area[map[L_NEG]]+=2*Math.PI*GEO.R*GEO.zb; // cell ends face the busbars, not the air stream
+    area[map[L_CAP]]+=2*Math.PI*GEO.R*(GEO.L-GEO.zt);
     const seen=new Set(), jl=[];for(const l of JL){const id=map[l];if(!seen.has(id)){seen.add(id);jl.push(id);}}
     jellyLoc.push(jl);
   }
   const collBase=n;
-  for(let m=0;m<LAY.mods;m++)for(let k=0;k<nCollPerMod;k++){C.push(C_COLL);area.push(A_COLL*0.5);const rk=Math.min(k,LAY.groups-1),altM=P.alt!=='none'&&((LAY.mods-1-m)%2===1);zone.push(zoneOf(m,altM?LAY.groups-1-rk:rk));n++;}
+  for(let m=0;m<LAY.mods;m++)for(let k=0;k<nCollPerMod;k++){C.push(C_COLL);area.push(0);const rk=Math.min(k,LAY.groups-1),altM=P.alt!=='none'&&((LAY.mods-1-m)%2===1);zone.push(zoneOf(m,altM?LAY.groups-1-rk:rk));n++;}
   for(let ci=0;ci<NCELL;ci++){
     const c=cells[ci],map=cellMap[ci];
     const cNeg=collBase+c.m*nCollPerMod+c.g, cPos=collBase+c.m*nCollPerMod+c.g+1;
@@ -959,7 +958,7 @@ function updateReadouts(){
 }
 
 /* ---------------- controls ---------------- */
-const fmt={uawall:v=>(+v).toFixed(1)+' W/K',regen:v=>v+' %',pscale:v=>'×'+(+v).toFixed(2),rms:v=>v+' A',cfm:v=>(+v).toFixed(1)+' CFM',st:v=>(+v).toFixed(2)+' mm',sl:v=>(+v).toFixed(1)+' mm',rscale:v=>'×'+(+v).toFixed(2),ccell:v=>(+v).toFixed(1)+' J/K',amb:v=>v+' °C',t0:v=>v+' °C',cv:v=>v+' %',kr:v=>(+v).toFixed(2)+' W/m·K',kz:v=>v+' W/m·K',hneg:v=>(v/1000).toFixed(0)+'k W/m²K',gpos:v=>(+v).toFixed(2)+' W/K'};
+const fmt={uawall:v=>(+v).toFixed(1)+' W/K',regen:v=>v+' %',pscale:v=>'×'+(+v).toFixed(2),rms:v=>v+' A',cfm:v=>(+v).toFixed(1)+' CFM',st:v=>(+v).toFixed(2)+' mm',sl:v=>(+v).toFixed(1)+' mm',ccell:v=>(+v).toFixed(1)+' J/K',amb:v=>v+' °C',t0:v=>v+' °C',kr:v=>(+v).toFixed(2)+' W/m·K',kz:v=>v+' W/m·K',hneg:v=>(v/1000).toFixed(0)+'k W/m²K',gpos:v=>(+v).toFixed(2)+' W/K'};
 const RESET_KEYS=new Set(['rms','t0','cv','pscale','regen']);
 const REBUILD_KEYS=new Set(['kr','kz','hneg','gpos','ccell']);
 for(const k of Object.keys(fmt)){
@@ -994,9 +993,6 @@ function profUI(){legendUI();if(typeof PLOTS!=='undefined')setHeatRef();const lg
 }
 seg('prof','prof','prof',()=>{profUI();fullReset();});
 seg('fan','fan','fan',()=>{legendUI();fanControl();updateHInfo();});
-document.querySelectorAll('#presets button').forEach(b=>b.addEventListener('click',()=>{
-  const r=document.getElementById('p-rscale');r.value=b.dataset.r;r.dispatchEvent(new Event('input'));
-}));
 function updateGap(){if(!document.getElementById('gapinfo'))return;const D=21,diag=Math.hypot(P.sl,P.st/2)-D;
   const el=document.getElementById('gapinfo');el.textContent=diag<0.2?`Cells overlap at this pitch (diagonal gap ${diag.toFixed(1)} mm)`:`Air gap between staggered neighbours ${diag.toFixed(1)} mm`;el.style.color=diag<0.2?'var(--crit)':'';}
 function updateHInfo(){const a=AIR;if(!a||!document.getElementById('hinfo'))return;document.getElementById('hinfo').textContent=fanOn&&a.mdot>0?`${(+P.cfm).toFixed(1)} CFM per module · ${(a.v||0).toFixed(2)} m/s face · Re ${a.re.toFixed(0)} · h ≈ ${a.h.toFixed(0)} W/m²K`:`Fans off · free convection h ≈ ${a.h.toFixed(1)} W/m²K`;}
