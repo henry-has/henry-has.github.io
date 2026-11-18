@@ -145,7 +145,7 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
         <span class="note" id="lognote"></span>
       </div>
       <div class="grp">
-        <div class="sl"><label for="p-amb">Ambient</label><output id="o-amb"></output><input id="p-amb" type="range" min="15" max="45" step="0.5" value="35"></div>
+        <div class="sl"><label for="p-amb">Ambient <i class="src">cells start here</i></label><output id="o-amb"></output><input id="p-amb" type="range" min="15" max="45" step="0.5" value="35"></div>
       </div>
       <div class="grp">
         <div class="lab">Cooling</div>
@@ -172,7 +172,6 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
           <div class="sl" id="rms-wrap"><label for="p-rms">Pack current (RMS)</label><output id="o-rms"></output><input id="p-rms" type="range" min="10" max="70" step="1" value="40"></div>
           <div class="sl" id="regen-wrap" hidden><label for="p-regen">Regen peak (% of drive peak)</label><output id="o-regen"></output><input id="p-regen" type="range" min="0" max="100" step="5" value="50"></div>
           <div class="sl" id="ps-wrap" hidden><label for="p-pscale">Power scale</label><output id="o-pscale"></output><input id="p-pscale" type="range" min="0.5" max="1.5" step="0.01" value="1"></div>
-          <div class="sl"><label for="p-t0">Cell start temp</label><output id="o-t0"></output><input id="p-t0" type="range" min="15" max="45" step="0.5" value="35"></div>
 
           <div class="lab">Fans: tube-bank h, air heats row by row</div>
           <div class="sl"><label for="p-cfm">Airflow per module <i class="src">Kelvin CFD</i></label><output id="o-cfm"></output><input id="p-cfm" type="range" min="0" max="15" step="0.1" value="3"></div>
@@ -576,12 +575,17 @@ function step(dt){
   }
   // air update
   const Qz=net.Qz;Qz.fill(0);
-  for(let i=0;i<N;i++){const a=area[i];if(a>0)Qz[zone[i]]+=(hv?hv[i]:h)*a*(T[i]-Tz[zone[i]]);}
+  const HA=net.HAz||(net.HAz=new Float64Array(net.nZones)), HT=net.HTz||(net.HTz=new Float64Array(net.nZones));HA.fill(0);HT.fill(0);
+  for(let i=0;i<N;i++){const a=area[i];if(a>0){const ha=(hv?hv[i]:h)*a,z=zone[i];HA[z]+=ha;HT[z]+=ha*T[i];}}
   if(fanOn&&AIR.mdot>0){
+    // each row is a small heat exchanger: air leaves at Tin + (Tsurface − Tin)(1 − e^(−hA/ṁcp)), so it can't overshoot the cells
     const mc=AIR.mdot*AIR.cpA;
-    for(let m=0;m<LAY.mods;m++){let Tin=P.amb;for(let r=0;r<LAY.groups;r++){const z=m*LAY.groups+r;Tz[z]=Tin+0.5*Qz[z]/mc;Tin+=Qz[z]/mc;}}
+    let ao=-1e9;for(let m=0;m<LAY.mods;m++){let Tin=P.amb;for(let r=0;r<LAY.groups;r++){const z=m*LAY.groups+r;
+      if(HA[z]>0){const Ts=HT[z]/HA[z],Tout=Tin+(Ts-Tin)*(1-Math.exp(-HA[z]/mc));Qz[z]=mc*(Tout-Tin);Tz[z]=0.5*(Tin+Tout);Tin=Tout;}else Tz[z]=Tin;}
+      ao=Math.max(ao,Tin);}
+    net.airOut=ao;
   }else{
-    let Qs=0;for(let z=0;z<net.nZones;z++)Qs+=Qz[z];
+    let Qs=0;for(let z=0;z<net.nZones;z++){Qz[z]=HT[z]-HA[z]*net.Tenc;Qs+=Qz[z];}
     // passive: sealed case, heat leaves only through the walls
     const Cenc=1800, G=P.uawall;
     net.Tenc=(Cenc/dt*net.Tenc+Qs+G*P.amb)/(Cenc/dt+G);
@@ -607,9 +611,7 @@ function computeStats(){
     for(let iz=0;iz<net.Nz;iz++){const v=T[map[net.L_CAN+iz]];if(v>can)can=v;}
     const v=T[map[net.L_NEG]];if(v>neg){neg=v;negCi=ci;}
   }
-  let airOut=-1e9;
-  if(fanOn&&AIR.mdot>0){for(let m=0;m<LAY.mods;m++){const z=m*LAY.groups+LAY.groups-1;airOut=Math.max(airOut,net.Tz[z]+0.5*net.Qz[z]/(AIR.mdot*AIR.cpA));}}
-  else airOut=net.Tenc;
+  const airOut=fanOn&&AIR.mdot>0?(net.airOut??P.amb):net.Tenc;
   // BMS-visible neg temp of the hottest-core cell
   const negOfHot=T[net.cellMap[coreCi][net.L_NEG]];
   let soc=0,eRem=0;for(let ci=0;ci<NCELL;ci++){soc+=net.soc[ci];eRem+=eCell(net.soc[ci]);}soc/=NCELL;const eFull=NCELL*eCell(1),soe=eRem/eFull;
@@ -955,7 +957,7 @@ function updateReadouts(){
 }
 
 /* ---------------- controls ---------------- */
-const fmt={cv:v=>v+' %',uawall:v=>(+v).toFixed(1)+' W/K',regen:v=>v+' %',pscale:v=>'×'+(+v).toFixed(2),rms:v=>v+' A',cfm:v=>(+v).toFixed(1)+' CFM',st:v=>(+v).toFixed(2)+' mm',sl:v=>(+v).toFixed(1)+' mm',ccell:v=>(+v).toFixed(1)+' J/K',amb:v=>v+' °C',t0:v=>v+' °C',kr:v=>(+v).toFixed(2)+' W/m·K',kz:v=>v+' W/m·K',hneg:v=>(v/1000).toFixed(0)+'k W/m²K',gpos:v=>(+v).toFixed(2)+' W/K'};
+const fmt={cv:v=>v+' %',uawall:v=>(+v).toFixed(1)+' W/K',regen:v=>v+' %',pscale:v=>'×'+(+v).toFixed(2),rms:v=>v+' A',cfm:v=>(+v).toFixed(1)+' CFM',st:v=>(+v).toFixed(2)+' mm',sl:v=>(+v).toFixed(1)+' mm',ccell:v=>(+v).toFixed(1)+' J/K',amb:v=>v+' °C',kr:v=>(+v).toFixed(2)+' W/m·K',kz:v=>v+' W/m·K',hneg:v=>(v/1000).toFixed(0)+'k W/m²K',gpos:v=>(+v).toFixed(2)+' W/K'};
 const RESET_KEYS=new Set(['rms','t0','cv','pscale','regen']);
 const REBUILD_KEYS=new Set(['kr','kz','hneg','gpos','ccell']);
 for(const k of Object.keys(fmt)){
@@ -963,6 +965,7 @@ for(const k of Object.keys(fmt)){
   const show=()=>{out.textContent=fmt[k](el.value);};show();
   el.addEventListener('input',()=>{P[k]=parseFloat(el.value);show();
     if(k==='cfm'){AIR=airSide();updateHInfo();}
+    if(k==='amb'){P.t0=P.amb;scheduleReset();}
     if(k==='st'||k==='sl'){layoutCells();placeMeshes();buildArrows();AIR=airSide();updateHInfo();updateGap();}
     if(k==='rscale')buildSurface();
     if(k==='cv'){seedDCIR();}
@@ -1172,7 +1175,7 @@ function frame(now){
 buildStatic();buildSurface();rmColors();setHeatRef();
 setLvlDesc();themeBg();resize();profUI();fullReset();
 requestAnimationFrame(frame);
-window.__sim={P,get NET(){return NET},get STATS(){return STATS},step,fullReset,get simT(){return simT}};
+window.__sim={P,get HIST(){return HIST},get NET(){return NET},get STATS(){return STATS},step,fullReset,get simT(){return simT}};
 })();
 </script>
 
