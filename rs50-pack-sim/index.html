@@ -191,7 +191,7 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
           <div class="sl"><label for="p-gpos">+ collector-to-cap <i class="src">estimate</i></label><output id="o-gpos"></output><input id="p-gpos" type="range" min="0.05" max="3" step="0.05" value="0.6"></div>
           <div class="sl"><label for="p-ccell">Heat capacity <i class="src">A:E</i></label><output id="o-ccell"></output><input id="p-ccell" type="range" min="45" max="80" step="0.1" value="60.6"></div>
           <label class="row" style="font-size:12px"><input type="checkbox" id="p-rev" checked> Entropic heat <i class="src">A:E heat maps</i></label>
-          <span class="note">q = −I·T·dU/dT, from the cell's entropy change. On discharge it cools the cell above ~50 % SOC (dU/dT ≈ +0.08 to +0.14 mV/K) and heats it below (down to −0.48 mV/K at 10 %); regen flips both. Linear in I, so it matters most at moderate current: about −25 % of total heat early in 6/12, adding heat in the last third. dU/dT = (Q − I²·DCIR)/(−I·T) from the 0.5–2C charge and discharge maps, extrapolated to zero current and averaged; ±0.1–0.2 mV/K below 40 %.</span>
+          <span class="note">Heat from the cell's chemistry, not resistance: it cools the cell on discharge above ~50 % SOC and heats it below. Regen flips it.</span>
 
         </div>
       </details>
@@ -230,9 +230,6 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
         <div class="kv" id="rm-kv"></div>
       </div>
   </section>
-
-
-  <footer>Assumed: cell holders adiabatic; busbars and cell ends out of the air stream; OCV generic below 62 % SOC. Drive cycles: FSAE Michigan 2026 energy meters and Orion logs, each with its real driver-change gap. Cell data: About:Energy RS50.</footer>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
