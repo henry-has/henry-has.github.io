@@ -221,7 +221,7 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
   </div>
 
   <section class="card">
-      <h2>DCIR map</h2>
+      <h2>DCIR map <span class="sub" style="font-weight:normal">4C (20 A) pulses · cells above 20 A blend toward the 10C map</span></h2>
       <div class="legend"><span><i style="background:var(--s2)"></i><span id="rm-who">hottest cell</span></span></div>
       <div class="rmwrap">
         <div class="rmbox" id="rmapbox"><canvas id="rmap" aria-label="DCIR against temperature and SOC with the tracked cell's path"></canvas><div class="tip" id="rmtip" hidden></div></div>
@@ -269,25 +269,47 @@ const DUDT_X=[0,.1,.2,.3,.4,.5,.6,.65,.7,.75,.8,.85,.9,.95,1];
 const DUDT=[0.05,-0.05,-0.10,-0.08,-0.03,0.04,0.12,0.083,0.065,0.06,0.076,0.084,0.10,0.103,0.10].map(v=>v*1e-3);
 // About:Energy RS50 export, 40 A discharge, 25 °C start, 37 °C ambient (temperature °C every 10 s)
 const AE={h15:[25,27.29,29.9,32.42,34.79,37.06,39.27,41.45,43.62,45.76,47.83,49.81,51.68,53.41,55.01,56.58,58.13,59.61,null],h30:[25,27.43,30.13,32.7,35.1,37.35,39.52,41.64,43.71,45.74,47.69,49.51,51.22,52.76,54.17,55.54,56.88,58.15,59.31],end15:[172.8,60.01],end30:[186.4,60.01]};
-// About:Energy RS50 DCIR map, mΩ (digitised from their DCIR vs SOC export at 10/25/35/50/60 °C)
-const RM_SOC=[5,10,15,20,25,30,40,50,60,70,80,90,95];
-const RM_T=[10,25,35,50,60];
-const RM=[[28.3,23.8,20.0,16.5,14.6,14.0,13.2,13.2,13.0,12.5,12.1,12.7,13.1],
-          [20.0,15.0,11.7,10.4,9.6,9.2,8.9,8.8,8.8,8.9,8.6,8.9,9.0],
-          [14.1,10.4,9.0,8.0,7.4,7.0,7.0,6.8,7.1,7.3,6.9,7.3,7.2],
-          [9.7,7.4,7.0,6.2,5.9,5.6,5.6,5.6,5.8,6.1,5.7,6.0,5.8],
-          [7.7,6.7,6.3,5.5,5.3,5.1,5.1,5.0,5.2,5.6,5.2,5.4,5.1]];
-const RM_LN=RM.map(r=>r.map(Math.log)), RM_X=RM_T.map(t=>1/(t+273.15));
-// linear in SOC, ln(R) linear in 1/T (Arrhenius-shaped between and beyond the measured temperatures)
-function rMap(T,soc){
-  const sp=Math.min(95,Math.max(5,soc*100));
+// About:Energy RS50 DCIR powermaps, mΩ: 30 s discharge pulses capped at 4C (~19.7 A) and 10C (~48.4 A)
+const RM_SOC=[5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 94];
+const RM_T=[10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60];
+const RM4=[[28.04,23.38,20.85,19.08,17.94,16.86,16,15.64,15.63,15.81,15.69,15.32,14.82,14.25,13.96,14.2,14.55,15.1,15.84],
+  [25.4,20.73,17.91,16.19,15.22,14.61,13.9,13.53,13.48,13.55,13.47,13.3,13.04,12.59,12.31,12.58,12.92,13.34,13.89],
+  [22.87,18.32,15.39,13.63,12.67,12.35,11.84,11.52,11.47,11.44,11.37,11.35,11.28,10.93,10.66,10.95,11.29,11.58,11.94],
+  [20.2,15.87,13.29,11.38,10.48,10.27,9.97,9.74,9.68,9.54,9.49,9.56,9.65,9.39,9.11,9.44,9.82,9.94,10.11],
+  [17.06,13.46,11.7,9.85,9.04,8.67,8.66,8.66,8.6,8.32,8.5,8.74,8.88,8.52,8.22,8.59,8.93,8.89,9.01],
+  [14.51,11.28,10.16,8.61,7.88,7.57,7.59,7.72,7.73,7.22,7.52,7.91,8.11,7.67,7.34,7.75,8.06,7.92,7.99],
+  [12.16,9.28,8.71,7.45,6.83,6.62,6.63,6.87,6.94,6.19,6.55,7.08,7.33,6.83,6.48,6.91,7.21,7.01,7.01],
+  [10.99,8.57,8.08,6.94,6.42,6.24,6.24,6.45,6.5,5.82,6.11,6.63,6.94,6.44,6.1,6.51,6.78,6.57,6.51],
+  [9.85,7.87,7.47,6.43,6.03,5.88,5.86,6.07,6.09,5.53,5.77,6.26,6.6,6.11,5.78,6.18,6.39,6.18,6.07],
+  [8.73,7.17,6.85,5.92,5.63,5.51,5.48,5.68,5.68,5.23,5.46,5.89,6.25,5.79,5.47,5.84,6,5.79,5.64],
+  [7.62,6.48,6.24,5.41,5.23,5.14,5.09,5.29,5.27,4.93,5.15,5.52,5.9,5.46,5.15,5.49,5.61,5.39,5.21]];
+const RM10=[[28.04,23.25,19.54,16.24,14.44,13.73,13.21,13.01,13.02,13.11,13.08,12.92,12.65,12.3,11.95,11.97,12.24,12.59,12.99],
+  [25.4,20.48,16.61,13.64,12.62,12.07,11.65,11.44,11.43,11.48,11.44,11.35,11.22,10.98,10.64,10.7,10.97,11.26,11.54],
+  [22.87,17.93,14.25,11.98,11.01,10.59,10.25,10.06,10.05,10.04,9.94,9.93,9.94,9.8,9.46,9.56,9.89,10.1,10.23],
+  [20.2,15.21,11.86,10.43,9.62,9.16,8.97,8.91,8.9,8.8,8.71,8.81,8.95,8.85,8.47,8.61,8.98,9.1,9.13],
+  [17.03,12.62,10.41,9.14,8.39,7.91,7.86,7.94,7.99,7.8,7.76,8.01,8.22,8.09,7.66,7.82,8.18,8.21,8.19],
+  [14.5,10.54,9.25,8.12,7.41,7,6.98,7.11,7.23,6.9,6.84,7.21,7.49,7.34,6.87,7.05,7.4,7.39,7.32],
+  [12.36,9.27,8.39,7.36,6.72,6.39,6.37,6.52,6.66,6.21,6.17,6.61,6.95,6.77,6.27,6.48,6.83,6.77,6.67],
+  [11.19,8.5,7.78,6.84,6.31,6.02,6,6.15,6.27,5.87,5.84,6.24,6.62,6.45,5.96,6.17,6.47,6.41,6.27],
+  [10.03,7.71,7.16,6.32,5.89,5.66,5.64,5.77,5.88,5.54,5.52,5.89,6.29,6.13,5.65,5.86,6.11,6.04,5.88],
+  [8.83,6.98,6.58,5.81,5.47,5.29,5.28,5.4,5.49,5.21,5.22,5.54,5.96,5.8,5.34,5.54,5.75,5.67,5.48],
+  [7.71,6.6,6.25,5.49,5.19,5.04,5.01,5.09,5.14,4.89,4.94,5.21,5.63,5.49,5.04,5.23,5.41,5.31,5.08]];
+const RM4_LN=RM4.map(r=>r.map(Math.log)), RM10_LN=RM10.map(r=>r.map(Math.log)), RM_X=RM_T.map(t=>1/(t+273.15));
+const I_4C=19.7, I_10C=48.4;
+function rmLook(L,T,soc){
+  const sp=Math.min(94,Math.max(5,soc*100));
   let i=0;while(i<RM_SOC.length-2&&sp>RM_SOC[i+1])i++;
   const fs=(sp-RM_SOC[i])/(RM_SOC[i+1]-RM_SOC[i]);
   const x=1/(Math.min(75,Math.max(0,T))+273.15);
   let j=0;while(j<RM_T.length-2&&T>RM_T[j+1])j++;
   const ft=(x-RM_X[j])/(RM_X[j+1]-RM_X[j]);
-  const a=RM_LN[j][i]+fs*(RM_LN[j][i+1]-RM_LN[j][i]), b=RM_LN[j+1][i]+fs*(RM_LN[j+1][i+1]-RM_LN[j+1][i]);
-  return Math.exp(a+ft*(b-a));
+  const a=L[j][i]+fs*(L[j][i+1]-L[j][i]), b=L[j+1][i]+fs*(L[j+1][i+1]-L[j+1][i]);
+  return a+ft*(b-a);
+}
+// linear in SOC, ln(R) linear in 1/T; between the two maps ln(R) is linear in ln(I); at or below 4C current the 4C map is used
+function rMap(T,soc,I){
+  const w=I===undefined?0:Math.min(1,Math.max(0,Math.log(Math.max(1e-3,Math.abs(I))/I_4C)/Math.log(I_10C/I_4C)));
+  const a=rmLook(RM4_LN,T,soc);return Math.exp(w?a+w*(rmLook(RM10_LN,T,soc)-a):a);
 }
 function fmtT(s){s=Math.max(0,Math.round(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
 function inferno(t){
@@ -527,7 +549,7 @@ function step(dt){
   for(let ci=0;ci<NCELL;ci++){
     const jl=net.jellyLoc[ci], soc=net.soc[ci], k=P.rscale*1e-3*cells[ci].mult;
     let gs=0;
-    for(const id of jl){const g=net.vf[id]/(k*rMap(T[id],soc));gN[id]=g;gs+=g;}
+    const Ic=net.Icell[ci];for(const id of jl){const g=net.vf[id]/(k*rMap(T[id],soc,Ic));gN[id]=g;gs+=g;}
     net.Rcell[ci]=1/gs;
   }
   if(PROF.power&&t<PROF.tEnd){
@@ -972,10 +994,10 @@ function seg(id,key,attr,cb){
 const LVL_DESC={1:'1 node per cell.',2:'10 axial slices + can, caps.',3:'4 rings × 10 slices + can, − floor, + collector, cap (53 nodes/cell).'};
 function setLvlDesc(){}
 seg('lvl','lvl','lvl',()=>{setLvlDesc();fullReset();});
-// same current solve as the sim (132 × OCV(SOC), DCIR map at 40 °C), SOC tracked; no thermal
-function logRms(lg){let soc=1,q=0;const ns=LAY.mods*LAY.groups;
-  for(const v of lg.P){const Pw=v*10*P.pscale,Voc=ns*interp(SOCX,OCV,soc),Rt=ns*(P.rscale*1e-3*rMap(40,soc)+2*R_WELD)/LAY.perRow;
-    const I=(Voc-Math.sqrt(Math.max(0,Voc*Voc-4*Rt*Pw)))/(2*Rt);q+=I*I;soc=Math.max(0,soc-I*0.5/(3600*CAP_AH*LAY.perRow));}
+// same current solve as the sim (132 × OCV(SOC), DCIR powermap at 40 °C), SOC tracked; no thermal
+function logRms(lg){let soc=1,q=0,Iprev=0;const ns=LAY.mods*LAY.groups;
+  for(const v of lg.P){const Pw=v*10*P.pscale,Voc=ns*interp(SOCX,OCV,soc),Rt=ns*(P.rscale*1e-3*rMap(40,soc,Iprev/LAY.perRow)+2*R_WELD)/LAY.perRow;
+    const I=(Voc-Math.sqrt(Math.max(0,Voc*Voc-4*Rt*Pw)))/(2*Rt);Iprev=I;q+=I*I;soc=Math.max(0,soc-I*0.5/(3600*CAP_AH*LAY.perRow));}
   return Math.sqrt(q/lg.P.length);}
 function profUI(){legendUI();const lg=LOGS[P.prof];document.getElementById('lognote').textContent=lg?lg.note+` · ≈${logRms(lg).toFixed(0)} A RMS on our pack`:(P.prof==='endu'?'Made-up lap shape scaled to the RMS input · 1600 s driving + 180 s driver change':'Constant current at the RMS input · 1600 s');document.getElementById('rms-wrap').hidden=!!lg;document.getElementById('ps-wrap').hidden=!lg;document.getElementById('regen-wrap').hidden=P.prof!=='endu';
 }
@@ -1052,13 +1074,13 @@ new IntersectionObserver(es=>es.forEach(e=>{rmVis=e.isIntersecting;})).observe(r
 rmScene.add(new THREE.AmbientLight(0xffffff,0.62));{const dl=new THREE.DirectionalLight(0xffffff,0.55);dl.position.set(-40,160,140);rmScene.add(dl);}
 // axes: x = SOC (95 % at x=0 → 5 % at x=100), z = temperature (10 °C at z=0 → 60 °C at z=100), y = DCIR (0–30 mΩ → 0–60)
 const AX=s=>(95-s)/90*100, AZ=T=>(T-10)/50*100, AY=r=>Math.min(r,32)/30*60;
-const BLUE=['#cde2fb','#9ec5f4','#6da7ec','#3987e5','#256abf','#184f95','#0d366b'].map(h=>new THREE.Color(h));
+const BLUE=['#313695','#4575b4','#74add1','#abd9e9','#e0f3f8','#ffffbf','#fee090','#fdae61','#f46d43','#d73027','#a50026'].map(h=>new THREE.Color(h));
 function blueAt(t){t=Math.max(0,Math.min(1,t))*(BLUE.length-1);const i=Math.min(BLUE.length-2,Math.floor(t));return BLUE[i].clone().lerp(BLUE[i+1],t-i);}
 let rmSurf=null,rmWire=null,rmStatic=new THREE.Group();rmScene.add(rmStatic);
 function buildSurface(){
   if(rmSurf){rmScene.remove(rmSurf);rmScene.remove(rmWire);rmSurf.geometry.dispose();}
   const nS=46,nT=51,pos=[],col=[],idx=[];
-  for(let j=0;j<nT;j++)for(let i=0;i<nS;i++){const soc=95-i*2,T=10+j;const r=P.rscale*rMap(T,soc/100);pos.push(AX(soc),AY(r),AZ(T));const c=blueAt(Math.log(r/4)/Math.log(36/4));col.push(c.r,c.g,c.b);}
+  for(let j=0;j<nT;j++)for(let i=0;i<nS;i++){const soc=95-i*2,T=10+j;const r=P.rscale*rMap(T,soc/100);pos.push(AX(soc),AY(r),AZ(T));const c=blueAt(Math.log(r/4.5)/Math.log(29/4.5));col.push(c.r,c.g,c.b);}
   for(let j=0;j<nT-1;j++)for(let i=0;i<nS-1;i++){const a=j*nS+i,b=a+1,c=a+nS,d=c+1;idx.push(a,c,b,b,c,d);}
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));g.setIndex(idx);g.computeVertexNormals();
   rmSurf=new THREE.Mesh(g,new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:1,polygonOffsetUnits:1}));
@@ -1106,7 +1128,7 @@ function updateTrace(ci){
   trGeo.attributes.position.needsUpdate=true;trGeo.setDrawRange(0,n);
   const x=pa[3*(n-1)],y=pa[3*(n-1)+1],z=pa[3*(n-1)+2];trDot.position.set(x,y,z);
   const d=dropGeo.attributes.position.array;d.set([x,y,z,x,0,z]);dropGeo.attributes.position.needsUpdate=true;drop.computeLineDistances();
-  const rm=P.rscale*rMap(Tn,sn), I=NET.Icell[ci];
+  const I=NET.Icell[ci], rm=P.rscale*rMap(Tn,sn,I);
   const rows=[['Avg temp',Tn.toFixed(1)+' °C'],['SOC',(sn*100).toFixed(1)+' %'],['DCIR',rm.toFixed(2)+' mΩ'],['Current',I.toFixed(1)+' A'],
     ['Heat now',NET.Qcell[ci].toFixed(2)+' W'],['  of which reversible',(NET.Qrev[ci]>=0?'+':'')+NET.Qrev[ci].toFixed(2)+' W'],['Heat, 10 s avg',avg10(RB.Q,ci).toFixed(2)+' W']];
   document.getElementById('rm-kv').innerHTML=rows.map(r=>`<span>${r[0]}</span><span>${r[1]}</span>`).join('');
