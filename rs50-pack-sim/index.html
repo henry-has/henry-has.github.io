@@ -380,6 +380,7 @@ function buildProfile(){
 }
 function packCurrent(t){if(t>=PROF.tEnd)return 0;if(PROF.power)return NET?NET.lastI||0:0;const i=Math.min(PROF.I.length-1,Math.floor(t/PROF.dt));return PROF.I[i];}
 function phaseLabel(t){
+  if(NET&&NET.empty&&t<PROF.tEnd)return 'Pack empty: BMS cutoff at 3 % SOC';
   if(t<PROF.tEnd&&PROF.change>0&&t>=PROF.changeAt&&t<PROF.changeAt+PROF.change)return 'Driver change';
   if(PROF.power)return t>=PROF.tEnd?'Finished':PROF.label;
   let l=0;for(let i=0;i<PROF.lapStart.length;i++)if(t>=PROF.lapStart[i])l=i;
@@ -545,6 +546,9 @@ function step(dt){
     const Pw=PROF.Pw[Math.min(PROF.Pw.length-1,Math.floor(t/PROF.dt))];let Voc=0,Rt=0;
     for(let ci=0;ci<NCELL;ci+=LAY.perRow){let s=0,G=0;for(let k=0;k<LAY.perRow;k++){s+=net.soc[ci+k];G+=1/(net.Rcell[ci+k]+2*R_WELD);}Voc+=interp(SOCX,OCV,s/LAY.perRow);Rt+=1/G;}
     Ipack=(Voc-Math.sqrt(Math.max(0,Voc*Voc-4*Rt*Pw)))/(2*Rt);
+  }
+  // BMS cutoff: no discharge once any cell reaches 3 % SOC
+  {let mn=1;for(let c=0;c<NCELL;c++)if(net.soc[c]<mn)mn=net.soc[c];net.empty=mn<0.03;if(net.empty&&Ipack>0)Ipack=0;
   }
   net.lastI=Ipack;
   // parallel group split
