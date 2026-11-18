@@ -223,16 +223,16 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
       <h2>DCIR and heat generation</h2>
       <div class="legend"><span><i style="background:var(--s2)"></i><span id="rm-who">hottest cell</span></span></div>
       <div class="rmwrap">
-        <div><div class="sub">DCIR, 2C (10 A) pulses. Each cell uses the 0.5C–10C maps at its own current.</div>
+        <div><div class="sub">DCIR at 2C (10 A). Cells use the 0.5–10C maps at their own current.</div>
         <div class="rmbox" id="rmapbox"><canvas id="rmap" aria-label="DCIR against temperature and SOC with the tracked cell's path"></canvas><div class="tip" id="rmtip" hidden></div></div></div>
-        <div><div class="sub">Heat per cell at <span id="hm-ref"></span>, incl. reversible.</div>
+        <div><div class="sub">Heat per cell at <span id="hm-ref"></span>, incl. entropic.</div>
         <div class="rmbox" id="hmapbox"><canvas id="hmap" aria-label="Heat generation against temperature and SOC with the tracked cell's path"></canvas><div class="tip" id="hmtip" hidden></div></div></div>
         <div class="kv" id="rm-kv"></div>
       </div>
   </section>
 
 
-  <footer>Assumed: 22 × 3 cells per module, Žukauskas h, adiabatic holders, generic OCV below 58 % SOC. Logs: FSAE Michigan 2026 energy meter, with each team's driver-change gap.</footer>
+  <footer>Assumed: cell holders adiabatic; busbars and cell ends out of the air stream; OCV generic below 62 % SOC. Drive cycles: FSAE Michigan 2026 energy meters and Orion logs, each with its real driver-change gap. Cell data: About:Energy RS50.</footer>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -847,7 +847,7 @@ function drawCharts(){
   ctx.textAlign='right';ctx.textBaseline='middle';
   for(let v=lo;v<=hi;v+=5){const y=Math.round(Y(v))+0.5;ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(w-padR,y);ctx.stroke();ctx.fillText(v,padL-6,y);}
   ctx.textAlign='center';ctx.textBaseline='top';
-  for(let m=0;m<=tmax/60;m+=5){const x=X(m*60);ctx.fillText(m+' min',x,h-padB+6);}
+  const mstep=pw/(tmax/60)*5>=48?5:10;for(let m=0;m<=tmax/60;m+=mstep){const x=X(m*60);ctx.fillText(m+(pw<500?'':' min'),x,h-padB+6);}
   if(PROF.change>0){ctx.fillStyle=css('--line');ctx.globalAlpha=0.5;ctx.fillRect(X(PROF.changeAt),padT,X(PROF.changeAt+PROF.change)-X(PROF.changeAt),ph);ctx.globalAlpha=1;ctx.fillStyle=css('--ink-3');ctx.textBaseline='top';ctx.fillText('driver change',(X(PROF.changeAt)+X(PROF.changeAt+PROF.change))/2,padT+2);}
   ctx.setLineDash([5,4]);ctx.strokeStyle=css('--crit');ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(padL,Y(60));ctx.lineTo(w-padR,Y(60));ctx.stroke();ctx.setLineDash([]);
   for(const [k,,c] of SERIES){
@@ -938,7 +938,7 @@ function updateReadouts(){
   let ocv=0;const soc=S.soc;ocv=interp(SOCX,OCV,soc)*132;
   const Rp=NET.Rcell[S.coreCi]*132/3;
   document.getElementById('r-pack').innerHTML=I.toFixed(0)+'<small>A</small> '+(ocv-I*Rp).toFixed(0)+'<small>V</small>';
-  document.getElementById('r-packd').textContent='heat '+(S.qs/1000).toFixed(2)+' kW';
+  document.getElementById('r-packd').textContent='heat '+Math.max(0,S.qs/1000).toFixed(2)+' kW';
   {const kWh=3.6e6;document.getElementById('r-soe').innerHTML=(S.soe*100).toFixed(1)+'<small>%</small> '+(S.eRem/kWh).toFixed(2)+'<small>kWh</small>';
    document.getElementById('r-soed').textContent='of '+(S.eFull/kWh).toFixed(2)+' kWh · SOC '+(S.soc*100).toFixed(0)+' %';
 }
@@ -1123,7 +1123,8 @@ function makePlot(o){
     o.tip.innerHTML=`<div class="r"><span>Temp</span><span class="num">${T.toFixed(1)} °C</span></div><div class="r"><span>SOC</span><span class="num">${soc.toFixed(0)} %</span></div>`+o.tipRows(T,soc/100).map(r=>`<div class="r"><span>${r[0]}</span><span class="num">${r[1]}</span></div>`).join('');
     o.tip.hidden=false;const bx=o.box.getBoundingClientRect();let x=ev.clientX-bx.left+12,y=ev.clientY-bx.top+12;if(x+180>bx.width)x-=195;if(y+90>bx.height)y-=100;o.tip.style.left=x+'px';o.tip.style.top=y+'px';});
   o.cv.addEventListener('pointerleave',()=>{o.tip.hidden=true;});
-  new ResizeObserver(()=>{const w=o.box.clientWidth,h=o.box.clientHeight;ren.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();}).observe(o.box);
+  new ResizeObserver(()=>{const w=o.box.clientWidth,h=o.box.clientHeight;ren.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();
+    const want=272*Math.sqrt(Math.max(1,1.73/cam.aspect));const off=cam.position.clone().sub(ctl.target);off.setLength(Math.min(ctl.maxDistance,want));cam.position.copy(ctl.target).add(off);}).observe(o.box);
   pl.render=()=>{if(pl.vis){ctl.update();ren.render(scene,cam);}};
   return pl;
 }
@@ -1135,8 +1136,8 @@ const PLOTS=[
   makePlot({cv:rmCanvas,box:rmBox,tip:document.getElementById('rmtip'),val:(T,s)=>P.rscale*rMap(T,s),yLabel:'DCIR, mΩ',digits:0,fixedMax:30,logColor:[4.5,29],
     tipRows:(T,s)=>[['DCIR (2C)',(P.rscale*rMap(T,s)).toFixed(2)+' mΩ']]}),
   makePlot({cv:document.getElementById('hmap'),box:document.getElementById('hmapbox'),tip:document.getElementById('hmtip'),val:(T,s)=>Math.max(0,heatAt(T,s,HREF)),yLabel:'Heat, W',digits:1,
-    tipRows:(T,s)=>{const q=heatAt(T,s,HREF),j=HREF*HREF*P.rscale*1e-3*rMap(T,s,HREF);return [['Heat at '+HREF.toFixed(1)+' A',q.toFixed(2)+' W'],['  I²R',j.toFixed(2)+' W'],['  reversible',(q-j>=0?'+':'')+(q-j).toFixed(2)+' W']];}})];
-function setHeatRef(){const lg=LOGS[P.prof];HREF=(lg?logRms(lg):P.rms)/LAY.perRow;const e=document.getElementById('hm-ref');if(e)e.textContent=HREF.toFixed(1)+' A per cell, the cycle\'s RMS';PLOTS[1].buildSurface();}
+    tipRows:(T,s)=>{const q=heatAt(T,s,HREF),j=HREF*HREF*P.rscale*1e-3*rMap(T,s,HREF);return [['Heat at '+HREF.toFixed(1)+' A',q.toFixed(2)+' W'],['  I²R',j.toFixed(2)+' W'],['  entropic',(q-j>=0?'+':'')+(q-j).toFixed(2)+' W']];}})];
+function setHeatRef(){const lg=LOGS[P.prof];HREF=(lg?logRms(lg):P.rms)/LAY.perRow;const e=document.getElementById('hm-ref');if(e)e.textContent=HREF.toFixed(1)+' A (cycle RMS)';PLOTS[1].buildSurface();}
 function buildSurface(){PLOTS.forEach(p=>p.buildSurface());}
 function buildStatic(){PLOTS.forEach(p=>p.buildStatic());}
 function rmColors(){PLOTS.forEach(p=>p.colors());}
@@ -1147,7 +1148,7 @@ function updateTrace(ci){
   PLOTS.forEach(p=>p.trace(pts));
   const I=NET.Icell[ci], rm=P.rscale*rMap(Tn,sn,I);
   const rows=[['Avg temp',Tn.toFixed(1)+' °C'],['SOC',(sn*100).toFixed(1)+' %'],['DCIR',rm.toFixed(2)+' mΩ'],['Current',I.toFixed(1)+' A'],
-    ['Heat now',NET.Qcell[ci].toFixed(2)+' W'],['  of which reversible',(NET.Qrev[ci]>=0?'+':'')+NET.Qrev[ci].toFixed(2)+' W'],['Heat, 10 s avg',avg10(RB.Q,ci).toFixed(2)+' W']];
+    ['Heat now',NET.Qcell[ci].toFixed(2)+' W'],['  of which entropic',(NET.Qrev[ci]>=0?'+':'')+NET.Qrev[ci].toFixed(2)+' W'],['Heat, 10 s avg',avg10(RB.Q,ci).toFixed(2)+' W']];
   document.getElementById('rm-kv').innerHTML=rows.map(r=>`<span>${r[0]}</span><span>${r[1]}</span>`).join('');
 }
 
