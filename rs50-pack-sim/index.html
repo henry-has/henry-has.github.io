@@ -193,7 +193,7 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
           <div class="sl"><label for="p-gpos">+ collector-to-cap</label><output id="o-gpos"></output><input id="p-gpos" type="range" min="0.05" max="3" step="0.05" value="0.6"></div>
           <div class="sl"><label for="p-ccell">Heat capacity</label><output id="o-ccell"></output><input id="p-ccell" type="range" min="45" max="80" step="0.1" value="60.6"></div>
           <label class="row" style="font-size:12px"><input type="checkbox" id="p-rev" checked> Entropic (reversible) heat</label>
-          <span class="note">−I·T·dU/dT. Cell absorbs heat on discharge above ~60 % SOC (About:Energy data) and gives it off lower down. Up to ±0.5 W per cell.</span>
+          <span class="note">−I·T·dU/dT. dU/dT from About:Energy charge and discharge heat maps. Cell absorbs heat on discharge above ~50 % SOC and gives it off below, up to about 5× more strongly at low SOC.</span>
 
         </div>
       </details>
@@ -265,7 +265,7 @@ function gauss(rng){let u=0,v=0;while(u===0)u=rng();while(v===0)v=rng();return M
 function interp(xs,ys,x){if(x<=xs[0])return ys[0];for(let i=1;i<xs.length;i++){if(x<=xs[i]){const f=(x-xs[i-1])/(xs[i]-xs[i-1]);return ys[i-1]+f*(ys[i]-ys[i-1]);}}return ys[ys.length-1];}
 const SOCX=[0,.05,.1,.2,.3,.4,.5,.6,.7,.8,.9,1];
 const OCV=[2.9,3.3,3.45,3.55,3.62,3.68,3.75,3.84,3.93,4.02,4.1,4.19];
-// dU/dT: SOC >= 0.6 fitted to About:Energy RS50 40 A export; below 0.6 is a generic NMC/graphite shape (assumed)
+// dU/dT, mV/K: from About:Energy 0.5–2C charge and discharge heat maps. (Q − I²·DCIR)/(−I·T) per map, extrapolated to zero current, charge and discharge averaged, 10–60 °C averaged (spread < 0.03)
 // Cell energy content vs SOC: E(soc) = Q * ∫0^soc OCV ds  (J)
 const E_TAB=(function(){const n=1000,t=new Float64Array(n+1);for(let i=1;i<=n;i++){const a=interp(SOCX,OCV,(i-1)/n),b=interp(SOCX,OCV,i/n);t[i]=t[i-1]+0.5*(a+b)/n;}return t;})();
 function eCell(soc){const x=Math.max(0,Math.min(1,soc))*1000,i=Math.min(999,Math.floor(x));return 5.0*3600*(E_TAB[i]+(x-i)*(E_TAB[i+1]-E_TAB[i]));}
