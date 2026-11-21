@@ -181,7 +181,7 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
           <div class="sl" id="regen-wrap" hidden><label for="p-regen">Regen peak (% of drive peak)</label><output id="o-regen"></output><input id="p-regen" type="range" min="0" max="100" step="5" value="50"></div>
 
           <div class="lab">Fans: tube-bank h, air heats row by row</div>
-          <div class="sl"><label for="p-cfm">Airflow per module <i class="src">fan curve × Kelvin CFD</i></label><output id="o-cfm"></output><input id="p-cfm" type="range" min="0" max="15" step="0.1" value="4.8"></div>
+          <div class="sl"><label for="p-cfm">Airflow per module <i class="src">fan curve × Kelvin CFD</i></label><output id="o-cfm"></output><input id="p-cfm" type="range" min="0" max="60" step="0.1" value="4.8"></div>
 
           <div class="lab">Passive: sealed case, walls only</div>
           <div class="sl"><label for="p-uawall">Case walls to ambient <i class="src">estimate tuned from cooldown data</i></label><output id="o-uawall"></output><input id="p-uawall" type="range" min="0" max="15" step="0.5" value="4"></div>
@@ -250,12 +250,12 @@ if(!window.THREE){document.getElementById('stage').innerHTML='<div class="err">T
 
 /* ---------------- constants ---------------- */
 const MM=1e-3;
-// Pack selector (page reloads with ?pack=p30b). p30b = last year: 130S5P Molicel P30B 18650, rough geometry/pitch guesses; DCIR from About:Energy P30B powermaps (2C, 4C); RS50 OCV and dU/dT curves reused.
+// Pack selector (page reloads with ?pack=p30b). p30b = last year: 130S5P Molicel P30B 18650, 42 × 14 mm pitch and 212 × 53 mm face (Notion: Speed + Fan Requirement); DCIR from About:Energy P30B powermaps (2C, 4C); RS50 OCV and dU/dT curves reused.
 const PACK=new URLSearchParams(location.search).get('pack')==='p30b'?'p30b':'rs50';
 const GEO=PACK==='p30b'?{R:9.2*MM,L:65*MM,tc:0.25*MM,rIn:1.0*MM,rJ:8.85*MM,zb:1.2*MM,zt:59.2*MM}
                        :{R:10.5*MM,L:70.3*MM,tc:0.25*MM,rIn:1.0*MM,rJ:10.15*MM,zb:1.2*MM,zt:64.5*MM};
 GEO.Lj=GEO.zt-GEO.zb;
-const LAY=PACK==='p30b'?{mods:5,groups:26,perRow:5,ST:32,SL:14,modGap:30,vertLast:true}:{mods:6,groups:22,perRow:3,ST:36.12,SL:15.5,modGap:30};
+const LAY=PACK==='p30b'?{mods:5,groups:26,perRow:5,ST:42,SL:14,modGap:30,vertLast:true,faceH:53.2}:{mods:6,groups:22,perRow:3,ST:36.12,SL:15.5,modGap:30};
 const NCELL=LAY.mods*LAY.groups*LAY.perRow;
 let GS_SWEEPS=3;const R_WELD=0.3e-3; // per terminal: 4 spot welds × ~1.2 mΩ in parallel (estimate)
 const CAP_AH=PACK==='p30b'?3.0:5.0, KS=40, G_GASKET=0.03, G_NI=0.08, H_JC=1500, RG=8.314;
@@ -264,7 +264,7 @@ const VR=8, VZ=28, TILES_X=32;
 const TEX_W=VR*TILES_X, TEX_H=VZ*Math.ceil(NCELL/TILES_X);
 const DT=0.25;
 
-const P={lvl:3,prof:PACK==='p30b'?'o531':'o612',rms:40,fan:'on',cfm:PACK==='p30b'?8:4.8,amb:35,t0:35,rscale:1,cv:2,kr:0.9,kz:28,hneg:30000,gpos:0.6,ccell:PACK==='p30b'?46:60.6,st:LAY.ST,sl:LAY.SL,rev:true,scale:'fixed',view:'cut',alt:'z',pscale:1,regen:50,uawall:4};
+const P={lvl:3,prof:PACK==='p30b'?'o531':'o612',rms:40,fan:'on',cfm:PACK==='p30b'?38.3:4.8,amb:35,t0:35,rscale:1,cv:2,kr:0.9,kz:28,hneg:30000,gpos:0.6,ccell:PACK==='p30b'?46:60.6,st:LAY.ST,sl:LAY.SL,rev:true,scale:'fixed',view:'cut',alt:'z',pscale:1,regen:50,uawall:4};
 let fanOn=true, fanTick=0;
 
 /* ---------------- helpers ---------------- */
@@ -512,7 +512,7 @@ function airSide(cfmIn){
   const cfm=cfmIn!==undefined?cfmIn:(fanOn?P.cfm:0);
   if(cfm<=0)return {h:hNat,mdot:0,re:0,v:0,cpA};
   const Q=cfm*4.719e-4;
-  const Af=(LAY.perRow*LAY.ST+LAY.ST/2)*MM*GEO.L;
+  const Af=(LAY.perRow*LAY.ST+LAY.ST/2)*MM*(LAY.faceH?LAY.faceH*MM:GEO.L);
   const V=Q/Af, SD=Math.hypot(SL,ST/2);
   const Vmax=V*Math.max(ST/(ST-D),ST/(2*(SD-D)));
   const Re=Vmax*D/nu;
@@ -1037,10 +1037,10 @@ const speedSel=document.getElementById('speed');
  pb.querySelectorAll('button').forEach(b=>{b.setAttribute('aria-pressed',b.dataset.pack===PACK?'true':'false');
   b.addEventListener('click',()=>{if(b.dataset.pack===PACK)return;const u=new URL(location.href);u.searchParams.set('pack',b.dataset.pack);location.href=u.toString();});});
  if(PACK==='p30b'){document.getElementById('prof-o531').hidden=false;document.querySelectorAll('#prof button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.prof===P.prof?'true':'false'));}
- if(PACK==='p30b'){const t=document.querySelector('label[for="p-cfm"] .src');if(t)t.textContent='fit to 5/31 thermistors';}
+ if(PACK==='p30b'){const t=document.querySelector('label[for="p-cfm"] .src');if(t)t.textContent='design: 3 × 60 mm fans per end';const c=document.getElementById('p-cfm');if(c)c.max=60;}
  if(PACK==='p30b'){const dd=document.querySelector('#rmapbox').previousElementSibling;if(dd)dd.textContent='DCIR at 2C (6 A), About:Energy P30B. Cells use the 2C and 4C maps at their own current.';}
  if(PACK==='p30b'){document.getElementById('ttl').textContent='2025 Pack Thermal Sim (P30B, rough)';
-  document.getElementById('subttl').textContent='130S5P Molicel P30B 18650 · 5 × 26S5P modules · last module upright · pitch and OCV are guesses, DCIR from About:Energy P30B maps';}}
+  document.getElementById('subttl').textContent='130S5P Molicel P30B 18650 · 5 × 26S5P modules · last module upright · 42 × 14 mm pitch, 3 × 60 mm fans per end, DCIR from About:Energy P30B maps, OCV reused from RS50';}}
 
 function fullReset(){
   fanOn=P.fan==='on';RB.pos=0;RB.cnt=0;
