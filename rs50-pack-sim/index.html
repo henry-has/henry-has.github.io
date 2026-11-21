@@ -1037,10 +1037,10 @@ const speedSel=document.getElementById('speed');
  pb.querySelectorAll('button').forEach(b=>{b.setAttribute('aria-pressed',b.dataset.pack===PACK?'true':'false');
   b.addEventListener('click',()=>{if(b.dataset.pack===PACK)return;const u=new URL(location.href);u.searchParams.set('pack',b.dataset.pack);location.href=u.toString();});});
  if(PACK==='p30b'){document.getElementById('prof-o531').hidden=false;document.querySelectorAll('#prof button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.prof===P.prof?'true':'false'));}
- if(PACK==='p30b'){const t=document.querySelector('label[for="p-cfm"] .src');if(t)t.textContent='design: 3 × 60 mm fans per end';const c=document.getElementById('p-cfm');if(c)c.max=60;}
+ if(PACK==='p30b'){const t=document.querySelector('label[for="p-cfm"] .src');if(t)t.textContent='design: 3 × 60 mm fans per module';const c=document.getElementById('p-cfm');if(c)c.max=60;}
  if(PACK==='p30b'){const dd=document.querySelector('#rmapbox').previousElementSibling;if(dd)dd.textContent='DCIR at 2C (6 A), About:Energy P30B. Cells use the 2C and 4C maps at their own current.';}
  if(PACK==='p30b'){document.getElementById('ttl').textContent='2025 Pack Thermal Sim (P30B, rough)';
-  document.getElementById('subttl').textContent='130S5P Molicel P30B 18650 · 5 × 26S5P modules · last module upright · 42 × 14 mm pitch, 3 × 60 mm fans per end, DCIR from About:Energy P30B maps, OCV reused from RS50';}}
+  document.getElementById('subttl').textContent='130S5P Molicel P30B 18650 · 5 × 26S5P modules · last module upright · 42 × 14 mm pitch, 3 × 60 mm fans per module (15 total), DCIR from About:Energy P30B maps, OCV reused from RS50';}}
 
 function fullReset(){
   fanOn=P.fan==='on';RB.pos=0;RB.cnt=0;
