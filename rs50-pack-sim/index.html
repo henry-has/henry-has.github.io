@@ -250,7 +250,7 @@ if(!window.THREE){document.getElementById('stage').innerHTML='<div class="err">T
 
 /* ---------------- constants ---------------- */
 const MM=1e-3;
-// Pack selector (page reloads with ?pack=p30b). p30b = last year: 130S5P Molicel P30B 18650, rough geometry/pitch guesses, RS50 OCV/DCIR curves reused until real data is added.
+// Pack selector (page reloads with ?pack=p30b). p30b = last year: 130S5P Molicel P30B 18650, rough geometry/pitch guesses; DCIR from About:Energy P30B powermaps (2C, 4C); RS50 OCV and dU/dT curves reused.
 const PACK=new URLSearchParams(location.search).get('pack')==='p30b'?'p30b':'rs50';
 const GEO=PACK==='p30b'?{R:9.2*MM,L:65*MM,tc:0.25*MM,rIn:1.0*MM,rJ:8.85*MM,zb:1.2*MM,zt:59.2*MM}
                        :{R:10.5*MM,L:70.3*MM,tc:0.25*MM,rIn:1.0*MM,rJ:10.15*MM,zb:1.2*MM,zt:64.5*MM};
@@ -264,7 +264,7 @@ const VR=8, VZ=28, TILES_X=32;
 const TEX_W=VR*TILES_X, TEX_H=VZ*Math.ceil(NCELL/TILES_X);
 const DT=0.25;
 
-const P={lvl:3,prof:PACK==='p30b'?'o531':'o612',rms:40,fan:'on',cfm:4.8,amb:35,t0:35,rscale:PACK==='p30b'?1.5:1,cv:2,kr:0.9,kz:28,hneg:30000,gpos:0.6,ccell:PACK==='p30b'?46:60.6,st:LAY.ST,sl:LAY.SL,rev:true,scale:'fixed',view:'cut',alt:'z',pscale:1,regen:50,uawall:4};
+const P={lvl:3,prof:PACK==='p30b'?'o531':'o612',rms:40,fan:'on',cfm:PACK==='p30b'?8:4.8,amb:35,t0:35,rscale:1,cv:2,kr:0.9,kz:28,hneg:30000,gpos:0.6,ccell:PACK==='p30b'?46:60.6,st:LAY.ST,sl:LAY.SL,rev:true,scale:'fixed',view:'cut',alt:'z',pscale:1,regen:50,uawall:4};
 let fanOn=true, fanTick=0;
 
 /* ---------------- helpers ---------------- */
@@ -284,8 +284,12 @@ const AE={/* redacted */};
 // About:Energy RS50 DCIR powermaps, mΩ: 30 s discharge pulses capped at 0.5C, 1C, 2C, 4C, 10C (median pulse currents below, A)
 const RM_SOC=[/* redacted */];
 const RM_T=[/* redacted */];
-const RM_I=[/* redacted */];
-const RMS_MAPS=[/* redacted */];
+const RS50_RM_I=[/* redacted */];
+const RS50_MAPS=[/* redacted */];
+// About:Energy Molicel P30B powermaps, mΩ: 30 s discharge pulses capped at 2C, 4C (same T/SOC grid)
+const P30B_RM_I=[/* redacted */];
+const P30B_MAPS=[/* redacted */];
+const RM_I=PACK==='p30b'?P30B_RM_I:RS50_RM_I, RMS_MAPS=PACK==='p30b'?P30B_MAPS:RS50_MAPS, RM_DEF=PACK==='p30b'?0:2; // default map: 2C
 const RM_LNS=RMS_MAPS.map(M=>M.map(r=>r.map(Math.log))), RM_X=RM_T.map(t=>1/(t+273.15)), RM_LI=RM_I.map(Math.log);
 function rmLook(L,T,soc){
   const sp=Math.min(94,Math.max(5,soc*100));
@@ -299,7 +303,7 @@ function rmLook(L,T,soc){
 }
 // linear in SOC, ln(R) linear in 1/T and in ln(I) between the pulse maps; clamped outside 0.5C–10C. No current given: 2C map
 function rMap(T,soc,I){
-  if(I===undefined)return Math.exp(rmLook(RM_LNS[2],T,soc));
+  if(I===undefined)return Math.exp(rmLook(RM_LNS[RM_DEF],T,soc));
   const li=Math.log(Math.max(1e-3,Math.abs(I)));
   if(li<=RM_LI[0])return Math.exp(rmLook(RM_LNS[0],T,soc));
   if(li>=RM_LI[RM_LI.length-1])return Math.exp(rmLook(RM_LNS[RM_LI.length-1],T,soc));
@@ -986,7 +990,7 @@ const RESET_KEYS=new Set(['rms','t0','cv','pscale','regen']);
 const REBUILD_KEYS=new Set(['kr','kz','hneg','gpos','ccell']);
 for(const k of Object.keys(fmt)){
   const el=document.getElementById('p-'+k),out=document.getElementById('o-'+k);
-  if(PACK==='p30b'&&(k==='st'||k==='sl'||k==='ccell'||k==='rscale'))el.value=P[k];
+  if(PACK==='p30b'&&(k==='st'||k==='sl'||k==='ccell'||k==='rscale'||k==='cfm'))el.value=P[k];
   const show=()=>{out.textContent=fmt[k](el.value);};show();
   el.addEventListener('input',()=>{P[k]=parseFloat(el.value);show();
     if(k==='cfm'){AIR=airSide();updateHInfo();}
@@ -1033,8 +1037,10 @@ const speedSel=document.getElementById('speed');
  pb.querySelectorAll('button').forEach(b=>{b.setAttribute('aria-pressed',b.dataset.pack===PACK?'true':'false');
   b.addEventListener('click',()=>{if(b.dataset.pack===PACK)return;const u=new URL(location.href);u.searchParams.set('pack',b.dataset.pack);location.href=u.toString();});});
  if(PACK==='p30b'){document.getElementById('prof-o531').hidden=false;document.querySelectorAll('#prof button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.prof===P.prof?'true':'false'));}
+ if(PACK==='p30b'){const t=document.querySelector('label[for="p-cfm"] .src');if(t)t.textContent='fit to 5/31 thermistors';}
+ if(PACK==='p30b'){const dd=document.querySelector('#rmapbox').previousElementSibling;if(dd)dd.textContent='DCIR at 2C (6 A), About:Energy P30B. Cells use the 2C and 4C maps at their own current.';}
  if(PACK==='p30b'){document.getElementById('ttl').textContent='2025 Pack Thermal Sim (P30B, rough)';
-  document.getElementById('subttl').textContent='130S5P Molicel P30B 18650 · 5 × 26S5P modules · last module upright · pitch and OCV are guesses, DCIR = 1.5× RS50 fit to 5/31 thermistors';}}
+  document.getElementById('subttl').textContent='130S5P Molicel P30B 18650 · 5 × 26S5P modules · last module upright · pitch and OCV are guesses, DCIR from About:Energy P30B maps';}}
 
 function fullReset(){
   fanOn=P.fan==='on';RB.pos=0;RB.cnt=0;
