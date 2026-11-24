@@ -544,7 +544,7 @@ function renderSide(){
     const C=['var(--line)','#e9a23b','#e5484d','#8e6cf0'];
     const bc=busyCells(r);busyCell=bc;const bgs=[...new Set(bc.map(i=>asg[i]+1))];
     const Ip2=(ICELL*P)**2,ser=r.links.filter(l=>l.W!=null&&asg[l.i]!==asg[l.j]).reduce((a,l)=>a+l.W,0)*1000/Ip2,par_=r.links.filter(l=>l.W!=null&&asg[l.i]===asg[l.j]).reduce((a,l)=>a+l.W,0)*1000/Ip2;
-    const Jn=(r.junc||[]).filter(j=>isFinite(j.R)),stripMath=`${Jn.length} links ${Jn.length>4?Jn.slice(0,3).map(j=>fmt(j.R,2)).join(' + ')+' + …':Jn.map(j=>fmt(j.R,2)).join(' + ')} = ${fmt(ser,2)}`+(par_>0.005?` + ${fmt(par_,2)} within groups`:'')+(r.Rpack-r.Rideal-ser-par_>0.005?` · + ${fmt(r.Rpack-r.Rideal-ser-par_,2)} cell imbalance`:'');
+    const Jn=(r.junc||[]).filter(j=>isFinite(j.R)),stripMath=`${Jn.length} links ${Jn.length>4?Jn.slice(0,3).map(j=>fmt(j.R,2)).join(' + ')+' + …':Jn.map(j=>fmt(j.R,2)).join(' + ')} = ${fmt(ser,2)}`+(r.Rpack-r.Rideal-ser>0.005?` + ${fmt(r.Rpack-r.Rideal-ser,2)} within groups`:'');
     const LL=r.load*r.load,math=[`${S} × ${RC} mΩ ÷ ${P}`,stripMath,`${fmt(r.Rpack,2)} × (${fmt(r.load,3)}² − 1)`,`${fmt(r.Rpack*LL,2)} × 10% × ${r.extra} extra ÷ ${S}`];
     const parts=[[r.Rideal,'cells','fixed by the S×P'],[strips,'strips','add strips between groups'],[uneven,'uneven cells',`busiest cell +${fmt((r.load-1)*100,1)}%`],[split,'split groups',r.extra?`${r.extra} extra pieces`:'none']];
     const big=Math.max(strips,uneven,split);
