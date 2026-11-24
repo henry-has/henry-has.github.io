@@ -157,7 +157,7 @@ button.txt.on{color:var(--crit);background:transparent}
 .boards{background:transparent;padding:6px 0;gap:28px}
 .face .lbl{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
 .tools2{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;border-top:1px solid var(--line);padding-top:6px}
-.loss{display:grid;gap:8px;max-width:560px}
+.loss{display:grid;gap:8px;max-width:680px}
 .loss .bar{display:flex;height:10px;background:var(--stage)}
 .loss .bar i{display:block;height:100%}
 .loss .rows{display:grid;grid-template-columns:auto auto 1fr;gap:3px 12px;font-size:13px;color:var(--ink-2);align-items:baseline}
@@ -543,7 +543,9 @@ function renderSide(){
     const strips=r.Rpack-r.Rideal,uneven=r.Rpack*r.load*r.load-r.Rpack,split=r.total-r.Rpack*r.load*r.load;
     const C=['var(--line)','#e9a23b','#e5484d','#8e6cf0'];
     const bc=busyCells(r);busyCell=bc;const bgs=[...new Set(bc.map(i=>asg[i]+1))];
-    const LL=r.load*r.load,math=[`${S} × ${RC} mΩ ÷ ${P}`,`${fmt(r.Rpack,2)} pack − ${fmt(r.Rideal,2)} cells`,`${fmt(r.Rpack,2)} × (${fmt(r.load,3)}² − 1)`,`${fmt(r.Rpack*LL,2)} × 10% × ${r.extra} extra ÷ ${S}`];
+    const Ip2=(ICELL*P)**2,ser=r.links.filter(l=>l.W!=null&&asg[l.i]!==asg[l.j]).reduce((a,l)=>a+l.W,0)*1000/Ip2,par_=r.links.filter(l=>l.W!=null&&asg[l.i]===asg[l.j]).reduce((a,l)=>a+l.W,0)*1000/Ip2;
+    const Jn=(r.junc||[]).filter(j=>isFinite(j.R)),stripMath=`${Jn.length} links ${Jn.length>4?Jn.slice(0,3).map(j=>fmt(j.R,2)).join(' + ')+' + …':Jn.map(j=>fmt(j.R,2)).join(' + ')} = ${fmt(ser,2)}`+(par_>0.005?` + ${fmt(par_,2)} within groups`:'')+(r.Rpack-r.Rideal-ser-par_>0.005?` · + ${fmt(r.Rpack-r.Rideal-ser-par_,2)} cell imbalance`:'');
+    const LL=r.load*r.load,math=[`${S} × ${RC} mΩ ÷ ${P}`,stripMath,`${fmt(r.Rpack,2)} × (${fmt(r.load,3)}² − 1)`,`${fmt(r.Rpack*LL,2)} × 10% × ${r.extra} extra ÷ ${S}`];
     const parts=[[r.Rideal,'cells','fixed by the S×P'],[strips,'strips','add strips between groups'],[uneven,'uneven cells',`busiest cell +${fmt((r.load-1)*100,1)}%`],[split,'split groups',r.extra?`${r.extra} extra pieces`:'none']];
     const big=Math.max(strips,uneven,split);
     bd.innerHTML=`<div class="h">Score breakdown</div><div class="bar">${parts.map((p,k)=>`<i style="width:${p[0]/r.total*100}%;background:${C[k]}"></i>`).join('')}</div><div class="rows">${parts.map((p,k)=>`<span class="v">${k?'+':''}${fmt(p[0],2)}</span><span${k&&p[0]===big&&big>0.01?' style="color:var(--ink);font-weight:600"':''}><span class="sw" style="background:${C[k]}"></span> ${p[1]}</span><span class="m">${math[k]}${k===2?(bc.length?` · <span class="busy" data-busy="1">${bc.length>1?bc.length+' busiest cells in '+bgs.map(g=>'S'+g).join(', '):'busiest is an S'+bgs[0]+' cell'}</span>`:' · cells share evenly'):''}</span>`).join('')}<span class="v" style="border-top:1px solid var(--line);padding-top:3px">${fmt(r.total,2)}</span><span style="border-top:1px solid var(--line);padding-top:3px">mΩ</span><span></span></div>`;
