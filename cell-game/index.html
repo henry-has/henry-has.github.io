@@ -80,7 +80,7 @@ kbd{background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:
     <div class="sp"></div>
     <span id="lvls" style="display:contents"></span>
     <button id="erase" title="Same as right-click (for touch)">Erase mode</button>
-    <button id="clear">Clear</button>
+    <button id="example" style="display:none">Example</button><button id="clear">Clear</button>
   </div>
 
   <div class="boards">
@@ -138,17 +138,20 @@ function level5(){const rows=[];for(let r=0;r<7;r++)rows.push([r+1,-(r)/2+ (r%2?
   const c=[];for(let r=0;r<7;r++)for(let i=0;i<=r;i++)c.push([i-r/2,r*S3]);return c;} // triangle, 28
 function level6(){const c=[];for(let r=-7;r<=7;r++)for(let i=-7;i<=7;i++){
     const x=i+(r&1?.5:0),y=r*S3,d=Math.hypot(x,y);if(d>=1.5&&d<=3.8)c.push([x,y]);}return c;} // big donut, 48
+const EXAMPLES7=[{"name":"simonas \u00b7 118 links","rows":[[7,7,7,8,8,9,11,12,13,14,14,14,14],[6,6,7,7,8,9,11,12,13,14,14,13],[6,5,6,6,7,8,9,11,12,13,13,13],[5,4,5,6,8,9,10,11,12,12],[5,3,4,5,8,9,10,11,12],[2,3,4,5,9,10,11],[1,2,3,4,10,10],[1,2,3,4,10],[1,2,3,4],[1,2,3],[1,2],[1]]},{"name":"bubbabaoy420 \u00b7 104 links","rows":[[1,2,3,4,5,6,7,8,9,10,11,12,12],[1,2,3,4,5,6,7,8,9,10,11,13],[7,7,8,10,13,13,14,14,13,14,14,13],[6,8,9,10,12,14,11,12,13,14],[6,5,9,11,12,9,10,11,12],[5,4,4,11,8,9,10],[2,2,3,6,7,8],[1,3,5,6,7],[1,3,4,5],[2,3,4],[1,2],[1]]}];
 const LEVELS=[
   {name:'Level 1',S:7,P:3,cells:level1(),hint:'A simple block, like a small LVB.'},
   {name:'Level 2',S:7,P:6,cells:level2(),hint:'A donut. Wedges, rings, spirals… your call.'},
   {name:'Level 3',S:6,P:4,cells:level3(),hint:'Square packing: cells only touch 4 neighbours.'},
   {name:'Level 4',S:6,P:5,cells:level4(),hint:'An L-shaped pack. The corner is tricky.'},
   {name:'Level 5',S:4,P:7,cells:level5(),hint:'A triangle: 28 cells in 4 groups.'},
-  {name:'Level 6',S:8,P:6,cells:level6(),hint:'A big donut: 8 groups of 6.'}
+  {name:'Level 6',S:8,P:6,cells:level6(),hint:'A big donut: 8 groups of 6.'},
+  {name:'Level 7',S:14,P:6,cells:hexRows([[13,0],[12,0],[12,0],[10,0],[9,0],[7,0],[6,0],[5,0],[4,0],[3,0],[2,0],[1,0]]),
+   hint:'Boss level: a truncated triangle, 14s6p. Use "Example" to see two real player layouts.',examples:EXAMPLES7}
 ];
 
 /* ---------- state ---------- */
-let L, cells, adj, grp, active, eraseMode=false, hover=-1, minX,maxX,minY,maxY, sim=null, lvlIdx=0;
+let exIdx=0, L, cells, adj, grp, active, eraseMode=false, hover=-1, minX,maxX,minY,maxY, sim=null, lvlIdx=0;
 const color=g=>`hsl(${(g*360/L.S+8)%360} 62% 46%)`;
 const cnt=g=>grp.reduce((a,x)=>a+(x===g),0);
 const sideOf=k=>k%2===0?'A':'B'; // link k (0-index: group k -> k+1) lives on this side
@@ -162,7 +165,7 @@ function load(i){
   minY=Math.min(...cells.map(c=>c.y))-1.2;maxY=Math.max(...cells.map(c=>c.y))+1.2;
   for(const s of [$('svgA'),$('svgB')])s.setAttribute('viewBox',`${minX} ${minY} ${maxX-minX} ${maxY-minY}`);
   document.querySelectorAll('[data-lvl]').forEach(b=>b.classList.toggle('on',+b.dataset.lvl===i));
-  $('task').textContent=`${L.name}: ${L.S}s${L.P}p — ${L.S*L.P} cells`;$('hint').textContent=L.hint;
+  $('task').textContent=`${L.name}: ${L.S}s${L.P}p — ${L.S*L.P} cells`;$('hint').textContent=L.hint;$('example').style.display=L.examples?'':'none';exIdx=0;
   $('next').style.display='none';
   update();
 }
@@ -351,6 +354,9 @@ for(const [id,side] of [['svgA','A'],['svgB','B']]){
   svg.addEventListener('pointerleave',()=>{if(!mode){hover=-1;update();}});
 }
 $('chips').addEventListener('click',e=>{const c=e.target.closest('.chip');if(c){active=+c.dataset.g;update();}});
+$('example').onclick=()=>{const e=L.examples[exIdx%L.examples.length];exIdx++;
+  const g=[];e.rows.forEach(r=>r.forEach(v=>g.push(v-1)));grp=g;active=0;update();
+  $('hint').textContent='Example: '+e.name+'. Clear or erase to try your own.';};
 $('clear').onclick=()=>{grp=cells.map(()=>-1);active=0;update();};
 $('erase').onclick=()=>{eraseMode=!eraseMode;$('erase').classList.toggle('on',eraseMode);update();};
 $('next').onclick=()=>load(lvlIdx+1);
