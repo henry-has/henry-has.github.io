@@ -51,9 +51,10 @@ svg{width:100%;height:auto;display:block;touch-action:none;cursor:crosshair}
 .legend{color:var(--mute);font-size:12px;margin-top:8px}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:-1px;margin:0 3px 0 8px;border:3px solid}
 /* svg bits */
-.strip{stroke:#1f2330;stroke-width:.2;stroke-linecap:round}
-.par{stroke:#fff;stroke-width:.11;stroke-linecap:round;opacity:.95}
-.glow1{stroke:var(--red);stroke-width:.6;stroke-linecap:round;opacity:.55;filter:blur(3px);animation:gl 1s infinite}
+/* all links share one capsule geometry; only colour differs */
+.strip{stroke:#1f2330;stroke-width:.17;stroke-linecap:round}
+.par{stroke:#fff;stroke-width:.17;stroke-linecap:round;opacity:.9}
+.glow1{stroke:var(--red);stroke-width:.55;stroke-linecap:round;opacity:.55;filter:blur(3px);animation:gl 1s infinite}
 .glow2{stroke:var(--amber);stroke-width:.5;stroke-linecap:round;opacity:.45;filter:blur(3px)}
 @keyframes gl{50%{opacity:.15}}
 .cn{font:700 .5px system-ui;text-anchor:middle;dominant-baseline:central;fill:#fff;pointer-events:none}
@@ -254,7 +255,7 @@ function drawSide(svg,side){
   const sp=sim.pairs.filter(([a,b,k])=>sideOf(k)===side);
   for(const [a,b,k] of sp){
     const n=sim.n[k], g=n<=1?'glow1':n===2?'glow2':'';
-    const l=bridge(a,b,.3);
+    const l=bridge(a,b,.35);
     if(g)h+=`<line class="${g}" ${l}/>`;
   }
   // cells
@@ -277,10 +278,10 @@ function drawSide(svg,side){
   });
   // parallel plates (same-group neighbours), visible on both sides
   for(const [a,b] of adj)if(grp[a]>=0&&grp[a]===grp[b])
-    h+=`<line class="par" ${bridge(a,b,.3)}/>`;
+    h+=`<line class="par" ${bridge(a,b,.35)}/>`;
   // strips on top of cells
   for(const [a,b,k] of sp){
-    h+=`<line class="strip" ${bridge(a,b,.24)}/>`;
+    h+=`<line class="strip" ${bridge(a,b,.35)}/>`;
   }
   // pack terminals
   const term=(g,txt,plus)=>{ // draw label at group centroid on its terminal side
