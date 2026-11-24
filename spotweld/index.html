@@ -15,7 +15,7 @@
 }
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 "Space Grotesk",system-ui,sans-serif}
-body{background:radial-gradient(1200px 600px at 70% -10%,#1a2440 0%,transparent 60%),radial-gradient(900px 500px at -10% 110%,#2a1830 0%,transparent 55%),var(--bg);min-height:100vh}
+body{background:var(--bg);min-height:100vh}
 button{font:inherit;color:inherit}
 [hidden]{display:none!important}
 .wrap{max-width:1100px;margin:0 auto;padding:16px 16px 40px;display:flex;flex-direction:column;gap:12px}
@@ -63,34 +63,8 @@ select{font:inherit;font-size:14px;color:var(--ink);background:var(--card);borde
 .btn:disabled{opacity:.4;cursor:not-allowed}
 .btn.on{color:var(--accent);border-color:var(--accent)}
 .btn.erase.on{color:var(--bad);border-color:var(--bad)}
-.btn.primary{background:#1f5f86;border-color:#3b8fb5;color:#fff}
-.result{display:flex;flex-direction:column;gap:14px;padding:16px}
-.k0{font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em}
-.stack{display:flex;height:22px;border-radius:6px;overflow:hidden;background:var(--bg)}
-.stack i{display:block;height:100%;min-width:2px}
-.eq{display:grid;grid-template-columns:auto auto 1fr;gap:6px 14px;align-items:baseline;font-size:13px;color:var(--ink2)}
-.eq .op{font-family:var(--mono);color:var(--ink3);text-align:right}
-.eq .val{font-family:var(--mono);color:var(--ink);white-space:nowrap}
-.eq .sw{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;vertical-align:0}
-.eq .tot{border-top:1px solid var(--line);padding-top:6px}
-.eq .why{font-size:12px;color:var(--ink3)}
-.formula{font-family:var(--mono);font-size:13px;color:var(--ink2);line-height:1.7}
-.formula b{color:var(--ink);font-size:15px}
-.formula .r{color:var(--accent)}
-.parts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
-@media (max-width:640px){.parts{grid-template-columns:1fr}}
-.m .k span{font-family:var(--mono);color:var(--ink);float:right;letter-spacing:0}
-.why{font-size:12px;color:var(--ink3);margin-top:6px;line-height:1.45}
-.m .k{font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em}
-.m .v{font-family:var(--mono);font-size:14px;margin-top:1px}
-.m .meter{height:5px;background:var(--bg);border-radius:3px;margin-top:5px;overflow:hidden}
-.m .meter i{display:block;height:100%;border-radius:3px;transition:width .35s}
-.result .acts{display:flex;gap:8px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#0c0f14}
 .blurb{color:var(--accent2)}
-details{padding:12px 16px;font-size:13px;color:var(--ink2)}
-details summary{cursor:pointer;color:var(--ink3);font-size:12px;letter-spacing:.06em;text-transform:uppercase}
-details p{margin:8px 0;max-width:65ch}
-details b{color:var(--ink)}
 #tip{position:fixed;pointer-events:none;background:#0b0e13ee;border:1px solid var(--line2);border-radius:8px;padding:6px 9px;font-family:var(--mono);font-size:11px;color:var(--ink);z-index:10;display:none;white-space:nowrap}
 #tip .h{color:var(--ink3)}
 .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);opacity:0;background:var(--card2);border:1px solid var(--line2);padding:8px 14px;border-radius:10px;transition:.25s;font-size:13px;z-index:20;pointer-events:none}
@@ -125,29 +99,19 @@ details b{color:var(--ink)}
     <div class="step" id="goalStep"></div>
     <div class="stage boards"><div class="face"><div class="lbl">Top face</div><svg class="bd" id="boardT"></svg></div><div class="face"><div class="lbl">Bottom face (seen from above)</div><svg class="bd" id="boardB"></svg></div></div>
     <div class="tools">
-      <span>Left-drag to add · right-drag to erase · strips carrying more current glow hotter</span>
+      <span>Left-drag to add · right-drag to erase</span>
       <span class="sp"></span>
       <button class="btn erase" id="eraseBtn" title="Erase mode for touch">Erase</button>
       <button class="btn" id="undoBtn">Undo</button>
       <button class="btn" id="clearBtn">Clear</button>
+      <button class="btn" id="botBtn">Show par</button>
+      <button class="btn primary" id="shareBtn" hidden>Share</button>
     </div>
   </section>
 
-  <section class="card result" id="result" hidden>
-    <div class="k0">What your interconnects cost</div>
-    <div class="stack" id="stack"></div>
-    <div class="eq" id="eq"></div>
-    <div class="acts"><button class="btn primary" id="shareBtn">Share</button><button class="btn" id="botBtn">Show par</button></div>
-  </section>
 
-  <details class="card">
-    <summary>How it works</summary>
-    <p><b>S</b> is how many groups are wired in series (sets voltage). <b>P</b> is how many cells are in each group, side by side (sets capacity and current). 7S3P = 7 groups of 3 cells.</p>
-    <p>Fill group S1, then S2, and so on. Each group must touch the group before it, so current can flow from PACK − to PACK +. A group can be one cluster or split into pieces; each extra piece costs that group 10%, which can be worth it if it evens out the current.</p>
-    <p>Your result is the <b>effective resistance</b> in mΩ, lower is better: the pack's resistance, scaled up by how overloaded the hardest-working cell is and by any split groups. Par is the best layout the bot found. ★ for finishing, ★★ for getting within 5% of par, ★★★ only for beating par.</p>
-    <p>Touching cells are joined by a strip. Every strip is 1 mΩ and every cell is 10 mΩ.</p>
-    <p>Groups alternate direction, so a group's strips to the next group are on one face and its strips to the previous group are on the other. Both faces are shown.</p>
-      </details>
+
+
 </div>
 <div id="tip"></div>
 <div class="toast" id="toast"></div>
@@ -175,22 +139,11 @@ function axial(q,r){return {x:q+r/2,y:r*SQ3/2};}
 function hexagon(R,hole=-1){const c=[];for(let q=-R;q<=R;q++)for(let r=-R;r<=R;r++){const d=Math.max(Math.abs(q),Math.abs(r),Math.abs(q+r));if(d<=R&&d>hole)c.push(axial(q,r));}return c;}
 
 const DEMOS=[
- {id:'first',name:'First Weld',S:4,P:2,grid:true,cells:fromGrid(['####','####'])},
- {id:'square',name:'Square',S:4,P:4,grid:true,cells:fromGrid(['####','####','####','####'])},
- {id:'strip',name:'Strip',S:6,P:2,cells:fromDW(['o o o o o o',' o o o o o o'])},
- {id:'brick',name:'The Brick',S:7,P:3,cells:fromDW(['o o o o o o o',' o o o o o o o','o o o o o o o'])},
- {id:'ell',name:'L-Shape',S:6,P:3,grid:true,cells:fromGrid(['##....','##....','##....','######','######'])},
- {id:'comb3',name:'Comb',S:5,P:3,grid:true,cells:fromGrid(['.###.','#.#.#','#.#.#','#.#.#','#.#.#']),
-  blurb:'Long thin teeth. Splitting a group across teeth is allowed and may pay off.'},
+ {id:'first',name:'First Weld',S:4,P:2,grid:true,optimal:true,cells:fromGrid(['####','####'])},
+ {id:'para',name:'Parallelogram',S:10,P:4,cells:fromRows([8,8,8,8,8],r=>r/2)},
  {id:'wedgejr',name:'Wedge Jr',S:9,P:4,cells:fromRows([8,7,6,5,4,3,2,1])},
  {id:'ramp',name:'Ramp',S:12,P:4,cells:fromRows([10,9,8,8,7,6])},
- {id:'shard',name:'Shard',S:9,P:5,cells:fromRows([9,8,7,6,5,4,3,2,1],r=>r/2)},
- {id:'halo',name:'Halo',S:6,P:3,cells:hexagon(2,0)},
- {id:'heart',name:'Heart',S:5,P:5,cells:fromDW([' o o   o o','o o o o o o',' o o o o o','  o o o o','   o o o','    o o','     o'])},
- {id:'pyramid',name:'Pyramid',S:7,P:4,cells:fromDW(['      o','     o o','    o o o','   o o o o','  o o o o o',' o o o o o o','o o o o o o o'])},
- {id:'comb',name:'Honeycomb',S:9,P:4,cells:hexagon(3,0)},
- {id:'wedge',name:'Wedge',S:14,P:6,cells:fromRows([13,12,12,10,9,7,6,5,4,3,2,1]),
-  blurb:'Big one. Try whole groups, and groups split along the edges.'},
+ {id:'wedge',name:'Wedge',S:14,P:6,cells:fromRows([13,12,12,10,9,7,6,5,4,3,2,1])},
 ];
 
 /* ---------- daily ---------- */
@@ -413,7 +366,7 @@ function heatColor(t){
 }
 // ★ finish · ★★ within 5% of par · ★★★ strictly beat par (by more than 0.005 mΩ)
 const TWO_STAR=1.05;
-function starsFor(v,pr){if(v==null||!isFinite(v))return 0;if(pr==null)return 1;if(v<pr-0.005)return 3;if(v<=pr*TWO_STAR)return 2;return 1;}
+function starsFor(v,pr,opt){if(v==null||!isFinite(v))return 0;if(pr==null)return 1;if(opt?v<=pr+0.005:v<pr-0.005)return 3;if(v<=pr*TWO_STAR)return 2;return 1;}
 const starStr=n=>'★'.repeat(n)+'☆'.repeat(3-n);
 const fmt=(v,d=1)=>v==null||!isFinite(v)?'—':v.toFixed(d);
 function render(){
@@ -431,12 +384,11 @@ function renderFace(view,face,svg){
   // bottom face seen from above keeps the same left/right so cells line up
   const cells=L.cells;
   svg.setAttribute('viewBox',`${-pad} ${-pad} ${L.w+2*pad} ${L.h+2*pad}`);
-  const out=[`<defs><filter id="glow${face}" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="0.08"/></filter>
-  <radialGradient id="cg${face}" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#3a4252"/><stop offset="1" stop-color="#1b2029"/></radialGradient></defs>`];
+  const out=[``];
   cells.forEach((c,i)=>{
     const g=view[i];
     if(g>=0){const col=PAL[g%PAL.length];out.push(`<circle cx="${c.x}" cy="${c.y}" r="${R}" fill="${col}" fill-opacity="${g===active&&!showBot?0.4:0.22}" stroke="${col}" stroke-width="0.04"/>`);}
-    else out.push(`<circle cx="${c.x}" cy="${c.y}" r="${R}" fill="url(#cg${face})" stroke="#3a4558" stroke-width="0.03"/>`);
+    else out.push(`<circle cx="${c.x}" cy="${c.y}" r="${R}" fill="#222936" stroke="#343e50" stroke-width="0.03"/>`);
   });
   const fl=res.links.filter(l=>l.face===face);strips[face]=fl;
   const maxW=Math.max(1e-9,...res.links.map(l=>l.W||0));
@@ -445,7 +397,6 @@ function renderFace(view,face,svg){
     const x1=A.x+ux*o,y1=A.y+uy*o,x2=B.x-ux*o,y2=B.y-uy*o;
     const bus=st.bus||st.tbus;
     const t=st.W!=null?clamp(st.W/HEATMAX):0,col=bus?'#5c6778':st.W!=null?heatColor(t):'#8d9bab';
-    if(t>0.5)out.push(`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="0.4" stroke-linecap="round" opacity="${t*0.5}" filter="url(#glow${face})"/>`);
     out.push(`<line class="lk" data-l="${face}:${k}" x1="${bus?A.x:x1}" y1="${bus?A.y:y1}" x2="${bus?B.x:x2}" y2="${bus?B.y:y2}" stroke="${col}" stroke-width="${bus?0.3:0.18}" stroke-linecap="round"/>`);
   });
   cells.forEach((c,i)=>{
@@ -471,14 +422,14 @@ function renderFace(view,face,svg){
 function setMeter(id,v,txt,num){const el=$(id);el.style.width=(v==null?0:clamp(v)*100)+'%';el.style.background=v>.8?'#4ee39a':v>.5?'#ffcf4a':'#ff5d73';$(id+'v').innerHTML=txt;$(id+'n').textContent=num;}
 function renderSide(){
   const {S,P}=L,r=res;
-  $('goalWhat').innerHTML=`Build <b>${S}S${P}P</b>: ${S} groups in series × ${P} cells each<small>${S*P} cells · strip 1 mΩ · cell 10 mΩ</small>`+(L.blurb?`<small class="blurb">${L.blurb}</small>`:'');
+  $('goalWhat').innerHTML=`Build <b>${S}S${P}P</b>: ${S} groups in series × ${P} cells each<small>${S*P} cells</small>`+(L.blurb?`<small class="blurb">${L.blurb}</small>`:'');
   const el=$('goalStep');el.className='step';
   const need=P-r.groups[active].length;
   const firstBad=r.groups.findIndex((gr,g)=>gr.length&&!(g===active&&gr.length<P)&&!r.touch[g]);
   if(showBot)el.innerHTML='Showing the bot\'s layout. Click the board to return to yours.';
   else if(r.complete&&r.open){el.className='step bad';el.textContent='Open circuit: a group isn\'t touching the next one.';}
-  else if(r.complete){el.className='step good';const pr=par&&par.score;const n=starsFor(r.total,pr);
-    el.textContent=pr==null?'Pack done.':n===3?`★★★ You beat the bot's par of ${fmt(pr,2)} mΩ.`:n===2?`★★ Within 5% of par. Get under ${fmt(pr,2)} mΩ for the third star.`:`★ Pack done. Get to ${fmt(pr*TWO_STAR,2)} mΩ or less for two stars, under ${fmt(pr,2)} mΩ for three.`;}
+  else if(r.complete){el.className='step good';const pr=par&&par.score;const n=starsFor(r.total,pr,L.optimal);
+    el.textContent=pr==null?'Pack done.':n===3?(L.optimal?'★★★ Best possible layout.':`★★★ You beat par (${fmt(pr,2)} mΩ).`):n===2?`★★ Close. ${L.optimal?'Reach':'Beat'} ${fmt(pr,2)} mΩ for ★★★.`:`★ Done. ${fmt(pr*TWO_STAR,2)} mΩ for ★★, ${L.optimal?'':'under '}${fmt(pr,2)} mΩ for ★★★.`;}
   else if(firstBad>=0){el.className='step bad';el.textContent=`S${firstBad+1} isn't touching S${firstBad}, so no current can reach it. Right-drag to erase and fix it.`;}
   else el.innerHTML=`Pick <b>${need}</b> cell${need===1?'':'s'} for <b>S${active+1}</b>`+(active>0?`, touching S${active}`:', the PACK − group');
   const sc=['<span class="term neg">−</span>'];
@@ -495,28 +446,15 @@ function renderSide(){
   const b2=store.get('best4:'+L.id,null);
   const bs=$('bigScore');
   if(r.complete&&!r.open){bs.className='n';bs.innerHTML=`${fmt(r.total,2)}<small> mΩ</small>`;}else{bs.className='n dim';bs.textContent='--';}
-  $('parBox').textContent=`effective · lower is better · par ${par&&par.score!=null?fmt(par.score,2):'…'} · best ${fmt(b2,2)}`;
-  {const n=r.complete&&!r.open&&!showBot?starsFor(r.total,par&&par.score):starsFor(b2,par&&par.score);$('stars').innerHTML=`<b>${'★'.repeat(n)}</b>${'☆'.repeat(3-n)}`;$('stars').title='★ finish · ★★ within 5% of par · ★★★ beat par';}
-  $('result').hidden=!r.complete;
-  if(r.complete&&!r.open){
-    const strips=r.Rpack-r.Rideal,afterLoad=r.Rpack*r.load*r.load,loadAdd=afterLoad-r.Rpack,splitAdd=r.total-afterLoad;
-    const C={cell:'#5b7cff',strip:'#ffcf4a',load:'#fb8500',split:'#d08cff'};
-    const seg=(v,c)=>`<i style="width:${Math.max(0,v)/r.total*100}%;background:${c}"></i>`;
-    $('stack').innerHTML=seg(r.Rideal,C.cell)+seg(strips,C.strip)+seg(loadAdd,C.load)+seg(splitAdd,C.split);
-    const row=(op,c,val,label,why)=>`<span class="op">${op}</span><span class="val">${c?`<span class="sw" style="background:${c}"></span>`:''}${val}</span><span>${label}${why?`<div class="why">${why}</div>`:''}</span>`;
-    $('eq').innerHTML=
-      row('',C.cell,`${fmt(r.Rideal,2)} mΩ`,'cells alone',`${S} in series × ${RC} mΩ ÷ ${L.P} in parallel. You can't beat this.`)+
-      row('+',C.strip,`${fmt(strips,2)} mΩ`,'from the strips',`Every strip is 1 mΩ. More paths between groups means less added.`)+
-      row('×',C.load,`${fmt(r.load,3)}²`,'hardest-working cell',`It carries ${fmt((r.load-1)*100,1)}% more than its group's average. Cell heat grows with current squared, so this counts twice.`)+
-      row('×',C.split,`${fmt(r.splitF,3)}`,'split groups',r.extra?`${r.extra} extra piece${r.extra>1?'s':''} across ${S} groups, ${SPLIT_COST*100}% each, averaged. Split groups are harder to monitor, but can be worth it.`:`Every group is one piece.`)+
-      `<span class="op tot">=</span><span class="val tot"><b>${fmt(r.total,2)} mΩ</b></span><span class="tot">effective resistance${par&&par.score!=null?` · bot par ${fmt(par.score,2)} mΩ`:''}</span>`;
-  }else if(r.complete){$('stack').innerHTML='';$('eq').innerHTML='<span></span><span class="val">Open circuit</span><span>A group isn\'t touching the next one.</span>';}
+  $('parBox').textContent=`mΩ, lower is better · par ${par&&par.score!=null?fmt(par.score,2):'…'} · best ${fmt(b2,2)}`;
+  {const n=r.complete&&!r.open&&!showBot?starsFor(r.total,par&&par.score,L.optimal):starsFor(b2,par&&par.score,L.optimal);$('stars').innerHTML=`<b>${'★'.repeat(n)}</b>${'☆'.repeat(3-n)}`;}
+  $('shareBtn').hidden=!(r.complete&&!r.open);
   $('botBtn').textContent=showBot?'Hide par':'Show par';
   $('botBtn').disabled=!(par&&par.asg);
 }
 function renderLevels(){
   const sel=$('levels'),cur=LEVELS.indexOf(L),o=[];
-  const tag=id=>{const b=store.get('best4:'+id,null);if(b==null)return '';const pp=store.get('par4:'+id,null);return ` ${starStr(starsFor(b,pp&&pp.score))} ${fmt(b,1)} mΩ`;};
+  const tag=id=>{const b=store.get('best4:'+id,null);if(b==null)return '';const pp=store.get('par4:'+id,null);const d=DEMOS.find(x=>x.id===id);return ` ${starStr(starsFor(b,pp&&pp.score,d&&d.optimal))}`;};
   o.push(`<option value="0">Daily #${dayNo}${tag('daily-'+dKey)}</option>`);
   DEMOS.forEach((d,k)=>o.push(`<option value="${k+1}">${d.name} · ${d.S}S${d.P}P${tag(d.id)}</option>`));
   sel.innerHTML=o.join('');sel.value=String(cur);
@@ -585,7 +523,7 @@ function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');cle
 $('shareBtn').onclick=async()=>{
   const r=evaluate(L,asg);
   if(!r.complete||r.open){toast('Finish the pack first');return;}
-  const txt=`⚡ Spotweld ${L.daily?'#'+dayNo:'· '+L.name} · ${L.S}S${L.P}P ${starStr(starsFor(r.total,par&&par.score))}\n${fmt(r.total,2)} mΩ effective${par&&par.score!=null?` (par ${fmt(par.score,2)})`:''}\nstrips +${fmt(r.Rpack-r.Rideal,2)} mΩ · worst cell +${fmt((r.load-1)*100,1)}% · ${r.extra} split pieces\n${location.href.split('#')[0]}`;
+  const txt=`⚡ Spotweld ${L.daily?'#'+dayNo:'· '+L.name} · ${L.S}S${L.P}P ${starStr(starsFor(r.total,par&&par.score,L.optimal))}\n${fmt(r.total,2)} mΩ effective${par&&par.score!=null?` (par ${fmt(par.score,2)})`:''}\nstrips +${fmt(r.Rpack-r.Rideal,2)} mΩ · worst cell +${fmt((r.load-1)*100,1)}% · ${r.extra} split pieces\n${location.href.split('#')[0]}`;
   try{await navigator.clipboard.writeText(txt);toast('Result copied to clipboard');}catch(_){prompt('Copy your result:',txt);}
 };
 
