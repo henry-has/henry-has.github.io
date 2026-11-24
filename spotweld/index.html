@@ -115,57 +115,83 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
 .lt{font-family:ui-monospace,Menlo,Consolas,monospace;pointer-events:none}
 .gt{font-weight:700;pointer-events:none}
 </style>
+<style>
+.wrap{max-width:1040px;gap:14px;padding-top:22px}
+header{align-items:baseline}
+h1{font-size:20px;font-weight:600}
+select{border:0;background:transparent;color:var(--ink-2);font-size:14px}
+button.txt{border:0;background:transparent;color:var(--ink-3);font-size:13px;padding:4px 6px}
+button.txt:hover{color:var(--ink)}
+button.txt.pri{color:var(--accent);font-weight:600}
+button.txt.on{color:var(--crit);background:transparent}
+.top2{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.goal2 .what{font-size:15px;color:var(--ink-2)}
+.goal2 .what b{color:var(--ink)}
+.goal2 .step{font-size:17px;color:var(--ink);margin-top:2px;font-weight:500}
+.goal2 .step.good{color:var(--good)}
+.goal2 .step.bad{color:var(--crit)}
+.score2{text-align:right}
+.score2 .v{font-size:28px;font-weight:600;font-variant-numeric:tabular-nums}
+.score2 .v small{font-size:13px;color:var(--ink-3);font-weight:400}
+.score2 .stars{font-size:16px}
+.score2 .d{font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.score2 .d b{color:var(--ink-2);font-weight:600}
+.chain2{display:grid;align-items:center;--kw:34px}
+@media (max-width:700px){.chain2{grid-template-columns:repeat(auto-fill,minmax(44px,1fr))!important;gap:4px}.chain2 .k{display:none}.chain2 .g{font-size:12px}}
+.chain2 .g{border:1px solid var(--line);background:var(--bg);padding:6px 4px 7px;display:grid;gap:5px;cursor:pointer;font-size:12px;font-weight:600;text-align:center;border-radius:0;color:var(--ink-2)}
+.chain2 .g .f{height:4px;background:var(--stage);display:block;position:relative;overflow:hidden}
+.chain2 .g .f i{position:absolute;inset:0 auto 0 0}
+.chain2 .g.on{border-color:var(--ink);color:var(--ink)}
+.chain2 .g.bad{border-color:var(--crit);color:var(--crit)}
+.chain2 .k{font-size:10px;text-align:center;color:var(--ink-3);font-variant-numeric:tabular-nums;cursor:default;line-height:1.1}
+.chain2 .k b{display:block;height:2px;background:var(--line);margin:3px 0}
+.chain2 .k.weak{color:var(--crit)}
+.chain2 .k.weak b{background:var(--crit)}
+.chain2 .k:hover{color:var(--ink)}
+.boards{background:transparent;padding:6px 0;gap:28px}
+.face .lbl{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.tools2{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;border-top:1px solid var(--line);padding-top:6px}
+.loss{display:grid;gap:8px;max-width:320px}
+.loss .bar{display:flex;height:10px;background:var(--stage)}
+.loss .bar i{display:block;height:100%}
+.loss .rows{display:grid;grid-template-columns:auto auto 1fr;gap:3px 12px;font-size:13px;color:var(--ink-2);align-items:baseline}
+.loss .rows .v{font-variant-numeric:tabular-nums;color:var(--ink);text-align:right}
+.loss .rows .sw{width:8px;height:8px;display:inline-block}
+.loss .rows .tip{color:var(--ink-3);font-size:12px}
+.loss .h{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+</style>
 </head>
 <body><img src="https://hits.sh/henry-has.github.io/spotweld.svg" alt="" width="1" height="1" referrerpolicy="no-referrer" style="position:absolute;opacity:0;pointer-events:none">
 <div class="wrap">
   <header>
-    <div>
-      <h1>Spotweld</h1>
-      <p class="sub">Battery packaging game</p>
-    </div>
-    <div class="row">
-      <button class="btn" id="help" type="button">Rules</button>
-      <label class="lvl"><span>Level</span><select id="levels" aria-label="Level"></select></label>
-    </div>
+    <h1>Spotweld</h1>
+    <div class="row"><select id="levels" aria-label="Level"></select><button id="help" type="button" class="txt">?</button></div>
   </header>
 
-  <div class="main">
-    <section class="work">
-      <div class="goal">
-        <div><div class="what" id="goalWhat"></div><div class="step" id="goalStep"></div></div>
-        <div class="score"><div class="stars" id="stars"></div><div class="v" id="bigScore">–</div><div class="d"><span id="roParD">par</span> <span id="roPar">–</span> · best <span id="roBest">–</span></div></div>
-      </div>
-      <div class="chainbar">
-        <span class="term">PACK −</span>
-        <div class="chain" id="schem"></div>
-        <span class="term">PACK +</span>
-      </div>
-      <div class="boards"><div class="face"><div class="lbl">Top face</div><svg class="bd" id="boardT"></svg></div><div class="face"><div class="lbl">Bottom face (seen from above)</div><svg class="bd" id="boardB"></svg></div></div>
-      <div class="tools">
-        <span class="hint">Left-drag adds cells to the highlighted group · right-drag erases</span>
-        <span class="sp"></span>
-        <button class="btn" id="undoBtn" type="button">Undo</button>
-        <button class="btn" id="clearBtn" type="button">Clear</button>
-        <button class="btn" id="eraseBtn" type="button" title="Erase mode for touch screens">Erase</button>
-        <button class="btn" id="botBtn" type="button">Show par</button>
-        <button class="btn primary" id="shareBtn" type="button" hidden>Share</button>
-        <button class="btn primary" id="nextBtn" type="button" hidden>Next level</button>
-      </div>
-    </section>
-    <aside class="side">
-      <section class="card">
-        <h2>Links between groups</h2>
-        <div class="jl" id="junc"></div>
-        <p class="note">Strip resistance between each pair of groups, counting how evenly its strips share current. Red is the weakest link. Hover a row to see its strips.</p>
-      </section>
-      <section class="card">
-        <h2>Score breakdown</h2>
-        <div class="bd2" id="bd"></div>
-        <p class="note" id="roRD"></p>
-      </section>
-    </aside>
+  <section class="top2">
+    <div class="goal2">
+      <div class="what" id="goalWhat"></div>
+      <div class="step" id="goalStep"></div>
+    </div>
+    <div class="score2">
+      <div><span class="v" id="bigScore">–</span> <span class="stars" id="stars"></span></div>
+      <div class="d" id="roParD"></div>
+      <span id="roPar" hidden></span><span id="roBest" hidden></span>
+    </div>
+  </section>
+
+  <div class="chain2" id="schem"></div>
+
+  <div class="boards"><div class="face"><div class="lbl">top</div><svg class="bd" id="boardT"></svg></div><div class="face"><div class="lbl">bottom</div><svg class="bd" id="boardB"></svg></div></div>
+
+  <div class="tools2">
+    <div class="edit"><button class="txt" id="undoBtn" type="button">Undo</button><button class="txt" id="eraseBtn" type="button">Erase</button><button class="txt" id="clearBtn" type="button">Clear</button></div>
+    <div class="after"><button class="txt" id="botBtn" type="button">Show par</button><button class="txt pri" id="shareBtn" type="button" hidden>Share</button><button class="txt pri" id="nextBtn" type="button" hidden>Next level →</button></div>
   </div>
-  <footer>Spotweld · battery packaging game · strips 1 mΩ, cells 10 mΩ · rings after finishing: red = cell works harder than its group, blue = easier</footer>
+
+  <section class="loss" id="bd"></section>
+  <div id="junc" hidden></div><p id="roRD" hidden></p>
+  <footer hidden>Spotweld · battery packaging game · strips 1 mΩ, cells 10 mΩ · rings after finishing: red = cell works harder than its group, blue = easier</footer>
 </div>
 <div class="modal" id="modal"><div class="sheet">
   <h2>Spotweld</h2>
@@ -462,63 +488,47 @@ function renderFace(view,face,svg){
   svg.innerHTML=out.join('');
 }
 function renderSide(){
-  const {S,P}=L,r=res;
-  $('goalWhat').innerHTML=`Build <b>${S}S${P}P</b>: ${S} groups in series, ${P} cells in parallel each · ${S*P} cells`;
+  const {S,P}=L,r=res,placed=asg.filter(x=>x>=0).length,done=r.complete&&!r.open;
+  $('goalWhat').innerHTML=`<b>${S}S${P}P</b> · ${S} groups of ${P} · ${placed}/${S*P} cells placed`;
   const el=$('goalStep');el.className='step';
   const need=P-r.groups[active].length;
   const firstBad=r.groups.findIndex((gr,g)=>gr.length&&!(g===active&&gr.length<P)&&!r.touch[g]);
-  if(showBot)el.innerHTML='Showing the bot\'s layout. Click the board to return to yours.';
-  else if(r.complete&&r.open){el.className='step bad';el.textContent='Open circuit: a group isn\'t touching the next one.';}
-  else if(r.complete){el.className='step good';const pr=par&&par.score;const n=starsFor(r.total,pr,L.optimal);
-    el.textContent=pr==null?'Pack done.':n===3?(L.optimal?'★★★ Best possible layout.':`★★★ You beat par (${fmt(pr,2)} mΩ).`):n===2?`★★ Close. ${L.optimal?'Reach':'Beat'} ${fmt(pr,2)} mΩ for ★★★.`:`★ Done. ${fmt(pr*TWO_STAR,2)} mΩ for ★★, ${L.optimal?'':'under '}${fmt(pr,2)} mΩ for ★★★.`;}
-  else if(firstBad>=0){el.className='step bad';el.textContent=`S${firstBad+1} isn't touching S${firstBad}, so no current can reach it. Right-drag to erase and fix it.`;}
-  else el.innerHTML=`Pick <b>${need}</b> cell${need===1?'':'s'} for <b>S${active+1}</b>`+(active>0?`, touching S${active}`:', the PACK − group')+` · ${asg.filter(x=>x>=0).length}/${S*P} placed`;
+  if(showBot)el.textContent='Bot\'s layout. Click the board to return.';
+  else if(r.complete&&r.open){el.className='step bad';el.textContent='Open circuit: a group isn\'t touching the next.';}
+  else if(firstBad>=0){el.className='step bad';el.textContent=`S${firstBad+1} isn't touching S${firstBad}`;}
+  else if(done){const w=(r.junc||[]).filter(j=>isFinite(j.R)).reduce((a,b)=>!a||b.R>a.R?b:a,null);
+    const pr=par&&par.score,n=starsFor(r.total,pr,L.optimal);el.className=n===3?'step good':'step';
+    el.textContent=n===3?(L.optimal?'Best possible layout.':'You beat par.'):`Weakest link is S${w.q}→S${w.q+1}. Re-weld around it to beat par.`;}
+  else el.innerHTML=`Place ${need} more cell${need===1?'':'s'} in S${active+1}`+(active>0?`, touching S${active}`:', the PACK − group');
+  // chain: groups with fill bars, links between them
+  const J=r.junc||[],fin=J.filter(j=>isFinite(j.R)),worst=fin.length>1?fin.reduce((a,b)=>b.R>a.R?b:a):null;
   const sc=[];
   for(let g=0;g<S;g++){
-    const gr=r.groups[g],col=PAL[g%PAL.length],bad=gr.length&&!(g===active&&gr.length<P)&&!r.touch[g];
-    sc.push(`<button type="button" class="${g===active&&!showBot?'on':''}${gr.length===P?' full':''}${bad?' bad':''}" data-g="${g}" title="Group S${g+1}: ${gr.length}/${P} cells">S${g+1}<span class="fr">${gr.length}/${P}</span></button>`);
+    const n=r.groups[g].length,col=PAL[g%PAL.length],bad=n&&!(g===active&&n<P)&&!r.touch[g];
+    sc.push(`<button type="button" class="g${g===active&&!showBot&&!r.complete?' on':''}${bad?' bad':''}" data-g="${g}" title="Group S${g+1}: ${n}/${P} cells">S${g+1}<span class="f"><i style="width:${n/P*100}%;background:${col}"></i></span></button>`);
+    if(g<S-1){const j=J.find(x=>x.q===g+1);sc.push(`<span class="k${j&&j===worst?' weak':''}" data-q="${g+1}" title="${j?j.n+' strips':''}"><b></b>${j&&isFinite(j.R)?fmt(j.R,2):''}</span>`);}
   }
   $('schem').innerHTML=sc.join('');
-  $('schem').style.setProperty('--n',S);
-  // links between groups
-  {
-    const J=r.junc||[],fin=J.filter(j=>isFinite(j.R));
-    const worst=fin.length>1?fin.reduce((a,b)=>b.R>a.R?b:a):null,maxR=Math.max(1e-9,...fin.map(j=>j.R));
-    let h='<span class="h">link</span><span class="h">strips</span><span class="h n">mΩ</span><span class="h"></span>';
-    for(let q=1;q<S;q++){
-      const j=J.find(x=>x.q===q);
-      if(!j){h+=`<span class="r"><span>S${q}→S${q+1}</span><span class="n">–</span><span class="n">–</span><span></span></span>`;continue;}
-      const w=j===worst;
-      h+=`<span class="r${w?' weak':''}" data-q="${q}"><span>S${q}→S${q+1}</span><span class="n">${j.n}</span><span class="n">${isFinite(j.R)?fmt(j.R,2):'open'}</span><span class="bar" title="busiest strip carries ${fmt(j.spread*100,0)}% over the average"><i style="width:${isFinite(j.R)?Math.max(4,j.R/maxR*100):100}%"></i></span></span>`;
-    }
-    $('junc').innerHTML=h;
-  }
-  // score
+  $('schem').style.gridTemplateColumns=`repeat(${S-1},minmax(0,1fr) var(--kw)) minmax(0,1fr)`;
+  // score vs par
   const best=store.get('best4:'+L.id,null);
-  if(r.complete&&!r.open&&!showBot&&(best==null||r.total<best)){store.set('best4:'+L.id,r.total);renderLevels();}
-  const b2=store.get('best4:'+L.id,null);
-  const bs=$('bigScore');
-  const done=r.complete&&!r.open,mo=v=>v==null||!isFinite(v)?'–':`${fmt(v,2)}<small>mΩ</small>`;
-  bs.innerHTML=done?mo(r.total):'–';
-  $('roPar').textContent=par&&par.score!=null?fmt(par.score,2):'…';$('roParD').textContent='par';
-  $('roBest').textContent=b2==null?'–':fmt(b2,2);
-  $('roRD').textContent=done?(r.extra?`${S-r.comps.filter(x=>x===1).length} of ${S} groups split · busiest cell +${fmt((r.load-1)*100,1)}%`:`every group in one piece · busiest cell +${fmt((r.load-1)*100,1)}%`):'';
-  {const n=r.complete&&!r.open&&!showBot?starsFor(r.total,par&&par.score,L.optimal):starsFor(b2,par&&par.score,L.optimal);$('stars').innerHTML=`<b>${'★'.repeat(n)}</b>${'☆'.repeat(3-n)}`;}
-  $('shareBtn').hidden=!(r.complete&&!r.open);
-  {const k=LEVELS.indexOf(L);$('nextBtn').hidden=!(r.complete&&!r.open&&!showBot&&k<LEVELS.length-1);}
+  if(done&&!showBot&&(best==null||r.total<best)){store.set('best4:'+L.id,r.total);renderLevels();}
+  const b2=store.get('best4:'+L.id,null),pr=par&&par.score;
+  $('bigScore').innerHTML=done?`${fmt(r.total,2)}<small> mΩ</small>`:`<small>par</small> ${pr!=null?fmt(pr,2):'…'}<small> mΩ</small>`;
+  const n=done&&!showBot?starsFor(r.total,pr,L.optimal):starsFor(b2,pr,L.optimal);
+  $('stars').innerHTML=`<b>${'★'.repeat(n)}</b>${'☆'.repeat(3-n)}`;
+  $('roParD').innerHTML=done?`par ${fmt(pr,2)} · <b>${r.total-pr>=0?'+':''}${fmt(r.total-pr,2)}</b>`+(b2!=null?` · best ${fmt(b2,2)}`:''):(b2!=null?`best ${fmt(b2,2)}`:'lower is better');
+  $('shareBtn').hidden=!done;{const k=LEVELS.indexOf(L);$('nextBtn').hidden=!(done&&!showBot&&k<LEVELS.length-1);}
+  // where the resistance goes
   const bd=$('bd');
-  if(r.complete&&!r.open){
-    const row=(op,v,label,tag)=>`<span class="op">${op}</span><span class="v">${v}</span><span>${label} <span class="g">(${tag==='real'?'circuit':'game rule'})</span></span>`;
-    bd.innerHTML=
-      row('',`${fmt(r.Rideal,2)}`,`cells alone`,'real')+
-      row('+',`${fmt(r.Rpack-r.Rideal,2)}`,'strips','real')+
-      row('=',`${fmt(r.Rpack,2)}`,'pack mΩ','real')+
-      row('×',`${fmt(r.load,3)}²`,'busiest cell','game')+
-      row('×',`${fmt(r.splitF,3)}`,'split groups','game')+
-      `<span class="op tot">=</span><span class="v tot"><b>${fmt(r.total,2)}</b></span><span class="tot">score, mΩ</span>`;
-  }else bd.innerHTML='<span></span><span></span><span class="g">Finish the pack to see it.</span>';
+  if(done){
+    const strips=r.Rpack-r.Rideal,uneven=r.Rpack*r.load*r.load-r.Rpack,split=r.total-r.Rpack*r.load*r.load;
+    const C=['var(--line)','#e9a23b','#e5484d','#8e6cf0'];
+    const parts=[[r.Rideal,'cells','fixed by the S×P'],[strips,'strips','add strips between groups'],[uneven,'uneven cells',`busiest cell +${fmt((r.load-1)*100,1)}%`],[split,'split groups',r.extra?`${r.extra} extra pieces`:'none']];
+    const big=Math.max(strips,uneven,split);
+    bd.innerHTML=`<div class="h">Score breakdown</div><div class="bar">${parts.map((p,k)=>`<i style="width:${p[0]/r.total*100}%;background:${C[k]}"></i>`).join('')}</div><div class="rows">${parts.map((p,k)=>`<span class="v">${k?'+':''}${fmt(p[0],2)}</span><span${k&&p[0]===big&&big>0.01?' style="color:var(--ink);font-weight:600"':''}><span class="sw" style="background:${C[k]}"></span> ${p[1]}</span><span></span>`).join('')}<span class="v" style="border-top:1px solid var(--line);padding-top:3px">${fmt(r.total,2)}</span><span style="border-top:1px solid var(--line);padding-top:3px">mΩ</span><span></span></div>`;
+  }else bd.innerHTML='';
   $('botBtn').textContent=showBot?'Hide par':'Show par';
-  $('botBtn').disabled=!(par&&par.asg);
 }
 function renderLevels(){
   const cur=LEVELS.indexOf(L);
@@ -575,9 +585,9 @@ function tip(e){
 }
 
 $('levels').addEventListener('change',e=>loadLevel(+e.target.value));
-$('junc').addEventListener('mouseover',e=>{const r=e.target.closest('.r[data-q]');const q=r?+r.dataset.q:0;if(q!==hlJ){hlJ=q;renderBoard(showBot&&par&&par.asg?par.asg:asg);}});
-$('junc').addEventListener('mouseleave',()=>{if(hlJ){hlJ=0;renderBoard(showBot&&par&&par.asg?par.asg:asg);}});
-$('schem').addEventListener('click',e=>{const g=e.target.closest('button');if(g){active=+g.dataset.g;showBot=false;render();}});
+$('schem').addEventListener('mouseover',e=>{const r=e.target.closest('.k[data-q]');const q=r?+r.dataset.q:0;if(q!==hlJ){hlJ=q;renderBoard(showBot&&par&&par.asg?par.asg:asg);}});
+$('schem').addEventListener('mouseleave',()=>{if(hlJ){hlJ=0;renderBoard(showBot&&par&&par.asg?par.asg:asg);}});
+$('schem').addEventListener('click',e=>{const g=e.target.closest('button.g');if(g){active=+g.dataset.g;showBot=false;render();}});
 $('eraseBtn').onclick=()=>{eraseMode=!eraseMode;$('eraseBtn').classList.toggle('on',eraseMode);};
 $('nextBtn').onclick=()=>loadLevel(LEVELS.indexOf(L)+1);
 $('help').onclick=()=>$('modal').classList.add('show');
@@ -598,6 +608,7 @@ $('shareBtn').onclick=async()=>{
   const txt=`⚡ Spotweld · ${L.name} · ${L.S}S${L.P}P ${starStr(starsFor(r.total,par&&par.score,L.optimal))}\n${fmt(r.total,2)} mΩ effective${par&&par.score!=null?` (par ${fmt(par.score,2)})`:''}\nstrips +${fmt(r.Rpack-r.Rideal,2)} mΩ · worst cell +${fmt((r.load-1)*100,1)}% · ${r.extra} split pieces\n${location.href.split('#')[0]}`;
   try{await navigator.clipboard.writeText(txt);toast('Result copied to clipboard');}catch(_){prompt('Copy your result:',txt);}
 };
+
 
 if(!store.get('seenRules',0))$('modal').classList.add('show');
 let start=store.get('last2',0);if(!(start>=0&&start<LEVELS.length))start=0;
