@@ -239,9 +239,10 @@ function hexagon(R,hole=-1){const c=[];for(let q=-R;q<=R;q++)for(let r=-R;r<=R;r
 const DEMOS=[
  {id:'first',name:'First Weld',S:4,P:2,grid:true,optimal:true,cells:fromGrid(['####','####'])},
  {id:'brick',name:'LVB',S:7,P:3,optimal:true,cells:fromDW(['o o o o o o o',' o o o o o o o','o o o o o o o'])},
- {id:'para3',name:'Parallelogram',S:15,P:4,cells:fromRows([10,10,10,10,10,10],r=>r/2)},
+ {id:'block',name:'Block',S:8,P:3,cells:fromRows([6,6,6,6])},
  {id:'wedgejr',name:'Wedge Jr',S:9,P:4,cells:fromRows([8,7,6,5,4,3,2,1])},
  {id:'wedge',name:'Wedge',S:14,P:6,cells:fromRows([13,12,12,10,9,7,6,5,4,3,2,1])},
+ {id:'para3',name:'Parallelogram',S:15,P:4,cells:fromRows([10,10,10,10,10,10],r=>r/2)},
 ];
 
 /* ---------- daily ---------- */
@@ -437,6 +438,7 @@ function heatColor(t){
 const TWO_STAR=1.05;
 function starsFor(v,pr,opt){if(v==null||!isFinite(v))return 0;if(pr==null)return 1;if(opt?v<=pr+0.005:v<pr-0.005)return 3;if(v<=pr*TWO_STAR)return 2;return 1;}
 const starStr=n=>'★'.repeat(n)+'☆'.repeat(3-n);
+function heatDark(t){const st=[[0,[250,204,21]],[.5,[251,146,60]],[1,[244,63,94]]];t=clamp(t);for(let k=1;k<st.length;k++)if(t<=st[k][0]){const [a,ca]=st[k-1],[b,cb]=st[k],f=(t-a)/(b-a);return `rgb(${ca.map((v,i)=>Math.round(v+(cb[i]-v)*f)).join(',')})`;}return 'rgb(244,63,94)';}
 const fmt=(v,d=1)=>v==null||!isFinite(v)?'—':v.toFixed(d);
 function render(){
   const view=showBot&&par&&par.asg?par.asg:asg;
@@ -461,14 +463,17 @@ function renderFace(view,face,svg){
   });
   const fl=res.links.filter(l=>l.face===face);strips[face]=fl;
   const maxW=Math.max(1e-9,...res.links.map(l=>l.W||0));
-  fl.forEach((st,k)=>{
-    const A=cells[st.i],B=cells[st.j],dx=B.x-A.x,dy=B.y-A.y,d=Math.hypot(dx,dy),ux=dx/d,uy=dy/d,o=0.3;
-    const x1=A.x+ux*o,y1=A.y+uy*o,x2=B.x-ux*o,y2=B.y-uy*o;
-    const bus=st.bus||st.tbus;
-    const t=st.W!=null?clamp(st.W/HEATMAX):0,col=bus?'var(--bus)':heatColor(t);
-    if(hlJ&&st.p===hlJ&&view[st.i]!==view[st.j])out.push(`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--accent)" stroke-width="0.3" stroke-linecap="round" opacity=".7"/>`);
-    out.push(`<line class="lk" data-l="${face}:${k}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="0.16" stroke-linecap="round"${bus?' stroke-dasharray="0.06 0.06"':''}/>`);
-  });
+  // wide nickel strips, centre to centre; heat shown as a patch midway between the two cells, fading evenly toward each
+  const SW=0.39,DK=document.documentElement.getAttribute('data-theme')==='dark'||(document.documentElement.getAttribute('data-theme')!=='light'&&matchMedia('(prefers-color-scheme: dark)').matches);
+  const NI=DK?'#59606b':'#a3a8b0',defs=[];
+  fl.forEach((st,k)=>{const A=cells[st.i],B=cells[st.j],L2=`x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}"`;
+    if(hlJ&&st.p===hlJ&&view[st.i]!==view[st.j])out.push(`<line ${L2} stroke="var(--accent)" stroke-width="${SW+0.12}" stroke-linecap="round" opacity=".8"/>`);
+    out.push(`<line class="lk" data-l="${face}:${k}" ${L2} stroke="${NI}" stroke-width="${SW}" stroke-linecap="round"/>`);});
+  fl.forEach((st,k)=>{if(st.bus||st.tbus||st.W==null)return;const t=Math.min(1,clamp(st.W/HEATMAX)*1.5);if(t<0.05)return;
+    const A=cells[st.i],B=cells[st.j],c=DK?heatDark(t):heatColor(t),id=`hg${face}_${k}`,op=(0.45+0.55*t).toFixed(2);
+    defs.push(`<linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}"><stop offset=".3" stop-color="${c}" stop-opacity="0"/><stop offset=".5" stop-color="${c}" stop-opacity="${op}"/><stop offset=".7" stop-color="${c}" stop-opacity="0"/></linearGradient>`);
+    out.push(`<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="url(#${id})" stroke-width="${SW}" pointer-events="none"/>`);});
+  out.push(`<defs>${defs.join('')}</defs>`);
   cells.forEach((c,i)=>{
     const g=view[i];
     if(g>=0){
