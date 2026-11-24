@@ -49,12 +49,31 @@ header{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:12p
 .btn.on{color:var(--bad);border-color:var(--bad)}
 .btn.primary{background:linear-gradient(135deg,#1f6f8b,#2b4a9b);border-color:#3b8fb5;color:#fff}
 kbd{font-family:var(--mono);font-size:10px;border:1px solid var(--line2);border-bottom-width:2px;border-radius:4px;padding:0 4px;color:var(--ink3)}
+.goal{display:flex;gap:14px 20px;align-items:center;flex-wrap:wrap;padding:12px 14px;border-bottom:1px solid var(--line);background:linear-gradient(90deg,#5ee1ff0a,transparent)}
+.goal .txt{flex:1 1 260px;min-width:0}
+.goal .what{font-size:15px}
+.goal .what b{color:var(--accent)}
+.goal .spec{font-family:var(--mono);font-size:11px;color:var(--ink3);margin-top:2px}
+.goal .step{margin-top:6px;font-size:13px;color:var(--ink2)}
+.goal .step b{color:var(--ink)}
+.goal .step.bad{color:var(--bad)}
+.goal .step.good{color:var(--good)}
+.schem{display:flex;align-items:center;gap:0;flex-wrap:wrap;row-gap:8px}
+.schem .term{font-family:var(--mono);font-size:11px;font-weight:600;padding:2px 6px;border-radius:6px;border:1px solid}
+.schem .neg{color:#8eeaff;border-color:#5ee1ff66}
+.schem .pos{color:#ff8a9a;border-color:#ff5d7366}
+.schem .wire{width:10px;height:2px;background:var(--line2)}
+.schem .grp{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 4px 2px;border:1px solid var(--line);border-radius:7px;cursor:pointer;background:var(--bg)}
+.schem .grp.on{border-color:var(--ink2);box-shadow:0 0 10px #ffffff22}
+.schem .grp.bad{border-color:var(--bad)}
+.schem .grp i{width:9px;height:9px;border-radius:50%;border:1px solid var(--line2)}
+.schem .grp span{font-family:var(--mono);font-size:9px;color:var(--ink3);margin-top:1px}
 .stage{position:relative;display:flex;align-items:center;justify-content:center;padding:34px 10px 30px;min-height:360px}
 #board{width:100%;height:auto;max-height:min(680px,72vh);touch-action:none;user-select:none;-webkit-user-select:none;cursor:crosshair;display:block}
 .facebadge{position:absolute;left:14px;top:12px;font-family:var(--mono);font-size:11px;color:var(--ink3);letter-spacing:.08em;text-transform:uppercase}
 .facebadge b{color:var(--accent)}
 .legend{position:absolute;right:14px;bottom:10px;display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:10px;color:var(--ink3)}
-.legend .grad{width:120px;height:8px;border-radius:4px;background:linear-gradient(90deg,#8d9bab,#e9c46a,#f4a261,#e76f51,#ff2d4a)}
+.legend .grad{width:100px;height:8px;border-radius:4px;background:linear-gradient(90deg,#8d9bab,#e9c46a,#f4a261,#e76f51,#ff2d4a)}
 .hint{padding:8px 14px 12px;color:var(--ink3);font-size:12px;display:flex;gap:14px;flex-wrap:wrap;border-top:1px solid var(--line)}
 .hint span{display:inline-flex;gap:5px;align-items:center}
 .side{display:flex;flex-direction:column;gap:14px}
@@ -83,11 +102,11 @@ kbd{font-family:var(--mono);font-size:10px;border:1px solid var(--line2);border-
 .groups{padding:12px 12px 8px}
 .groups h3,.how h3{margin:2px 4px 8px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);font-weight:600;display:flex;justify-content:space-between}
 .glist{display:flex;flex-direction:column;gap:4px;max-height:360px;overflow:auto;padding-right:2px}
-.g{display:grid;grid-template-columns:26px 44px 1fr auto;align-items:center;gap:8px;padding:5px 7px;border-radius:9px;border:1px solid transparent;cursor:pointer;font-size:12px}
+.g{display:grid;grid-template-columns:28px 72px 1fr auto;align-items:center;gap:8px;padding:5px 7px;border-radius:9px;border:1px solid transparent;cursor:pointer;font-size:12px}
 .g:hover{background:var(--card2)}
 .g.on{border-color:var(--line2);background:var(--card2)}
-.g .sw{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:11px;color:#0b0e13}
-.g .cnt{font-family:var(--mono);color:var(--ink2)}
+.g .sw{width:26px;height:22px;border-radius:11px;display:grid;place-items:center;font-weight:700;font-size:10px;color:#0b0e13}
+.g .cnt{font-family:var(--mono);color:var(--ink2);white-space:nowrap}
 .g .bars{display:flex;gap:2px;align-items:flex-end;height:18px}
 .g .bars i{flex:1;max-width:14px;border-radius:2px 2px 0 0;background:var(--line2);min-height:2px}
 .g .warn{font-family:var(--mono);font-size:10px;color:var(--ink3);text-align:right;white-space:nowrap}
@@ -130,10 +149,14 @@ kbd{font-family:var(--mono);font-size:10px;border:1px solid var(--line2);border-
         <div class="seg" id="faceSeg" title="Flip pack (F)"><button data-f="1" class="on">Top face</button><button data-f="0">Bottom face</button></div>
         <div class="seg" id="labSeg" title="Link labels (L)"><button data-l="R" class="on">mΩ</button><button data-l="I">A</button><button data-l="P">W</button><button data-l="off">–</button></div>
       </div>
+      <div class="goal">
+        <div class="txt"><div class="what" id="goalWhat"></div><div class="spec" id="goalSpec"></div><div class="step" id="goalStep"></div></div>
+        <div class="schem" id="schem" title="Series chain: each box is one parallel group"></div>
+      </div>
       <div class="stage">
         <div class="facebadge" id="faceBadge"></div>
         <svg id="board"></svg>
-        <div class="legend"><span>link heat</span><span>cool</span><div class="grad"></div><span>hot</span></div>
+        <div class="legend"><span>strip heat</span><span>0 W</span><div class="grad"></div><span id="legMax">0.6 W+</span></div>
       </div>
       <div class="hint">
         <span><kbd>LMB</kbd> drag to weld cells into the active group</span>
@@ -166,12 +189,12 @@ kbd{font-family:var(--mono);font-size:10px;border:1px solid var(--line2);border-
         <div class="share"><button class="btn primary" id="shareBtn">Share result</button><button class="btn" id="botBtn" title="Show the bot's layout">Show par</button></div>
       </section>
       <section class="card groups">
-        <h3><span>Parallel groups</span><span id="gProg"></span></h3>
+        <h3><span>Series chain · parallel groups</span><span id="gProg"></span></h3>
         <div class="glist" id="glist"></div>
       </section>
       <section class="card how">
         <h3><span>How it works</span></h3>
-        <p>Cells are wired into <b>S</b> parallel groups of <b>P</b> cells. Group 1 is welded first, then group 2, and so on. You fill one group at a time.</p>
+        <p><b>S</b> is how many groups sit in series (it sets the voltage). <b>P</b> is how many cells sit side by side in each group (it sets the capacity and current). A 7S3P pack is 7 groups of 3 cells: 25.2 V, 12.6 Ah.</p><p>You weld group S1 first, then S2, and so on. Each group should be one touching cluster, and it has to touch the group before it so current can flow along the chain from PACK − to PACK +.</p>
         <p>Neighbouring cells get nickel strip automatically. Strips join a group to itself and to the next group in the series. Each strip is about <b>2&nbsp;mΩ per cell pitch</b>; each cell is <b>15&nbsp;mΩ</b>. The pack runs at <b>15&nbsp;A per cell</b>.</p>
         <p>Score = ½ <b>resistance</b> (vs a perfect busbar) + ½ <b>sharing</b> (how evenly each group's cells carry current), multiplied by <b>integrity</b>. Integrity drops if a group is split into islands that don't touch.</p>
         <p>The groups alternate orientation, so the strips sit on alternating faces. Flip the pack to see both.</p>
@@ -188,7 +211,9 @@ const SQ3=Math.sqrt(3);
 const RC=15;      // mΩ per cell
 const RL=2.0;     // mΩ per pitch of strip
 const ICELL=15;   // A per cell
+const VCELL=3.6, AHCELL=4.2; // nominal 21700
 const PREF=ICELL*ICELL*RL/1000; // W in one link carrying one cell's current
+const HEATMAX=PREF*1.4;
 const PAL=['#4cc9f0','#f72585','#a7e36f','#ffb703','#9d6bff','#06d6a0','#fb8500','#5b7cff','#ff6b8b','#7fe3f0','#d08cff','#ffd166','#3ddc84','#ff8fab'];
 const $=id=>document.getElementById(id);
 const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
@@ -469,7 +494,7 @@ function renderBoard(view){
       s+=`<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="#a5b0bf" stroke-width="0.06" stroke-linecap="round" opacity=".6"/>`;
       return s;
     }
-    const t=l.W!=null?l.W/(PREF*1.4):0, col=l.W!=null?heatColor(t):'#8d9bab';
+    const t=l.W!=null?l.W/HEATMAX:0, col=l.W!=null?heatColor(t):'#8d9bab';
     if(t>0.35)s+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="${0.26+0.22*clamp(t)}" stroke-linecap="round" opacity="${0.25+0.45*clamp(t)}" filter="url(#glow)"/>`;
     s+=`<line class="lk" data-l="${l._k}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="0.2" stroke-linecap="round" opacity="${l.W!=null?0.95:0.6}"/>`;
     s+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#fff" stroke-opacity="${l.W!=null?0.18+0.25*clamp(t):0.12}" stroke-width="0.05" stroke-linecap="round" pointer-events="none"/>`;
@@ -484,9 +509,9 @@ function renderBoard(view){
   if(labMode!=='off')for(const l of res.links){
     if(l.face!==face||l.bus||l.tbus)continue;
     const A=cells[l.i],B=cells[l.j];
-    const v=labMode==='R'?fmt(l.R,1):labMode==='I'?(l.I==null?'':fmt(l.I,1)):(l.W==null?'':fmt(l.W,2));
+    const v=labMode==='R'?fmt(l.R,1)+'mΩ':labMode==='I'?(l.I==null?'':fmt(l.I,1)+'A'):(l.W==null?'':fmt(l.W,2)+'W');
     if(v==='')continue;
-    out.push(`<text class="lt" x="${(A.x+B.x)/2}" y="${(A.y+B.y)/2+0.045}" font-size="0.115" stroke-width="0.045" fill="#e8edf5" text-anchor="middle">${v}</text>`);
+    out.push(`<text class="lt" x="${(A.x+B.x)/2}" y="${(A.y+B.y)/2+0.045}" font-size="0.1" stroke-width="0.045" fill="#e8edf5" text-anchor="middle">${v}</text>`);
   }
   // cell labels + active ring
   cells.forEach((c,i)=>{
@@ -495,8 +520,8 @@ function renderBoard(view){
       const col=PAL[g%PAL.length];
       if(g===active&&!showBot)out.push(`<circle class="activering" cx="${c.x}" cy="${c.y}" r="${R+0.03}" fill="none" stroke="${col}" stroke-width="0.05"/>`);
       const I=res.cellI[i];
-      out.push(`<text class="gt" x="${c.x}" y="${c.y+(I!=null?0.02:0.1)}" font-size="${I!=null?0.27:0.3}" fill="#fff" text-anchor="middle" style="paint-order:stroke" stroke="#0c0f14" stroke-width="0.06">${g+1}</text>`);
-      if(I!=null)out.push(`<text class="lt" x="${c.x}" y="${c.y+0.22}" font-size="0.12" stroke-width="0.04" fill="${col}" text-anchor="middle">${fmt(I,1)}A</text>`);
+      out.push(`<text class="gt" x="${c.x}" y="${c.y+(I!=null?0.02:0.1)}" font-size="${I!=null?0.24:0.27}" fill="#fff" text-anchor="middle" style="paint-order:stroke" stroke="#0c0f14" stroke-width="0.06">S${g+1}</text>`);
+      if(I!=null)out.push(`<text class="lt" x="${c.x}" y="${c.y+0.22}" font-size="0.12" stroke-width="0.04" fill="${col}" text-anchor="middle">${fmt(I,1)} A</text>`);
       const pol=((g%2===0)===(face===1))?'+':'−';
       out.push(`<text class="lt" x="${c.x}" y="${c.y-0.24}" font-size="0.12" stroke-width="0.03" fill="#ffffff99" text-anchor="middle">${pol}</text>`);
     }
@@ -517,6 +542,26 @@ function renderBoard(view){
 function setMeter(id,v,txt,sub){const el=$(id);el.style.width=(v==null?0:clamp(v)*100)+'%';el.style.background=v==null?'transparent':v>.8?'linear-gradient(90deg,#2bb37a,#4ee39a)':v>.5?'linear-gradient(90deg,#d99a1e,#ffcf4a)':'linear-gradient(90deg,#c43a52,#ff5d73)';$(id+'v').textContent=txt;$(id+'s').textContent=sub||'';}
 function renderSide(){
   const {S,P}=L,c=counts(),r=res;
+  $('goalWhat').innerHTML=`Build a <b>${S}S${P}P</b> pack: <b>${S}</b> groups wired in series, each group <b>${P}</b> cells in parallel`;
+  $('goalSpec').textContent=`${S} × ${VCELL} V = ${fmt(S*VCELL,1)} V nominal · ${P} × ${AHCELL} Ah = ${fmt(P*AHCELL,1)} Ah · ${S*P} cells · ${ICELL*P} A load`;
+  {
+    const el=$('goalStep');el.className='step';
+    const n=r.groups[active].length,need=P-n;
+    const firstBad=r.groups.findIndex((gr,g)=>gr.length&&!(g===active&&gr.length<P)&&(!r.touch[g]||r.comps[g]>1));
+    if(showBot){el.innerHTML='Showing the bot\'s layout. Click the board to go back to yours.';}
+    else if(r.complete&&r.open){el.className='step bad';el.innerHTML='Open circuit: some group isn\'t touching the next one in the chain.';}
+    else if(r.complete){el.className='step good';el.innerHTML=`Pack complete: ${fmt(S*VCELL,1)} V, ${fmt(r.Rpack,1)} mΩ. Erase and re-weld to raise the score.`;}
+    else el.innerHTML=`<b>Step ${active+1} of ${S}:</b> pick ${need} more cell${need===1?'':'s'} for group <b>S${active+1}</b>`+(active>0?` · it must touch S${active}`:' · this group connects to PACK −')+(active===S-1?' and PACK +':'')+(firstBad>=0?` <span style="color:var(--bad)">· S${firstBad+1} ${!r.touch[firstBad]?'isn\'t touching S'+firstBad:'is split'}</span>`:'');
+    const sc=['<span class="term neg">PACK −</span>'];
+    for(let g=0;g<S;g++){
+      const gr=r.groups[g],col=PAL[g%PAL.length];
+      const bad=gr.length&&(!r.touch[g]||r.comps[g]>1);
+      let dots='';for(let k=0;k<P;k++)dots+=`<i style="${k<gr.length?`background:${col};border-color:${col}`:''}"></i>`;
+      sc.push('<span class="wire"></span>',`<div class="grp${g===active&&!showBot?' on':''}${bad?' bad':''}" data-g="${g}" title="Group S${g+1}: ${gr.length}/${P} cells">${dots}<span>S${g+1}</span></div>`);
+    }
+    sc.push('<span class="wire"></span>','<span class="term pos">PACK +</span>');
+    $('schem').innerHTML=sc.join('');
+  }
   $('lvTitle').textContent=L.daily?`Daily #${dayNo} · ${L.name}`:L.name;
   $('cfgChip').innerHTML=`<b>${S}S${P}P</b>`;
   $('cellChip').innerHTML=`${L.cells.length} cells · ${L.grid?'grid':'hex'}${L.blurb?' · '+L.blurb:''}`;
@@ -531,10 +576,10 @@ function renderSide(){
     if(st){const mx=Math.max(...st.I);bars=st.I.slice().sort((a,b)=>b-a).map(v=>`<i style="height:${Math.max(8,v/mx*100)}%;background:${col}"></i>`).join('');}
     else bars=Array.from({length:P},(_,k)=>`<i style="height:${k<n?60:12}%;background:${k<n?col+'88':''}"></i>`).join('');
     let warn='',bad=false;
-    if(n&&!r.touch[g]){warn=`no link to G${g}`;bad=true;}
+    if(n&&!r.touch[g]){warn=`not touching S${g}`;bad=true;}
     else if(r.comps[g]>1){warn=`split ×${r.comps[g]}`;bad=true;}
     else if(st)warn=`±${fmt(st.spread*50,1)}%`;
-    const out=`<div class="g${g===active?' on':''}" data-g="${g}"><div class="sw" style="background:${col}">${g+1}</div><div class="cnt">${n}/${P}</div><div class="bars">${bars}</div><div class="warn${bad?' bad':''}">${warn}</div></div>`;
+    const out=`<div class="g${g===active?' on':''}" data-g="${g}"><div class="sw" style="background:${col}">S${g+1}</div><div class="cnt">${n}/${P} cells</div><div class="bars">${bars}</div><div class="warn${bad?' bad':''}">${warn}</div></div>`;
     gl.push(out);
   }
   $('glist').innerHTML=gl.join('');
@@ -546,7 +591,7 @@ function renderSide(){
     else if(par&&par.score&&r.total>=par.score-1e-6&&!showBot){st.textContent='⚡ Beat the bot!';st.className='status good';}
     else st.textContent=showBot?'Bot par layout':'Pack complete. Keep tweaking.';
   }else{
-    $('bigScore').innerHTML=`<span style="color:var(--line2)">--.-</span>`;
+    $('bigScore').innerHTML=`<span style="font-size:20px;font-weight:500;color:var(--ink3)">Score appears when the pack is complete</span>`;
     st.textContent=`${L.cells.length-placed} cells left · welding group ${active+1}`;
   }
   const best=store.get('best:'+L.id,null);
@@ -615,10 +660,10 @@ function tip(e){
   const t=e.target;let html='';
   if(t.classList&&t.classList.contains('lk')){
     const l=res.links[+t.dataset.l];
-    html=`<span class="h">strip G${asg[l.i]+1}${asg[l.i]!==asg[l.j]?'→G'+(asg[l.j]+1):' (parallel)'}</span><br>R ${fmt(l.R,2)} mΩ`+(l.I!=null?`<br>I ${fmt(l.I,2)} A<br>heat ${fmt(l.W,3)} W`:'');
+    html=`<span class="h">${asg[l.i]!==asg[l.j]?'series strip S'+(Math.min(asg[l.i],asg[l.j])+1)+'→S'+(Math.max(asg[l.i],asg[l.j])+1):'parallel strip in S'+(asg[l.i]+1)}</span><br>R ${fmt(l.R,2)} mΩ`+(l.I!=null?`<br>I ${fmt(l.I,2)} A<br>heat ${fmt(l.W,3)} W`:'');
   }else if(t.classList&&t.classList.contains('cellhit')){
     const i=+t.dataset.c,g=(showBot&&par?par.asg:asg)[i];
-    html=g<0?'<span class="h">empty cell</span>':`<span class="h">cell in G${g+1}</span>`+(res.cellI[i]!=null?`<br>I ${fmt(res.cellI[i],2)} A<br>${fmt(res.cellI[i]/ICELL*100,0)}% of nominal`:'');
+    html=g<0?'<span class="h">empty cell</span>':`<span class="h">cell in group S${g+1}</span>`+(res.cellI[i]!=null?`<br>I ${fmt(res.cellI[i],2)} A<br>${fmt(res.cellI[i]/ICELL*100,0)}% of nominal`:'');
   }
   if(!html)return hideTip();
   tipEl.innerHTML=html;tipEl.style.display='block';
@@ -626,6 +671,7 @@ function tip(e){
 }
 
 $('levels').addEventListener('click',e=>{const b=e.target.closest('.lv');if(b)loadLevel(+b.dataset.k);});
+$('schem').addEventListener('click',e=>{const g=e.target.closest('.grp');if(g){active=+g.dataset.g;showBot=false;render();}});
 $('glist').addEventListener('click',e=>{const g=e.target.closest('.g');if(g){active=+g.dataset.g;showBot=false;render();}});
 const setFace=f=>{face=f;[...$('faceSeg').children].forEach(b=>b.classList.toggle('on',+b.dataset.f===f));render();};
 $('faceSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(b)setFace(+b.dataset.f);});
