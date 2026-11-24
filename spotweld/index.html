@@ -18,7 +18,7 @@ html,body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 "Space G
 body{background:radial-gradient(1200px 600px at 70% -10%,#1a2440 0%,transparent 60%),radial-gradient(900px 500px at -10% 110%,#2a1830 0%,transparent 55%),var(--bg);min-height:100vh}
 button{font:inherit;color:inherit}
 [hidden]{display:none!important}
-.wrap{max-width:860px;margin:0 auto;padding:16px 16px 40px;display:flex;flex-direction:column;gap:12px}
+.wrap{max-width:1100px;margin:0 auto;padding:16px 16px 40px;display:flex;flex-direction:column;gap:12px}
 header{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .logo{display:flex;align-items:center;gap:9px;margin-right:auto}
 .logo svg{width:28px;height:28px}
@@ -48,7 +48,11 @@ select{font:inherit;font-size:14px;color:var(--ink);background:var(--card);borde
 .step.bad{color:var(--bad)}
 .step.good{color:var(--good)}
 .stage{padding:8px 10px}
-#board{width:100%;height:auto;max-height:min(600px,64vh);touch-action:none;user-select:none;-webkit-user-select:none;cursor:crosshair;display:block}
+.boards{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:700px){.boards{grid-template-columns:1fr}}
+.face{display:flex;flex-direction:column;gap:4px;min-width:0}
+.face .lbl{font-family:var(--mono);font-size:11px;color:var(--ink3);letter-spacing:.08em;text-transform:uppercase;text-align:center}
+.bd{width:100%;height:auto;max-height:min(560px,60vh);touch-action:none;user-select:none;-webkit-user-select:none;cursor:crosshair;display:block}
 .tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 16px 14px;border-top:1px solid var(--line);font-size:12px;color:var(--ink3)}
 .tools .sp{flex:1}
 .btn{background:var(--card2);border:1px solid var(--line);border-radius:9px;padding:6px 11px;cursor:pointer;font-size:12px;color:var(--ink2)}
@@ -57,13 +61,20 @@ select{font:inherit;font-size:14px;color:var(--ink);background:var(--card);borde
 .btn.on{color:var(--accent);border-color:var(--accent)}
 .btn.erase.on{color:var(--bad);border-color:var(--bad)}
 .btn.primary{background:#1f5f86;border-color:#3b8fb5;color:#fff}
-.result{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) auto;gap:10px;align-items:center;padding:14px 16px}
-@media (max-width:640px){.result{grid-template-columns:1fr}}
+.result{display:flex;flex-direction:column;gap:14px;padding:16px}
+.formula{font-family:var(--mono);font-size:13px;color:var(--ink2);line-height:1.7}
+.formula b{color:var(--ink);font-size:15px}
+.formula .r{color:var(--accent)}
+.parts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+@media (max-width:640px){.parts{grid-template-columns:1fr}}
+.m .k span{font-family:var(--mono);color:var(--ink);float:right;letter-spacing:0}
+.why{font-size:12px;color:var(--ink3);margin-top:6px;line-height:1.45}
 .m .k{font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em}
 .m .v{font-family:var(--mono);font-size:14px;margin-top:1px}
 .m .meter{height:5px;background:var(--bg);border-radius:3px;margin-top:5px;overflow:hidden}
 .m .meter i{display:block;height:100%;border-radius:3px;transition:width .35s}
 .result .acts{display:flex;gap:8px}
+.blurb{color:var(--accent2)}
 details{padding:12px 16px;font-size:13px;color:var(--ink2)}
 details summary{cursor:pointer;color:var(--ink3);font-size:12px;letter-spacing:.06em;text-transform:uppercase}
 details p{margin:8px 0;max-width:65ch}
@@ -100,12 +111,10 @@ details b{color:var(--ink)}
     </div>
     <div class="schem" id="schem" title="Each box is one parallel group; groups are wired in series"></div>
     <div class="step" id="goalStep"></div>
-    <div class="stage"><svg id="board"></svg></div>
+    <div class="stage boards"><div class="face"><div class="lbl">Top face</div><svg class="bd" id="boardT"></svg></div><div class="face"><div class="lbl">Bottom face (seen from above)</div><svg class="bd" id="boardB"></svg></div></div>
     <div class="tools">
-      <span>Left-drag to add · right-drag to erase · hotter strips glow red</span>
+      <span>Left-drag to add · right-drag to erase · strips carrying more current glow hotter</span>
       <span class="sp"></span>
-      <button class="btn" id="valBtn">Values</button>
-      <button class="btn" id="flipBtn">Flip: top</button>
       <button class="btn erase" id="eraseBtn" title="Erase mode for touch">Erase</button>
       <button class="btn" id="undoBtn">Undo</button>
       <button class="btn" id="clearBtn">Clear</button>
@@ -113,9 +122,12 @@ details b{color:var(--ink)}
   </section>
 
   <section class="card result" id="result" hidden>
-    <div class="m"><div class="k">Resistance</div><div class="v" id="mRv"></div><div class="meter"><i id="mR"></i></div></div>
-    <div class="m"><div class="k">Current sharing</div><div class="v" id="mSv"></div><div class="meter"><i id="mS"></i></div></div>
-    <div class="m"><div class="k">Whole groups</div><div class="v" id="mIv"></div><div class="meter"><i id="mI"></i></div></div>
+    <div class="formula" id="formula"></div>
+    <div class="parts">
+      <div class="m"><div class="k">Resistance <span id="mRn"></span></div><div class="meter"><i id="mR"></i></div><div class="why" id="mRv"></div></div>
+      <div class="m"><div class="k">Current sharing <span id="mSn"></span></div><div class="meter"><i id="mS"></i></div><div class="why" id="mSv"></div></div>
+      <div class="m"><div class="k">Whole groups <span id="mIn"></span></div><div class="meter"><i id="mI"></i></div><div class="why" id="mIv"></div></div>
+    </div>
     <div class="acts"><button class="btn primary" id="shareBtn">Share</button><button class="btn" id="botBtn">Show par</button></div>
   </section>
 
@@ -123,10 +135,9 @@ details b{color:var(--ink)}
     <summary>How it works</summary>
     <p><b>S</b> is how many groups are wired in series (sets voltage). <b>P</b> is how many cells are in each group, side by side (sets capacity and current). 7S3P = 7 groups of 3 cells.</p>
     <p>Fill group S1, then S2, and so on. Each group should be one touching cluster and must touch the group before it, so current can flow from PACK − to PACK +.</p>
-    <p>Touching cells are joined by nickel strip: 2 mΩ per cell spacing. Each cell is 15 mΩ and carries about 15 A.</p>
-    <p>Score = half pack resistance (vs a perfect busbar) + half current sharing (how evenly cells in a group carry load), multiplied by the share of groups that are one piece.</p>
-    <p>Groups alternate orientation, so strips are on both faces. Use Flip to see the other side.</p>
-  </details>
+    <p>Touching cells are joined by a strip. Every strip is 1 mΩ and every cell is 10 mΩ.</p>
+    <p>Groups alternate direction, so a group's strips to the next group are on one face and its strips to the previous group are on the other. Both faces are shown.</p>
+      </details>
 </div>
 <div id="tip"></div>
 <div class="toast" id="toast"></div>
@@ -134,12 +145,12 @@ details b{color:var(--ink)}
 <script>
 (()=>{
 const SQ3=Math.sqrt(3);
-const RC=15;      // mΩ per cell
-const RL=2.0;     // mΩ per pitch of strip
+const RC=10;      // mΩ per cell
+const RL=1.0;     // mΩ per strip
 const ICELL=15;   // A per cell
 const VCELL=3.6, AHCELL=4.2; // nominal 21700
 const PREF=ICELL*ICELL*RL/1000; // W in one link carrying one cell's current
-const HEATMAX=PREF*1.4;
+const HEATMAX=PREF*2.25;
 const PAL=['#4cc9f0','#f72585','#a7e36f','#ffb703','#9d6bff','#06d6a0','#fb8500','#5b7cff','#ff6b8b','#7fe3f0','#d08cff','#ffd166','#3ddc84','#ff8fab'];
 const $=id=>document.getElementById(id);
 const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
@@ -151,12 +162,15 @@ function axial(q,r){return {x:q+r/2,y:r*SQ3/2};}
 function hexagon(R,hole=-1){const c=[];for(let q=-R;q<=R;q++)for(let r=-R;r<=R;r++){const d=Math.max(Math.abs(q),Math.abs(r),Math.abs(q+r));if(d<=R&&d>hole)c.push(axial(q,r));}return c;}
 
 const DEMOS=[
- {id:'first',name:'First Weld',S:4,P:2,grid:true,cells:fromGrid(['####','####']),
-  blurb:'Square grid; diagonal strips are longer (2.8 mΩ).'},
+ {id:'first',name:'First Weld',S:4,P:2,grid:true,cells:fromGrid(['####','####'])},
+ {id:'square',name:'Square',S:4,P:4,grid:true,cells:fromGrid(['####','####','####','####'])},
+ {id:'strip',name:'Strip',S:6,P:2,cells:fromDW(['o o o o o o',' o o o o o o'])},
  {id:'brick',name:'The Brick',S:7,P:3,cells:fromDW(['o o o o o o o',' o o o o o o o','o o o o o o o'])},
+ {id:'ell',name:'L-Shape',S:6,P:3,grid:true,cells:fromGrid(['##....','##....','##....','######','######'])},
+ {id:'fork',name:'Fork',S:4,P:2,grid:true,cells:fromGrid(['#.#','#.#','#.#','.#.','.#.']),
+  blurb:'No layout keeps every group in one piece here. Find the least-bad split.'},
  {id:'halo',name:'Halo',S:6,P:3,cells:hexagon(2,0)},
  {id:'heart',name:'Heart',S:5,P:5,cells:fromDW([' o o   o o','o o o o o o',' o o o o o','  o o o o','   o o o','    o o','     o'])},
- {id:'bolt',name:'Bolt',S:8,P:3,cells:fromDW(['     o o o','    o o o','   o o o','  o o o o o','     o o o','    o o o','   o o o','  o'])},
  {id:'pyramid',name:'Pyramid',S:7,P:4,cells:fromDW(['      o','     o o','    o o o','   o o o o','  o o o o o',' o o o o o o','o o o o o o o'])},
  {id:'comb',name:'Honeycomb',S:9,P:4,cells:hexagon(3,0)},
 ];
@@ -231,7 +245,7 @@ function evaluate(L,asg){
     const gi=asg[pr.i],gj=asg[pr.j];if(gi<0||gj<0)continue;
     let plates=[];
     if(gi===gj)plates=[gi,gi+1];else if(Math.abs(gi-gj)===1)plates=[Math.max(gi,gj)];
-    for(const p of plates)links.push({i:pr.i,j:pr.j,p,face:p%2,R:RL*pr.d,bus:p===0||p===S,I:null,W:null});
+    for(const p of plates)links.push({i:pr.i,j:pr.j,p,face:p%2,R:RL,bus:p===0||p===S,I:null,W:null});
   }
   // components & series contact
   const comps=groups.map(()=>0),touch=groups.map(()=>true);
@@ -355,7 +369,7 @@ function botSolve(L,iters=400){
 /* ---------- state ---------- */
 const store={get(k,d){try{const v=localStorage.getItem('spotweld:'+k);return v==null?d:JSON.parse(v);}catch(e){return d;}},set(k,v){try{localStorage.setItem('spotweld:'+k,JSON.stringify(v));}catch(e){}}};
 const LEVELS=[null,...DEMOS.map(prepLevel)];
-let L,asg,active,hist=[],face=1,showVals=false,eraseMode=false,stroke=null,res,par=null,showBot=false;
+let L,asg,active,hist=[],showVals=false,eraseMode=false,stroke=null,res,par=null,showBot=false;
 
 function loadLevel(k){
   if(k===0&&!LEVELS[0])LEVELS[0]=genDaily();
@@ -384,90 +398,56 @@ function render(){
   if(!showBot){store.set('asg:'+L.id,asg);}
   renderBoard(view);renderSide();
 }
+let strips=[[],[]];
 function renderBoard(view){
-  const svg=$('board'),pad=0.75,{S,P}=L,cells=L.cells;
+  renderFace(view,1,$('boardT'));renderFace(view,0,$('boardB'));
+}
+function renderFace(view,face,svg){
+  const pad=0.75,{S}=L,R=0.46;
+  // bottom face seen from above keeps the same left/right so cells line up
+  const cells=L.cells;
   svg.setAttribute('viewBox',`${-pad} ${-pad} ${L.w+2*pad} ${L.h+2*pad}`);
-  const out=[];
-  out.push(`<defs><filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="0.09"/></filter>
-  <radialGradient id="cg" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#3a4252"/><stop offset="1" stop-color="#1b2029"/></radialGradient>
-  <radialGradient id="sh" cx="35%" cy="30%" r="70%"><stop offset="0" stop-color="#fff" stop-opacity=".28"/><stop offset=".6" stop-color="#fff" stop-opacity="0"/></radialGradient></defs>`);
-  const R=0.46;
-  // cell bodies
+  const out=[`<defs><filter id="glow${face}" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="0.08"/></filter>
+  <radialGradient id="cg${face}" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#3a4252"/><stop offset="1" stop-color="#1b2029"/></radialGradient></defs>`];
   cells.forEach((c,i)=>{
     const g=view[i];
-    const fill=g>=0?PAL[g%PAL.length]:'url(#cg)';
-    const posHere=g>=0?((g%2===0)===(face===1)):true;
-    out.push(`<g class="cell">`);
-    out.push(`<circle cx="${c.x}" cy="${c.y}" r="${R}" fill="#0c0f14"/>`);
-    if(g>=0){
-      out.push(`<circle cx="${c.x}" cy="${c.y}" r="${R-0.015}" fill="${fill}" fill-opacity="${g===active&&!showBot?0.42:0.26}" stroke="${fill}" stroke-width="0.04"/>`);
-      out.push(posHere?`<circle cx="${c.x}" cy="${c.y}" r="0.2" fill="${fill}" fill-opacity=".55"/>`:`<circle cx="${c.x}" cy="${c.y}" r="0.3" fill="none" stroke="${fill}" stroke-opacity=".5" stroke-width="0.02"/>`);
-    }else{
-      out.push(`<circle cx="${c.x}" cy="${c.y}" r="${R-0.015}" fill="url(#cg)" stroke="#3a4558" stroke-width="0.03"/>`);
-      out.push(`<circle cx="${c.x}" cy="${c.y}" r="0.19" fill="#2c3341" stroke="#465269" stroke-width="0.015"/>`);
-    }
-    out.push(`<circle cx="${c.x}" cy="${c.y}" r="${R-0.02}" fill="url(#sh)" pointer-events="none"/></g>`);
+    if(g>=0){const col=PAL[g%PAL.length];out.push(`<circle cx="${c.x}" cy="${c.y}" r="${R}" fill="${col}" fill-opacity="${g===active&&!showBot?0.4:0.22}" stroke="${col}" stroke-width="0.04"/>`);}
+    else out.push(`<circle cx="${c.x}" cy="${c.y}" r="${R}" fill="url(#cg${face})" stroke="#3a4558" stroke-width="0.03"/>`);
   });
-  // links
-  const linkSvg=(l,ghost)=>{
-    const A=cells[l.i],B=cells[l.j],dx=B.x-A.x,dy=B.y-A.y,d=Math.hypot(dx,dy),ux=dx/d,uy=dy/d,o=0.3;
+  const fl=res.links.filter(l=>l.face===face);strips[face]=fl;
+  const maxW=Math.max(1e-9,...res.links.map(l=>l.W||0));
+  fl.forEach((st,k)=>{
+    const A=cells[st.i],B=cells[st.j],dx=B.x-A.x,dy=B.y-A.y,d=Math.hypot(dx,dy),ux=dx/d,uy=dy/d,o=0.28;
     const x1=A.x+ux*o,y1=A.y+uy*o,x2=B.x-ux*o,y2=B.y-uy*o;
-    if(ghost)return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#8d9bab" stroke-opacity=".14" stroke-width="0.07" stroke-dasharray="0.06 0.07" stroke-linecap="round"/>`;
-    const bus=l.bus||l.tbus;
-    let s='';
-    if(bus){
-      s+=`<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="#5c6778" stroke-width="0.34" stroke-linecap="round" opacity=".9"/>`;
-      s+=`<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="#a5b0bf" stroke-width="0.06" stroke-linecap="round" opacity=".6"/>`;
-      return s;
-    }
-    const t=l.W!=null?l.W/HEATMAX:0, col=l.W!=null?heatColor(t):'#8d9bab';
-    if(t>0.35)s+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="${0.26+0.22*clamp(t)}" stroke-linecap="round" opacity="${0.25+0.45*clamp(t)}" filter="url(#glow)"/>`;
-    s+=`<line class="lk" data-l="${l._k}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="0.2" stroke-linecap="round" opacity="${l.W!=null?0.95:0.6}"/>`;
-    s+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#fff" stroke-opacity="${l.W!=null?0.18+0.25*clamp(t):0.12}" stroke-width="0.05" stroke-linecap="round" pointer-events="none"/>`;
-    // weld dots
-    s+=`<circle cx="${x1}" cy="${y1}" r="0.035" fill="#0c0f14" opacity=".55"/><circle cx="${x2}" cy="${y2}" r="0.035" fill="#0c0f14" opacity=".55"/>`;
-    return s;
-  };
-  res.links.forEach((l,k)=>l._k=k);
-  for(const l of res.links)if(l.face!==face)out.push(linkSvg(l,true));
-  for(const l of res.links)if(l.face===face)out.push(linkSvg(l,false));
-  // link labels
-  if(showVals)for(const l of res.links){
-    if(l.face!==face||l.bus||l.tbus)continue;
-    const A=cells[l.i],B=cells[l.j];
-    const v=fmt(l.R,1)+'mΩ';
-    if(v==='')continue;
-    out.push(`<text class="lt" x="${(A.x+B.x)/2}" y="${(A.y+B.y)/2+0.045}" font-size="0.1" stroke-width="0.045" fill="#e8edf5" text-anchor="middle">${v}</text>`);
-  }
-  // cell labels + active ring
+    const bus=st.bus||st.tbus;
+    const t=st.W!=null?clamp(st.W/HEATMAX):0,col=bus?'#5c6778':st.W!=null?heatColor(t):'#8d9bab';
+    if(t>0.5)out.push(`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="0.4" stroke-linecap="round" opacity="${t*0.5}" filter="url(#glow${face})"/>`);
+    out.push(`<line class="lk" data-l="${face}:${k}" x1="${bus?A.x:x1}" y1="${bus?A.y:y1}" x2="${bus?B.x:x2}" y2="${bus?B.y:y2}" stroke="${col}" stroke-width="${bus?0.3:0.18}" stroke-linecap="round"/>`);
+  });
   cells.forEach((c,i)=>{
     const g=view[i];
     if(g>=0){
       const col=PAL[g%PAL.length];
       if(g===active&&!showBot)out.push(`<circle class="activering" cx="${c.x}" cy="${c.y}" r="${R+0.03}" fill="none" stroke="${col}" stroke-width="0.05"/>`);
-      const I=showVals?res.cellI[i]:null;
-      out.push(`<text class="gt" x="${c.x}" y="${c.y+(I!=null?0.02:0.1)}" font-size="${I!=null?0.24:0.27}" fill="#fff" text-anchor="middle" style="paint-order:stroke" stroke="#0c0f14" stroke-width="0.06">S${g+1}</text>`);
-      if(I!=null)out.push(`<text class="lt" x="${c.x}" y="${c.y+0.22}" font-size="0.12" stroke-width="0.04" fill="${col}" text-anchor="middle">${fmt(I,1)} A</text>`);
-      const pol=((g%2===0)===(face===1))?'+':'−';
-      if(showVals)out.push(`<text class="lt" x="${c.x}" y="${c.y-0.24}" font-size="0.12" stroke-width="0.03" fill="#ffffff99" text-anchor="middle">${pol}</text>`);
+      out.push(`<text class="gt" x="${c.x}" y="${c.y+0.09}" font-size="0.25" fill="#fff" text-anchor="middle" style="paint-order:stroke" stroke="#0c0f14" stroke-width="0.06">S${g+1}</text>`);
     }
     out.push(`<circle class="cellhit" data-c="${i}" cx="${c.x}" cy="${c.y}" r="${R}" fill="transparent"/>`);
     out.push(`<circle class="hov" cx="${c.x}" cy="${c.y}" r="${R+0.01}" fill="#fff" fill-opacity=".07" stroke="#fff" stroke-opacity=".5" stroke-width="0.025"/>`);
   });
-  // pack terminals
   const term=(g,label,plate)=>{
+    if(plate%2!==face)return;
     const gr=res.groups[g];if(!gr.length)return;
     const tc=gr.reduce((a,i)=>cells[i].y<cells[a].y-1e-6?i:a,gr[0]),cx=cells[tc].x,cy=cells[tc].y-0.02;
-    if(plate%2!==face)return;const here=true;
-    out.push(`<g opacity="${here?1:0.45}"><rect x="${cx-0.36}" y="${cy-0.62}" width="0.72" height="0.22" rx="0.06" fill="#0c0f14" stroke="${label==='+'?'#ff5d73':'#5ee1ff'}" stroke-width="0.025"/><text class="lt" x="${cx}" y="${cy-0.47}" font-size="0.12" stroke-width="0" fill="${label==='+'?'#ff8a9a':'#8eeaff'}" text-anchor="middle">PACK ${label}</text></g>`);
+    const c=label==='+'?'#ff8a9a':'#8eeaff';
+    out.push(`<rect x="${cx-0.36}" y="${cy-0.62}" width="0.72" height="0.22" rx="0.06" fill="#0c0f14" stroke="${c}" stroke-width="0.025"/><text class="lt" x="${cx}" y="${cy-0.47}" font-size="0.12" stroke-width="0" fill="${c}" text-anchor="middle">PACK ${label}</text>`);
   };
   term(0,'−',0);term(S-1,'+',S);
   svg.innerHTML=out.join('');
 }
-function setMeter(id,v,txt){const el=$(id);el.style.width=(v==null?0:clamp(v)*100)+'%';el.style.background=v>.8?'#4ee39a':v>.5?'#ffcf4a':'#ff5d73';$(id+'v').textContent=txt;}
+function setMeter(id,v,txt,num){const el=$(id);el.style.width=(v==null?0:clamp(v)*100)+'%';el.style.background=v>.8?'#4ee39a':v>.5?'#ffcf4a':'#ff5d73';$(id+'v').innerHTML=txt;$(id+'n').textContent=num;}
 function renderSide(){
   const {S,P}=L,r=res;
-  $('goalWhat').innerHTML=`Build <b>${S}S${P}P</b>: ${S} groups in series × ${P} cells each<small>${fmt(S*VCELL,1)} V · ${fmt(P*AHCELL,1)} Ah · ${S*P} cells</small>`;
+  $('goalWhat').innerHTML=`Build <b>${S}S${P}P</b>: ${S} groups in series × ${P} cells each<small>${S*P} cells · strip 1 mΩ · cell 10 mΩ</small>`+(L.blurb?`<small class="blurb">${L.blurb}</small>`:'');
   const el=$('goalStep');el.className='step';
   const need=P-r.groups[active].length;
   const firstBad=r.groups.findIndex((gr,g)=>gr.length&&!(g===active&&gr.length<P)&&(!r.touch[g]||r.comps[g]>1));
@@ -493,10 +473,11 @@ function renderSide(){
   $('parBox').textContent=`par ${par?fmt(par.score,1):'…'} · best ${fmt(b2,1)}`;
   $('result').hidden=!r.complete;
   if(r.complete){
-    setMeter('mR',r.sR,`${fmt(r.Rpack,1)} mΩ (+${fmt(r.overhead*100,0)}%)`);
-    setMeter('mS',r.sS,`±${fmt(r.spreadMax*50,1)}% worst`);
-    const whole=r.comps.filter(x=>x===1).length;
-    setMeter('mI',r.integ,`${whole} of ${S}`);
+    const whole=r.comps.filter(x=>x===1).length,R100=r.sR*100,S100=r.sS*100;
+    $('formula').innerHTML=r.open?'Open circuit: score <b>0</b>':`score = (½ × <b>${fmt(R100,0)}</b> resistance + ½ × <b>${fmt(S100,0)}</b> sharing) × <b>${fmt(r.integ,2)}</b> whole groups = <b class="r">${fmt(r.total,1)}</b>`;
+    setMeter('mR',r.sR,`Pack is <b>${fmt(r.Rpack,1)} mΩ</b>. A perfect busbar would give ${fmt(r.Rideal,1)} mΩ (${S} × ${RC} mΩ ÷ ${L.P}). Strips add <b>${fmt(r.overhead*100,1)}%</b>. 100 at +0%, 0 at +60%.`,fmt(R100,0)+'/100');
+    setMeter('mS',r.sS,`In each group, compare the cell doing the most work with the one doing the least. Worst group: <b>${fmt(r.spreadMax*100,1)}%</b> apart, average ${fmt(r.spreadMean*100,1)}%. 100 at 0%, 0 at 50%.`,fmt(S100,0)+'/100');
+    setMeter('mI',r.integ,`Groups in one piece: <b>${whole} of ${S}</b>. A group split into n pieces counts as 1/n.`,'×'+fmt(r.integ,2));
   }
   $('botBtn').textContent=showBot?'Hide par':'Show par';
   $('botBtn').disabled=!(par&&par.asg);
@@ -510,8 +491,8 @@ function renderLevels(){
 }
 
 /* ---------- input ---------- */
-const svg=$('board');
-function svgPt(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+let curSvg=null;
+function svgPt(e){const sv=curSvg||e.currentTarget;const p=sv.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(sv.getScreenCTM().inverse());}
 function cellAt(e){const p=svgPt(e);let bi=-1,bd=0.5;L.cells.forEach((c,i)=>{const d=Math.hypot(c.x-p.x,c.y-p.y);if(d<bd){bd=d;bi=i;}});return bi;}
 function apply(e,first){
   const i=cellAt(e);if(i<0||i===stroke.last)return;stroke.last=i;
@@ -524,30 +505,32 @@ function apply(e,first){
   if(counts()[active]>=L.P)active=nextIncomplete(active);
   render();
 }
-svg.addEventListener('pointerdown',e=>{
-  e.preventDefault();hideTip();
-  if(showBot){showBot=false;render();return;}
-  const mode=(e.button===2||eraseMode)?'erase':e.button===0?'add':null;if(!mode)return;
-  stroke={mode,changed:false,before:asg.slice(),last:-1};
-  try{svg.setPointerCapture(e.pointerId);}catch(_){}
-  apply(e,true);
-});
-svg.addEventListener('pointermove',e=>{if(stroke)apply(e,false);else tip(e);});
-const end=()=>{if(!stroke)return;if(stroke.changed){hist.push(stroke.before);if(hist.length>200)hist.shift();if(stroke.mode==='erase')active=lowestIncomplete();}stroke=null;render();};
-svg.addEventListener('pointerup',end);svg.addEventListener('pointercancel',end);
-svg.addEventListener('pointerleave',hideTip);
-svg.addEventListener('contextmenu',e=>e.preventDefault());
+const end=()=>{if(!stroke)return;if(stroke.changed){hist.push(stroke.before);if(hist.length>200)hist.shift();if(stroke.mode==='erase')active=lowestIncomplete();}stroke=null;curSvg=null;render();};
+for(const svg of [$('boardT'),$('boardB')]){
+  svg.addEventListener('pointerdown',e=>{
+    e.preventDefault();hideTip();
+    if(showBot){showBot=false;render();return;}
+    const mode=(e.button===2||eraseMode)?'erase':e.button===0?'add':null;if(!mode)return;
+    curSvg=svg;stroke={mode,changed:false,before:asg.slice(),last:-1};
+    try{svg.setPointerCapture(e.pointerId);}catch(_){}
+    apply(e,true);
+  });
+  svg.addEventListener('pointermove',e=>{if(stroke)apply(e,false);else tip(e);});
+  svg.addEventListener('pointerup',end);svg.addEventListener('pointercancel',end);
+  svg.addEventListener('pointerleave',hideTip);
+  svg.addEventListener('contextmenu',e=>e.preventDefault());
+}
 
 const tipEl=$('tip');
 function hideTip(){tipEl.style.display='none';}
 function tip(e){
   const t=e.target;let html='';
   if(t.classList&&t.classList.contains('lk')){
-    const l=res.links[+t.dataset.l];
-    html=`<span class="h">${asg[l.i]!==asg[l.j]?'series strip S'+(Math.min(asg[l.i],asg[l.j])+1)+'→S'+(Math.max(asg[l.i],asg[l.j])+1):'parallel strip in S'+(asg[l.i]+1)}</span><br>R ${fmt(l.R,2)} mΩ`+(l.I!=null?`<br>I ${fmt(l.I,2)} A<br>heat ${fmt(l.W,3)} W`:'');
+    const [f,k]=t.dataset.l.split(':').map(Number),l=strips[f][k],v=showBot&&par?par.asg:asg,a=v[l.i],b=v[l.j];
+    html=`<span class="h">${a!==b?'series strip S'+(Math.min(a,b)+1)+'→S'+(Math.max(a,b)+1):'parallel strip in S'+(a+1)}</span><br>`+(l.bus||l.tbus?'pack terminal plate':'1 mΩ');
   }else if(t.classList&&t.classList.contains('cellhit')){
     const i=+t.dataset.c,g=(showBot&&par?par.asg:asg)[i];
-    html=g<0?'<span class="h">empty cell</span>':`<span class="h">cell in group S${g+1}</span>`+(res.cellI[i]!=null?`<br>I ${fmt(res.cellI[i],2)} A<br>${fmt(res.cellI[i]/ICELL*100,0)}% of nominal`:'');
+    html=g<0?'<span class="h">empty cell</span>':`<span class="h">cell in group S${g+1}</span><br>10 mΩ`;
   }
   if(!html)return hideTip();
   tipEl.innerHTML=html;tipEl.style.display='block';
@@ -556,9 +539,6 @@ function tip(e){
 
 $('levels').addEventListener('change',e=>loadLevel(+e.target.value));
 $('schem').addEventListener('click',e=>{const g=e.target.closest('.grp');if(g){active=+g.dataset.g;showBot=false;render();}});
-const setFace=f=>{face=f;$('flipBtn').textContent='Flip: '+(f?'top':'bottom');render();};
-$('flipBtn').onclick=()=>setFace(1-face);
-$('valBtn').onclick=()=>{showVals=!showVals;$('valBtn').classList.toggle('on',showVals);render();};
 $('eraseBtn').onclick=()=>{eraseMode=!eraseMode;$('eraseBtn').classList.toggle('on',eraseMode);};
 const undo=()=>{if(!hist.length)return;asg=hist.pop();showBot=false;active=lowestIncomplete();render();};
 $('undoBtn').onclick=undo;
@@ -567,9 +547,7 @@ $('botBtn').onclick=()=>{if(!par||!par.asg)return;showBot=!showBot;render();};
 addEventListener('keydown',e=>{
   if(e.target.tagName==='SELECT')return;
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();undo();return;}
-  if(e.key==='f'||e.key==='F')setFace(1-face);
-  else if(e.key==='v'||e.key==='V')$('valBtn').click();
-  else if(e.key==='e'||e.key==='E')$('eraseBtn').click();
+  if(e.key==='e'||e.key==='E')$('eraseBtn').click();
 });
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('show'),1800);}
 $('shareBtn').onclick=async()=>{
