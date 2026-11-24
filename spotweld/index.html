@@ -33,6 +33,8 @@ select{font:inherit;font-size:14px;color:var(--ink);background:var(--card);borde
 .scorebox .n{font-size:30px;font-weight:700;line-height:1}
 .scorebox .n small{font-size:14px;color:var(--ink3);font-weight:500}
 .scorebox .n.dim{color:var(--line2)}
+.stars{font-size:18px;letter-spacing:2px;color:var(--line2);margin-bottom:2px}
+.stars b{color:var(--accent2);font-weight:400}
 .scorebox .p{font-family:var(--mono);font-size:11px;color:var(--ink3);margin-top:3px}
 .schem{display:flex;align-items:center;flex-wrap:wrap;row-gap:8px;padding:12px 16px 0}
 .schem .term{font-family:var(--mono);font-size:10px;font-weight:600;padding:2px 5px;border-radius:6px;border:1px solid}
@@ -117,7 +119,7 @@ details b{color:var(--ink)}
   <section class="card">
     <div class="goal">
       <div class="what" id="goalWhat"></div>
-      <div class="scorebox"><div class="n" id="bigScore"></div><div class="p" id="parBox"></div></div>
+      <div class="scorebox"><div class="stars" id="stars"></div><div class="n" id="bigScore"></div><div class="p" id="parBox"></div></div>
     </div>
     <div class="schem" id="schem" title="Each box is one parallel group; groups are wired in series"></div>
     <div class="step" id="goalStep"></div>
@@ -142,7 +144,7 @@ details b{color:var(--ink)}
     <summary>How it works</summary>
     <p><b>S</b> is how many groups are wired in series (sets voltage). <b>P</b> is how many cells are in each group, side by side (sets capacity and current). 7S3P = 7 groups of 3 cells.</p>
     <p>Fill group S1, then S2, and so on. Each group must touch the group before it, so current can flow from PACK − to PACK +. A group can be one cluster or split into pieces; each extra piece costs that group 10%, which can be worth it if it evens out the current.</p>
-    <p>Your result is the <b>effective resistance</b> in mΩ, lower is better: the pack's resistance, scaled up by how overloaded the hardest-working cell is and by any split groups. Par is the best layout the bot found.</p>
+    <p>Your result is the <b>effective resistance</b> in mΩ, lower is better: the pack's resistance, scaled up by how overloaded the hardest-working cell is and by any split groups. Par is the best layout the bot found. ★ for finishing, ★★ for getting within 5% of par, ★★★ only for beating par.</p>
     <p>Touching cells are joined by a strip. Every strip is 1 mΩ and every cell is 10 mΩ.</p>
     <p>Groups alternate direction, so a group's strips to the next group are on one face and its strips to the previous group are on the other. Both faces are shown.</p>
       </details>
@@ -409,6 +411,10 @@ function heatColor(t){
   t=clamp(t);for(let k=1;k<st.length;k++)if(t<=st[k][0]){const [a,ca]=st[k-1],[b,cb]=st[k],f=(t-a)/(b-a);return `rgb(${ca.map((v,i)=>Math.round(v+(cb[i]-v)*f)).join(',')})`;}
   return 'rgb(255,45,74)';
 }
+// ★ finish · ★★ within 5% of par · ★★★ strictly beat par (by more than 0.005 mΩ)
+const TWO_STAR=1.05;
+function starsFor(v,pr){if(v==null||!isFinite(v))return 0;if(pr==null)return 1;if(v<pr-0.005)return 3;if(v<=pr*TWO_STAR)return 2;return 1;}
+const starStr=n=>'★'.repeat(n)+'☆'.repeat(3-n);
 const fmt=(v,d=1)=>v==null||!isFinite(v)?'—':v.toFixed(d);
 function render(){
   const view=showBot&&par&&par.asg?par.asg:asg;
@@ -471,7 +477,8 @@ function renderSide(){
   const firstBad=r.groups.findIndex((gr,g)=>gr.length&&!(g===active&&gr.length<P)&&!r.touch[g]);
   if(showBot)el.innerHTML='Showing the bot\'s layout. Click the board to return to yours.';
   else if(r.complete&&r.open){el.className='step bad';el.textContent='Open circuit: a group isn\'t touching the next one.';}
-  else if(r.complete){el.className='step good';el.textContent=par&&par.score!=null&&r.total<=par.score+1e-6?'Pack done. You matched or beat the bot.':'Pack done. Erase and re-weld to bring the effective resistance down.';}
+  else if(r.complete){el.className='step good';const pr=par&&par.score;const n=starsFor(r.total,pr);
+    el.textContent=pr==null?'Pack done.':n===3?`★★★ You beat the bot's par of ${fmt(pr,2)} mΩ.`:n===2?`★★ Within 5% of par. Get under ${fmt(pr,2)} mΩ for the third star.`:`★ Pack done. Get to ${fmt(pr*TWO_STAR,2)} mΩ or less for two stars, under ${fmt(pr,2)} mΩ for three.`;}
   else if(firstBad>=0){el.className='step bad';el.textContent=`S${firstBad+1} isn't touching S${firstBad}, so no current can reach it. Right-drag to erase and fix it.`;}
   else el.innerHTML=`Pick <b>${need}</b> cell${need===1?'':'s'} for <b>S${active+1}</b>`+(active>0?`, touching S${active}`:', the PACK − group');
   const sc=['<span class="term neg">−</span>'];
@@ -489,6 +496,7 @@ function renderSide(){
   const bs=$('bigScore');
   if(r.complete&&!r.open){bs.className='n';bs.innerHTML=`${fmt(r.total,2)}<small> mΩ</small>`;}else{bs.className='n dim';bs.textContent='--';}
   $('parBox').textContent=`effective · lower is better · par ${par&&par.score!=null?fmt(par.score,2):'…'} · best ${fmt(b2,2)}`;
+  {const n=r.complete&&!r.open&&!showBot?starsFor(r.total,par&&par.score):starsFor(b2,par&&par.score);$('stars').innerHTML=`<b>${'★'.repeat(n)}</b>${'☆'.repeat(3-n)}`;$('stars').title='★ finish · ★★ within 5% of par · ★★★ beat par';}
   $('result').hidden=!r.complete;
   if(r.complete&&!r.open){
     const strips=r.Rpack-r.Rideal,afterLoad=r.Rpack*r.load*r.load,loadAdd=afterLoad-r.Rpack,splitAdd=r.total-afterLoad;
@@ -508,7 +516,7 @@ function renderSide(){
 }
 function renderLevels(){
   const sel=$('levels'),cur=LEVELS.indexOf(L),o=[];
-  const tag=id=>{const b=store.get('best4:'+id,null);return b!=null?` (best ${fmt(b,1)} mΩ)`:'';};
+  const tag=id=>{const b=store.get('best4:'+id,null);if(b==null)return '';const pp=store.get('par4:'+id,null);return ` ${starStr(starsFor(b,pp&&pp.score))} ${fmt(b,1)} mΩ`;};
   o.push(`<option value="0">Daily #${dayNo}${tag('daily-'+dKey)}</option>`);
   DEMOS.forEach((d,k)=>o.push(`<option value="${k+1}">${d.name} · ${d.S}S${d.P}P${tag(d.id)}</option>`));
   sel.innerHTML=o.join('');sel.value=String(cur);
@@ -577,7 +585,7 @@ function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');cle
 $('shareBtn').onclick=async()=>{
   const r=evaluate(L,asg);
   if(!r.complete||r.open){toast('Finish the pack first');return;}
-  const txt=`⚡ Spotweld ${L.daily?'#'+dayNo:'· '+L.name} · ${L.S}S${L.P}P\n${fmt(r.total,2)} mΩ effective${par&&par.score!=null?` (par ${fmt(par.score,2)})`:''}\nstrips +${fmt(r.Rpack-r.Rideal,2)} mΩ · worst cell +${fmt((r.load-1)*100,1)}% · ${r.extra} split pieces\n${location.href.split('#')[0]}`;
+  const txt=`⚡ Spotweld ${L.daily?'#'+dayNo:'· '+L.name} · ${L.S}S${L.P}P ${starStr(starsFor(r.total,par&&par.score))}\n${fmt(r.total,2)} mΩ effective${par&&par.score!=null?` (par ${fmt(par.score,2)})`:''}\nstrips +${fmt(r.Rpack-r.Rideal,2)} mΩ · worst cell +${fmt((r.load-1)*100,1)}% · ${r.extra} split pieces\n${location.href.split('#')[0]}`;
   try{await navigator.clipboard.writeText(txt);toast('Result copied to clipboard');}catch(_){prompt('Copy your result:',txt);}
 };
 
