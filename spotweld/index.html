@@ -64,14 +64,24 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .seg button .st{color:var(--star);margin-left:3px;font-size:10px}
 .seg button[aria-pressed="true"] .st{color:inherit}
 .note{color:var(--ink-3);font-size:11px}
-.schem{display:flex;align-items:stretch;gap:2px}
-.schem .term{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10px;padding:0 3px;border:1px solid var(--line);display:flex;align-items:center}
-.schem .wire{display:none}
-.schem .grp{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;padding:3px 3px 1px;border:1px solid var(--line);cursor:pointer;background:var(--bg)}
-.schem .grp.on{border-color:var(--accent)}
-.schem .grp.bad{border-color:var(--crit)}
-.schem .grp i{width:6px;height:6px;border-radius:50%;border:1px solid var(--line)}
-.schem .grp span{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:8px;color:var(--ink-3)}
+.side{display:grid;gap:12px;align-content:start}
+.chain{display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr))}
+.chain button{border-radius:0;margin:0 -1px -1px 0;padding:6px 2px 5px;display:flex;flex-direction:column;align-items:center;gap:4px;min-height:48px;font-size:13px;font-weight:600;position:relative}
+.chain button .d{display:flex;flex-wrap:wrap;justify-content:center;gap:2px;max-width:34px}
+.chain button i{width:6px;height:6px;border-radius:50%;border:1px solid var(--line)}
+.chain button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);z-index:1}
+.chain button.on i{border-color:var(--accent-ink)}
+.chain button.bad{border-color:var(--crit);color:var(--crit);z-index:1}
+.jl{display:grid;grid-template-columns:auto auto auto 1fr;gap:2px 8px;align-items:center;font-size:12px}
+.jl .r{display:contents;cursor:default}
+.jl .r>*{padding:1px 0}
+.jl .r:hover>*{background:var(--stage)}
+.jl .n{font-family:ui-monospace,Menlo,Consolas,monospace;text-align:right;white-space:nowrap}
+.jl .bar{height:6px;background:var(--stage);border:1px solid var(--line);position:relative}
+.jl .bar i{position:absolute;left:0;top:0;bottom:0;background:var(--ink-3)}
+.jl .weak{color:var(--crit)}
+.jl .weak .bar i{background:var(--crit)}
+.jl .h{color:var(--ink-3);font-size:11px}
 .bd2{display:grid;grid-template-columns:auto auto 1fr;gap:3px 8px;align-items:baseline;font-size:12px;color:var(--ink-2)}
 .bd2 .op{font-family:ui-monospace,Menlo,Consolas,monospace;color:var(--ink-3);text-align:right}
 .bd2 .v{font-family:ui-monospace,Menlo,Consolas,monospace;color:var(--ink);white-space:nowrap;text-align:right}
@@ -125,10 +135,17 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
       <div class="boards"><div class="face"><div class="lbl">Top face</div><svg class="bd" id="boardT"></svg></div><div class="face"><div class="lbl">Bottom face (seen from above)</div><svg class="bd" id="boardB"></svg></div></div>
       <div class="hint">Left-drag to add cells to the highlighted group · right-drag to erase · hotter strips carry more current</div>
     </div>
-    <div class="panel">
-      <div class="grp"><div class="lab">Level</div><div class="seg" id="levels"></div></div>
-      <div class="grp"><div class="lab">Series chain</div><div class="schem" id="schem"></div><div class="note">Each box is a parallel group. Click one to work on it.</div></div>
-      <div class="grp"><div class="lab">Score breakdown</div><div class="bd2" id="bd"></div></div>
+    <div class="side">
+      <div class="panel">
+        <div class="grp"><div class="lab">Level</div><div class="seg" id="levels"></div></div>
+        <div class="grp"><div class="lab">Series chain <span class="note">PACK − → PACK +</span></div><div class="chain" id="schem"></div><div class="note">Click a group to work on it.</div></div>
+      </div>
+      <div class="panel">
+        <div class="grp"><div class="lab">Links between groups</div><div class="jl" id="junc"></div><div class="note">Strip resistance between each pair of groups, counting how evenly the strips share current. Red is the weakest link. Hover a row to see its strips.</div></div>
+      </div>
+      <div class="panel">
+        <div class="grp"><div class="lab">Score breakdown</div><div class="bd2" id="bd"></div></div>
+      </div>
     </div>
   </div>
   <footer>Spotweld · battery packaging game · strips 1 mΩ, cells 10 mΩ</footer>
@@ -239,6 +256,14 @@ function evaluate(L,asg){
   for(let g=0;g<m;g++)for(const i of groups[g])res.cellI[i]=raw[i]*k;
   for(const l of links)if(l.raw!==undefined){l.I=l.raw*k;l.W=l.I*l.I*l.R/1000;loss+=l.W;if(!hot||l.W>hot.W)hot=l;}
   res.loss=loss;res.hot=hot;
+  // links between consecutive groups: heat-equivalent resistance and how evenly the strips share current
+  const Ip=ICELL*P;res.junc=[];
+  for(let q=1;q<m;q++){
+    const js=links.filter(l=>l.p===q&&asg[l.i]!==asg[l.j]&&l.I!=null);
+    if(!js.length){res.junc.push({q,n:0,R:Infinity,spread:0});continue;}
+    const Wsum=js.reduce((a,l)=>a+l.W,0),Is=js.map(l=>l.I),mean=Is.reduce((a,b)=>a+b,0)/Is.length;
+    res.junc.push({q,n:js.length,R:Wsum*1000/(Ip*Ip),ideal:RL/js.length,spread:Math.max(...Is)/mean-1});
+  }
   res.gstat=groups.map((gr,g)=>{
     if(g>=m)return null;const I=gr.map(i=>res.cellI[i]);
     const mx=Math.max(...I),mn=Math.min(...I),mean=I.reduce((a,b)=>a+b,0)/I.length;
@@ -359,7 +384,7 @@ function render(){
   if(!showBot){store.set('asg:'+L.id,asg);}
   renderBoard(view);renderSide();
 }
-let strips=[[],[]];
+let strips=[[],[]],hlJ=0;
 function renderBoard(view){
   renderFace(view,1,$('boardT'));renderFace(view,0,$('boardB'));
 }
@@ -381,6 +406,7 @@ function renderFace(view,face,svg){
     const x1=A.x+ux*o,y1=A.y+uy*o,x2=B.x-ux*o,y2=B.y-uy*o;
     const bus=st.bus||st.tbus;
     const t=st.W!=null?clamp(st.W/HEATMAX):0,col=bus?'var(--bus)':st.W!=null?heatColor(t):'var(--strip)';
+    if(hlJ&&st.p===hlJ&&view[st.i]!==view[st.j])out.push(`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--accent)" stroke-width="0.34" stroke-linecap="round" opacity=".8"/>`);
     out.push(`<line class="lk" data-l="${face}:${k}" x1="${bus?A.x:x1}" y1="${bus?A.y:y1}" x2="${bus?B.x:x2}" y2="${bus?B.y:y2}" stroke="${col}" stroke-width="${bus?0.3:0.18}" stroke-linecap="round"/>`);
   });
   cells.forEach((c,i)=>{
@@ -415,14 +441,26 @@ function renderSide(){
     el.textContent=pr==null?'Pack done.':n===3?(L.optimal?'★★★ Best possible layout.':`★★★ You beat par (${fmt(pr,2)} mΩ).`):n===2?`★★ Close. ${L.optimal?'Reach':'Beat'} ${fmt(pr,2)} mΩ for ★★★.`:`★ Done. ${fmt(pr*TWO_STAR,2)} mΩ for ★★, ${L.optimal?'':'under '}${fmt(pr,2)} mΩ for ★★★.`;}
   else if(firstBad>=0){el.className='step bad';el.textContent=`S${firstBad+1} isn't touching S${firstBad}, so no current can reach it. Right-drag to erase and fix it.`;}
   else el.innerHTML=`Pick <b>${need}</b> cell${need===1?'':'s'} for <b>S${active+1}</b>`+(active>0?`, touching S${active}`:', the PACK − group');
-  const sc=['<span class="term neg">−</span>'];
+  const sc=[];
   for(let g=0;g<S;g++){
     const gr=r.groups[g],col=PAL[g%PAL.length],bad=gr.length&&!(g===active&&gr.length<P)&&!r.touch[g];
     let dots='';for(let k=0;k<P;k++)dots+=`<i style="${k<gr.length?`background:${col};border-color:${col}`:''}"></i>`;
-    sc.push('<span class="wire"></span>',`<div class="grp${g===active&&!showBot?' on':''}${bad?' bad':''}" data-g="${g}">${dots}<span>S${g+1}</span></div>`);
+    sc.push(`<button type="button" class="${g===active&&!showBot?'on':''}${bad?' bad':''}" data-g="${g}" title="Group S${g+1}: ${gr.length}/${P} cells">S${g+1}<span class="d">${dots}</span></button>`);
   }
-  sc.push('<span class="wire"></span>','<span class="term pos">+</span>');
   $('schem').innerHTML=sc.join('');
+  // links between groups
+  {
+    const J=r.junc||[],fin=J.filter(j=>isFinite(j.R));
+    const worst=fin.length>1?fin.reduce((a,b)=>b.R>a.R?b:a):null,maxR=Math.max(1e-9,...fin.map(j=>j.R));
+    let h='<span class="h">link</span><span class="h">strips</span><span class="h n">mΩ</span><span class="h"></span>';
+    for(let q=1;q<S;q++){
+      const j=J.find(x=>x.q===q);
+      if(!j){h+=`<span class="r"><span>S${q}→S${q+1}</span><span class="n">–</span><span class="n">–</span><span></span></span>`;continue;}
+      const w=j===worst;
+      h+=`<span class="r${w?' weak':''}" data-q="${q}"><span>S${q}→S${q+1}</span><span class="n">${j.n}</span><span class="n">${isFinite(j.R)?fmt(j.R,2):'open'}</span><span class="bar" title="busiest strip carries ${fmt(j.spread*100,0)}% over the average"><i style="width:${isFinite(j.R)?Math.max(4,j.R/maxR*100):100}%"></i></span></span>`;
+    }
+    $('junc').innerHTML=h;
+  }
   // score
   const best=store.get('best4:'+L.id,null);
   if(r.complete&&!r.open&&!showBot&&(best==null||r.total<best)){store.set('best4:'+L.id,r.total);renderLevels();}
@@ -505,7 +543,9 @@ function tip(e){
 }
 
 $('levels').addEventListener('click',e=>{const b=e.target.closest('button');if(b)loadLevel(+b.dataset.k);});
-$('schem').addEventListener('click',e=>{const g=e.target.closest('.grp');if(g){active=+g.dataset.g;showBot=false;render();}});
+$('junc').addEventListener('mouseover',e=>{const r=e.target.closest('.r[data-q]');const q=r?+r.dataset.q:0;if(q!==hlJ){hlJ=q;renderBoard(showBot&&par&&par.asg?par.asg:asg);}});
+$('junc').addEventListener('mouseleave',()=>{if(hlJ){hlJ=0;renderBoard(showBot&&par&&par.asg?par.asg:asg);}});
+$('schem').addEventListener('click',e=>{const g=e.target.closest('button');if(g){active=+g.dataset.g;showBot=false;render();}});
 $('eraseBtn').onclick=()=>{eraseMode=!eraseMode;$('eraseBtn').classList.toggle('on',eraseMode);};
 const undo=()=>{if(!hist.length)return;asg=hist.pop();showBot=false;active=lowestIncomplete();render();};
 $('undoBtn').onclick=undo;
