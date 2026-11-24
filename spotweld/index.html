@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Spotweld</title>
-<meta name="description" content="Daily battery interconnect puzzle: wire cylindrical cells into an SxP pack with low, even resistance.">
+<meta name="description" content="Battery interconnect puzzle: wire cylindrical cells into an SxP pack with low, even resistance.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -151,6 +151,7 @@ const DEMOS=[
  {id:'para',name:'Parallelogram',S:10,P:4,cells:fromRows([8,8,8,8,8],r=>r/2)},
  {id:'wedgejr',name:'Wedge Jr',S:9,P:4,cells:fromRows([8,7,6,5,4,3,2,1])},
  {id:'ramp',name:'Ramp',S:12,P:4,cells:fromRows([10,9,8,8,7,6])},
+ {id:'icecream',name:'Ice Cream',S:12,P:3,cells:fromRows([4,5,6,7,6,3,2,2,1],r=>[1.5,1,.5,0,.5,2,2.5,2,2.5][r])},
  {id:'wedge',name:'Wedge',S:14,P:6,cells:fromRows([13,12,12,10,9,7,6,5,4,3,2,1])},
 ];
 
@@ -160,42 +161,6 @@ function rng32(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a)
 const today=new Date();
 const dKey=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
 const dayNo=Math.round((new Date(today.getFullYear(),today.getMonth(),today.getDate())-new Date(2026,10,24))/864e5)+1;
-const DAILY_NAMES=['Cobble','Slab','Lagoon','Ember','Drift','Atoll','Quarry','Marrow','Ridge','Delta','Spur','Mesa','Fjord','Glade','Knoll','Shoal'];
-function genDaily(){
-  const R=rng32(hashStr('spotweld:'+dKey));
-  for(let tries=0;tries<200;tries++){
-    const S=4+Math.floor(R()*7), P=2+Math.floor(R()*4), N=S*P;
-    if(N<14||N>40) continue;
-    const aspect=0.55+R()*0.9, sym=R()<0.5;
-    const key=(q,r)=>q+','+r, set=new Map([[key(0,0),[0,0]]]);
-    const nbr=[[1,0],[-1,0],[0,1],[0,-1],[1,-1],[-1,1]];
-    while(set.size<N){
-      const cand=new Map();
-      for(const [q,r] of set.values())for(const [dq,dr] of nbr){const k=key(q+dq,r+dr);if(!set.has(k))cand.set(k,[q+dq,r+dr]);}
-      let tot=0;const arr=[];
-      for(const [k,[q,r]] of cand){
-        let n=0;for(const [dq,dr] of nbr)if(set.has(key(q+dq,r+dr)))n++;
-        const p=axial(q,r);
-        const w=Math.pow(n,3)*(0.25+R())*Math.exp(-((p.x*aspect)**2+(p.y/aspect)**2)/(N*0.45));
-        arr.push([k,q,r,w]);tot+=w;
-      }
-      let t=R()*tot,pick=arr[arr.length-1];
-      for(const a of arr){t-=a[3];if(t<=0){pick=a;break;}}
-      set.set(pick[0],[pick[1],pick[2]]);
-      if(sym&&set.size<N){ // mirror across vertical axis: (q,r)->(-q-r,r)
-        const mq=-pick[1]-pick[2],mr=pick[2],mk=key(mq,mr);
-        if(!set.has(mk))set.set(mk,[mq,mr]);
-      }
-    }
-    const cells=[...set.values()].map(([q,r])=>axial(q,r));
-    const L=prepLevel({id:'daily-'+dKey,daily:true,name:DAILY_NAMES[hashStr(dKey)%DAILY_NAMES.length],S,P,cells});
-    if(!isConnected(L)) continue;
-    const b=botSolve(L,0);
-    if(b&&isFinite(b.res.total)) return L;
-  }
-  return prepLevel({...DEMOS[1],id:'daily-'+dKey,daily:true});
-}
-
 /* ---------- level prep ---------- */
 function prepLevel(L){
   const xs=L.cells.map(c=>c.x),ys=L.cells.map(c=>c.y);
@@ -349,12 +314,11 @@ function botSolve(L,iters=400){
 
 /* ---------- state ---------- */
 const store={get(k,d){try{const v=localStorage.getItem('spotweld:'+k);return v==null?d:JSON.parse(v);}catch(e){return d;}},set(k,v){try{localStorage.setItem('spotweld:'+k,JSON.stringify(v));}catch(e){}}};
-const LEVELS=[null,...DEMOS.map(prepLevel)];
+const LEVELS=DEMOS.map(prepLevel);
 let L,asg,active,hist=[],showVals=false,eraseMode=false,stroke=null,res,par=null,showBot=false;
 
 function loadLevel(k){
-  if(k===0&&!LEVELS[0])LEVELS[0]=genDaily();
-  L=LEVELS[k];store.set('last',k);
+  L=LEVELS[k];store.set('last2',k);
   asg=store.get('asg:'+L.id,null);
   if(!asg||asg.length!==L.cells.length)asg=new Array(L.cells.length).fill(-1);
   hist=[];showBot=false;active=lowestIncomplete();
@@ -474,8 +438,7 @@ function renderSide(){
 function renderLevels(){
   const sel=$('levels'),cur=LEVELS.indexOf(L),o=[];
   const tag=id=>{const b=store.get('best4:'+id,null);if(b==null)return '';const pp=store.get('par4:'+id,null);const d=DEMOS.find(x=>x.id===id);return ` ${starStr(starsFor(b,pp&&pp.score,d&&d.optimal))}`;};
-  o.push(`<option value="0">Daily #${dayNo}${tag('daily-'+dKey)}</option>`);
-  DEMOS.forEach((d,k)=>o.push(`<option value="${k+1}">${d.name} · ${d.S}S${d.P}P${tag(d.id)}</option>`));
+  DEMOS.forEach((d,k)=>o.push(`<option value="${k}">${d.name} · ${d.S}S${d.P}P${tag(d.id)}</option>`));
   sel.innerHTML=o.join('');sel.value=String(cur);
 }
 
@@ -542,11 +505,11 @@ function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');cle
 $('shareBtn').onclick=async()=>{
   const r=evaluate(L,asg);
   if(!r.complete||r.open){toast('Finish the pack first');return;}
-  const txt=`⚡ Spotweld ${L.daily?'#'+dayNo:'· '+L.name} · ${L.S}S${L.P}P ${starStr(starsFor(r.total,par&&par.score,L.optimal))}\n${fmt(r.total,2)} mΩ effective${par&&par.score!=null?` (par ${fmt(par.score,2)})`:''}\nstrips +${fmt(r.Rpack-r.Rideal,2)} mΩ · worst cell +${fmt((r.load-1)*100,1)}% · ${r.extra} split pieces\n${location.href.split('#')[0]}`;
+  const txt=`⚡ Spotweld · ${L.name} · ${L.S}S${L.P}P ${starStr(starsFor(r.total,par&&par.score,L.optimal))}\n${fmt(r.total,2)} mΩ effective${par&&par.score!=null?` (par ${fmt(par.score,2)})`:''}\nstrips +${fmt(r.Rpack-r.Rideal,2)} mΩ · worst cell +${fmt((r.load-1)*100,1)}% · ${r.extra} split pieces\n${location.href.split('#')[0]}`;
   try{await navigator.clipboard.writeText(txt);toast('Result copied to clipboard');}catch(_){prompt('Copy your result:',txt);}
 };
 
-let start=store.get('last',0);if(!(start>=0&&start<LEVELS.length))start=0;
+let start=store.get('last2',0);if(!(start>=0&&start<LEVELS.length))start=0;
 loadLevel(start);
 window.__spot={evaluate,botSolve,LEVELS,prepLevel,fromGrid,fromDW,setSplit:v=>{SPLIT_COST=v;},get L(){return L;},get res(){return res;}};
 })();
