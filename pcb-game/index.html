@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Trace Daily</title>
+<style>
+:root{--bg:#f4f6f3;--card:#fff;--ink:#16201b;--mute:#667068;--line:#dde3dc;--accent:#16201b;--ok:#1f9d63;--bad:#e5392d;--warn:#e99a00;--board:#0e3b2c;--copper:#d9964a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#101412;--card:#1a201d;--ink:#eef2ee;--mute:#92a097;--line:#2b342f;--accent:#eef2ee;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#101412;--card:#1a201d;--ink:#eef2ee;--mute:#92a097;--line:#2b342f;--accent:#eef2ee;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-user-select:none;user-select:none}
+header{display:flex;align-items:center;justify-content:space-between;padding:12px max(16px,env(safe-area-inset-right,0px)) 12px max(16px,env(safe-area-inset-left,0px));border-bottom:1px solid var(--line)}
+h1{font:800 22px/1 Georgia,serif;margin:0;letter-spacing:-.5px}
+h1 small{font:600 12px system-ui;color:var(--mute);margin-left:8px;letter-spacing:0}
+button{font:inherit;font-weight:600;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:7px 12px;border-radius:999px;cursor:pointer}
+button.primary{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+button.on{background:var(--ink);color:var(--bg)}
+main{max-width:1000px;margin:0 auto;padding:0 max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px))}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding-block:10px}
+.sp{flex:1}
+.task{font-weight:700;font-size:17px}
+.sub{color:var(--mute);min-width:0}
+.tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+.tools .lbl{color:var(--mute);font-size:12px;text-transform:uppercase;letter-spacing:.08em;margin-right:2px}
+.w{display:flex;align-items:center;gap:8px}
+.w i{display:block;width:26px;background:var(--copper);border-radius:2px}
+.boardwrap{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:8px}
+svg{width:100%;height:auto;display:block;touch-action:none;cursor:crosshair}
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+@media(max-width:760px){.panels{grid-template-columns:1fr}}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;min-width:0}
+.panel h3{margin:0 0 8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+.row{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:6px 8px;border-radius:8px;background:var(--bg);margin-bottom:6px;font-variant-numeric:tabular-nums}
+.row b{font-weight:700}
+.good{color:var(--ok);font-weight:700}.badc{color:var(--bad);font-weight:700}.warnc{color:var(--warn);font-weight:700}
+.meter{height:12px;border-radius:6px;background:var(--bg);overflow:hidden;border:1px solid var(--line)}
+.meter>div{height:100%;background:var(--copper);transition:width .15s}
+.meter.over>div{background:var(--bad)}
+.big{font:800 30px Georgia,serif}
+.stars{font-size:24px;letter-spacing:2px;color:#e8a800}
+.msg{margin-top:8px;min-height:22px}
+.glowline{filter:blur(.12px);animation:gl 1s infinite}
+@keyframes gl{50%{opacity:.35}}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;place-items:center;padding:16px;z-index:20}
+.modal.show{display:grid}
+.sheet{background:var(--card);border-radius:18px;max-width:560px;max-height:92vh;overflow:auto;padding:22px}
+.sheet h2{font:800 26px Georgia,serif;margin:0 0 4px}
+.sheet ol{padding-left:20px;margin:12px 0}
+.sheet li{margin:7px 0}
+kbd{background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:0 5px;font-size:13px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Trace Daily<small id="date"></small></h1>
+  <button id="help">? Rules</button>
+</header>
+<main>
+  <div class="bar">
+    <div><div class="task" id="task"></div><div class="sub" id="hint"></div></div>
+    <div class="sp"></div>
+    <span id="lvls" style="display:contents"></span>
+  </div>
+
+  <div class="tools">
+    <span class="lbl">Trace</span>
+    <button data-w="1"><span class="w"><i style="height:3px"></i>Thin 1</span></button>
+    <button data-w="2"><span class="w"><i style="height:6px"></i>Medium 2</span></button>
+    <button data-w="3"><span class="w"><i style="height:10px"></i>Wide 3</span></button>
+    <button id="erase">Erase</button>
+    <button id="clear">Clear</button>
+  </div>
+
+  <div class="boardwrap"><svg id="svg"></svg></div>
+
+  <div class="panels">
+    <div class="panel"><h3>Chips · need ≥ <span id="tv"></span> V</h3><div id="chips"></div></div>
+    <div class="panel">
+      <h3>Copper used</h3>
+      <div class="meter" id="meter"><div></div></div>
+      <div style="display:flex;justify-content:space-between;margin-top:4px" class="sub"><span id="used"></span><span id="budget"></span></div>
+      <div class="msg" id="msg"></div>
+      <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-top:6px"><span class="stars" id="stars"></span><button class="primary" id="next" style="display:none">Next level →</button></div>
+    </div>
+  </div>
+</main>
+
+<div class="modal show" id="modal"><div class="sheet">
+  <h2>Trace Daily</h2>
+  <div style="color:var(--mute)">Draw copper traces on a circuit board.</div>
+  <ol>
+    <li><b>Goal:</b> connect the <b>battery</b> to every <b>chip</b>. Each chip needs at least the target voltage to run.</li>
+    <li><b>Draw:</b> drag across the board to lay copper. Pick a thickness (<kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd>). Drag over an existing trace to change its thickness. <kbd>Right-click</kbd> or drag to erase (touch: Erase button).</li>
+    <li><b>Why thickness matters:</b> every bit of trace wastes some voltage (more current, longer or thinner means more lost). Thick traces lose less.</li>
+    <li><b>But copper costs:</b> thickness is the price. Stay under the copper budget and use as little as you can for more stars.</li>
+    <li><b>Hot traces:</b> a trace carrying too much current for its thickness glows red and would burn out. Chips downstream share a trunk, so a trunk carries all of their current added together.</li>
+    <li>Holes can't be drawn over. Route around them.</li>
+  </ol>
+  <button class="primary" id="go">Start</button>
+</div></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const W=14,H=9,VS=5,R0=0.03,LIMIT=2; // grid, battery volts, ohms per cell at width 1, max amps per width unit
+const key=(x,y)=>x+y*W;
+
+const LEVELS=[
+ {name:'Level 1',hint:'One chip, one long run. Thicker is better, but it costs.',
+  bat:[0,4],chips:[{x:13,y:4,I:2,n:'LED'}],holes:[],target:4.7,
+  ref:[[3,[[1,4],[12,4]]]]},
+ {name:'Level 2',hint:'Two chips. Share a trunk, then split.',
+  bat:[0,4],chips:[{x:13,y:1,I:1.5,n:'MCU'},{x:13,y:7,I:1.5,n:'RAM'}],
+  holes:[[5,3],[5,4],[5,5],[6,3],[6,4],[6,5],[7,3],[7,4],[7,5],[8,3],[8,4],[8,5]],target:4.7,
+  ref:[[3,[[1,4],[3,4]]],[3,[[3,4],[3,1],[12,1]]],[3,[[3,4],[3,7],[12,7]]]]},
+ {name:'Level 3',hint:'Three chips, different loads. Tight on voltage.',
+  bat:[0,4],chips:[{x:13,y:0,I:1,n:'SENS'},{x:7,y:8,I:1,n:'ADC'},{x:13,y:8,I:1.5,n:'CPU'}],
+  holes:[[5,3],[5,4],[5,5],[6,4],[8,2],[8,3],[9,5],[9,6]],target:4.6,
+  ref:[[3,[[1,4],[2,4]]],[3,[[2,4],[2,0],[12,0]]],[3,[[2,4],[2,8],[12,8]]]]}
+];
+
+let L,cw,pads,holes,curW=3,eraseMode=false,hoverK=-1,mode=null,last=null,res=null,lvlIdx=0,refCost=0;
+const isPad=k=>pads.has(k), isHole=k=>holes.has(k);
+
+function cellsOfRef(ref){const m=new Map();
+  for(const [w,pts] of ref)for(let i=0;i+1<pts.length;i++){let [x,y]=pts[i];const [x2,y2]=pts[i+1];
+    for(;;){m.set(key(x,y),w);if(x===x2&&y===y2)break;if(x!==x2)x+=Math.sign(x2-x);else y+=Math.sign(y2-y);}}
+  return m;}
+
+function load(i){
+  lvlIdx=i;L=LEVELS[i];cw=new Map();pads=new Map();holes=new Set(L.holes.map(([x,y])=>key(x,y)));
+  pads.set(key(...L.bat),{t:'bat'});L.chips.forEach(c=>pads.set(key(c.x,c.y),{t:'chip',c}));
+  const ref=cellsOfRef(L.ref);refCost=0;for(const [k,w] of ref)if(!isPad(k))refCost+=w;
+  L.budget=Math.round(refCost*1.3);
+  $('svg').setAttribute('viewBox',`-.6 -.6 ${W+1.2} ${H+1.2}`);
+  $('task').textContent=`${L.name} · ${L.chips.length} chip${L.chips.length>1?'s':''}`;
+  $('hint').textContent=L.hint;$('tv').textContent=L.target.toFixed(2);
+  document.querySelectorAll('[data-lvl]').forEach(b=>b.classList.toggle('on',+b.dataset.lvl===i));
+  update();
+}
+const wOf=k=>isPad(k)?3:(cw.get(k)||0);
+const copper=k=>isPad(k)||cw.has(k);
+
+/* ---- physics ---- */
+function neighbours(k){const x=k%W,y=(k/W)|0,o=[];
+  if(x>0)o.push(k-1);if(x<W-1)o.push(k+1);if(y>0)o.push(k-W);if(y<H-1)o.push(k+W);return o.filter(copper);}
+function solve(){
+  const bat=key(...L.bat),comp=new Set([bat]),q=[bat];
+  while(q.length){const k=q.pop();for(const n of neighbours(k))if(!comp.has(n)){comp.add(n);q.push(n);}}
+  const ids=[...comp],idx=new Map(ids.map((k,i)=>[k,i])),n=ids.length;
+  const A=Array.from({length:n},()=>new Float64Array(n+1));
+  const seg=[];
+  for(const k of ids)for(const m of neighbours(k))if(m>k&&comp.has(m)){
+    const wa=(wOf(k)+wOf(m))/2,g=wa/R0,a=idx.get(k),b=idx.get(m);
+    A[a][a]+=g;A[b][b]+=g;A[a][b]-=g;A[b][a]-=g;seg.push([k,m,wa,g]);}
+  for(const c of L.chips){const k=key(c.x,c.y);if(comp.has(k))A[idx.get(k)][n]-=c.I;}
+  const bi=idx.get(bat);A[bi].fill(0);A[bi][bi]=1;A[bi][n]=VS;
+  for(let i=0;i<n;i++){let p=i;for(let r=i+1;r<n;r++)if(Math.abs(A[r][i])>Math.abs(A[p][i]))p=r;
+    [A[i],A[p]]=[A[p],A[i]];const d=A[i][i];if(Math.abs(d)<1e-12)continue;
+    for(let r=0;r<n;r++){if(r===i)continue;const f=A[r][i]/d;if(!f)continue;for(let c=i;c<=n;c++)A[r][c]-=f*A[i][c];}}
+  const V=new Map(ids.map((k,i)=>[k,A[i][n]/A[i][i]]));
+  const segs=seg.map(([a,b,wa,g])=>{const I=Math.abs(g*(V.get(a)-V.get(b)));return {a,b,wa,I,d:I/wa};});
+  let cost=0;for(const [k,w] of cw)cost+=w;
+  const chips=L.chips.map(c=>{const k=key(c.x,c.y);return {c,v:comp.has(k)?V.get(k):0,on:comp.has(k)};});
+  const hot=segs.filter(s=>s.d>LIMIT+1e-6).length;
+  const allOn=chips.every(c=>c.on),vOk=chips.every(c=>c.v>=L.target-1e-9);
+  return {comp,V,segs,chips,cost,hot,allOn,vOk,solved:allOn&&vOk&&hot===0&&cost<=L.budget};
+}
+
+/* ---- render ---- */
+function hot(d){ // current density -> colour
+  const t=Math.min(1,d/LIMIT);const r=Math.round(217+(255-217)*t),g=Math.round(150-(150-50)*t*t),b=Math.round(74-(74-40)*t);
+  return `rgb(${r},${g},${b})`;}
+function render(){
+  const cx=k=>k%W,cy=k=>(k/W)|0;
+  let h=`<rect x="-.5" y="-.5" width="${W}" height="${H}" rx=".35" fill="var(--board)"/>`;
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++)h+=`<circle cx="${x}" cy="${y}" r=".035" fill="#fff" opacity=".13"/>`;
+  holes.forEach(k=>h+=`<circle cx="${cx(k)}" cy="${cy(k)}" r=".3" fill="#06150f" stroke="#c9a24a" stroke-width=".09"/>`);
+  // segments
+  const glow=[],lines=[];
+  for(const s of res.segs){
+    const l=`x1="${cx(s.a)}" y1="${cy(s.a)}" x2="${cx(s.b)}" y2="${cy(s.b)}"`,w=.18*s.wa;
+    if(s.d>LIMIT+1e-6)glow.push(`<line class="glowline" ${l} stroke="#ff2d1f" stroke-width="${w+.35}" stroke-linecap="round" opacity=".75"/>`);
+    lines.push(`<line ${l} stroke="${hot(s.d)}" stroke-width="${w}" stroke-linecap="round"/>`);
+  }
+  // copper not connected to battery
+  const unpowered=[];
+  for(const [k,w] of cw)if(!res.comp.has(k))unpowered.push(k);
+  for(const k of unpowered){
+    for(const n of neighbours(k))if(n>k&&!res.comp.has(n))
+      h+=`<line x1="${cx(k)}" y1="${cy(k)}" x2="${cx(n)}" y2="${cy(n)}" stroke="#7d6a55" stroke-width="${.18*(wOf(k)+wOf(n))/2}" stroke-linecap="round"/>`;
+    h+=`<circle cx="${cx(k)}" cy="${cy(k)}" r="${.09*wOf(k)}" fill="#7d6a55"/>`;
+  }
+  // single powered cells (no segments) still need a dot
+  for(const k of res.comp)if(!isPad(k))h+=`<circle cx="${cx(k)}" cy="${cy(k)}" r="${.09*wOf(k)}" fill="${hot(0)}"/>`;
+  h+=glow.join('')+lines.join('');
+  if(hoverK>=0&&!isHole(hoverK))h+=`<rect x="${cx(hoverK)-.5}" y="${cy(hoverK)-.5}" width="1" height="1" rx=".12" fill="none" stroke="#fff" stroke-width=".05" opacity=".6"/>`;
+  // pads
+  const bk=key(...L.bat);
+  h+=`<rect x="${cx(bk)-.46}" y="${cy(bk)-.46}" width=".92" height=".92" rx=".14" fill="#1b2b24" stroke="#e5c35a" stroke-width=".07"/><text x="${cx(bk)}" y="${cy(bk)-.08}" text-anchor="middle" dominant-baseline="central" font-size=".3" font-weight="700" fill="#e5c35a">BAT</text><text x="${cx(bk)}" y="${cy(bk)+.24}" text-anchor="middle" font-size=".26" fill="#e5c35a">${VS} V</text>`;
+  for(const r of res.chips){const {c}=r,ok=r.on&&r.v>=L.target-1e-9;
+    const col=!r.on?'#8a8f8c':ok?'#4ade80':'#ff6b5e';
+    h+=`<rect x="${c.x-.46}" y="${c.y-.46}" width=".92" height=".92" rx=".1" fill="#111a16" stroke="${col}" stroke-width=".07"/>
+    <text x="${c.x}" y="${c.y-.2}" text-anchor="middle" dominant-baseline="central" font-size=".24" font-weight="700" fill="#e6efe9">${c.n}</text>
+    <text x="${c.x}" y="${c.y+.06}" text-anchor="middle" dominant-baseline="central" font-size=".21" fill="#9fb3a8">${c.I} A</text>
+    <text x="${c.x}" y="${c.y+.3}" text-anchor="middle" dominant-baseline="central" font-size=".23" font-weight="700" fill="${col}">${r.on?r.v.toFixed(2)+'V':'no power'}</text>`;}
+  $('svg').innerHTML=h;
+}
+function update(){
+  res=solve();render();
+  $('chips').innerHTML=res.chips.map(r=>{const ok=r.on&&r.v>=L.target-1e-9;
+    return `<div class="row"><b>${r.c.n} <span class="sub">· ${r.c.I} A</span></b><span>${r.on?r.v.toFixed(2)+' V':'—'}</span><span class="${ok?'good':'badc'}">${!r.on?'not wired':ok?'✓ OK':'drop too big'}</span></div>`;}).join('');
+  $('used').textContent=`Used ${res.cost}`;$('budget').textContent=`Budget ${L.budget}`;
+  const over=res.cost>L.budget;$('meter').classList.toggle('over',over);
+  $('meter').firstElementChild.style.width=Math.min(100,res.cost/L.budget*100)+'%';
+  let m='';
+  if(res.hot)m=`<span class="badc">${res.hot} trace segment${res.hot>1?'s':''} overheating.</span> Thicken the red parts.`;
+  else if(over)m='<span class="badc">Over budget.</span> Thin out places that carry little current.';
+  else if(!res.allOn)m='Connect the battery to every chip.';
+  else if(!res.vOk)m='Some chip is below the target voltage. Thicken or shorten the run, especially near the battery where the current is largest.';
+  else m='<span class="good">All chips powered.</span>';
+  $('msg').innerHTML=m;
+  if(res.solved){const r=res.cost/refCost,st=r<=1.05?3:r<=1.2?2:1;
+    $('stars').textContent='★'.repeat(st)+'☆'.repeat(3-st);
+    $('next').style.display=lvlIdx<LEVELS.length-1?'':'none';
+  }else{$('stars').textContent='';$('next').style.display='none';}
+}
+
+/* ---- input ---- */
+function cellAt(e){const s=$('svg'),r=s.getBoundingClientRect(),vb=s.viewBox.baseVal;
+  const x=Math.round(vb.x+(e.clientX-r.left)/r.width*vb.width),y=Math.round(vb.y+(e.clientY-r.top)/r.height*vb.height);
+  return x<0||y<0||x>=W||y>=H?-1:key(x,y);}
+function apply(k){
+  if(k<0||isHole(k)||isPad(k))return;
+  if(mode==='erase'){if(cw.delete(k))update();return;}
+  if(cw.get(k)!==curW){cw.set(k,curW);update();}
+}
+function stroke(k){ // fill orthogonal path from last to k
+  if(last===null||last<0||k<0){apply(k);last=k;return;}
+  let x=last%W,y=(last/W)|0;const x2=k%W,y2=(k/W)|0;
+  while(x!==x2||y!==y2){if(x!==x2)x+=Math.sign(x2-x);else y+=Math.sign(y2-y);apply(key(x,y));}
+  last=k;
+}
+const svg=$('svg');
+svg.addEventListener('contextmenu',e=>e.preventDefault());
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);mode=(e.button===2||eraseMode)?'erase':'draw';last=null;stroke(cellAt(e));});
+svg.addEventListener('pointermove',e=>{const k=cellAt(e);if(k!==hoverK){hoverK=k;if(!mode)render();}if(mode)stroke(k);});
+svg.addEventListener('pointerup',()=>{mode=null;last=null;});
+svg.addEventListener('pointerleave',()=>{if(!mode){hoverK=-1;render();}});
+
+function setW(w){curW=w;eraseMode=false;syncTools();}
+function syncTools(){document.querySelectorAll('[data-w]').forEach(b=>b.classList.toggle('on',!eraseMode&&+b.dataset.w===curW));$('erase').classList.toggle('on',eraseMode);}
+document.querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>setW(+b.dataset.w));
+$('erase').onclick=()=>{eraseMode=!eraseMode;syncTools();};
+$('clear').onclick=()=>{cw.clear();update();};
+$('next').onclick=()=>load(lvlIdx+1);
+addEventListener('keydown',e=>{if(['1','2','3'].includes(e.key))setW(+e.key);});
+$('lvls').innerHTML=LEVELS.map((l,i)=>`<button data-lvl="${i}">${i+1}</button>`).join('');
+document.querySelectorAll('[data-lvl]').forEach(b=>b.onclick=()=>load(+b.dataset.lvl));
+$('help').onclick=()=>$('modal').classList.add('show');
+$('go').onclick=()=>$('modal').classList.remove('show');
+$('date').textContent=new Date().toLocaleDateString(undefined,{month:'short',day:'numeric'})+' · draft';
+syncTools();load(0);
+</script>
+</body>
+</html>
