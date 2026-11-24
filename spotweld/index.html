@@ -17,106 +17,60 @@
 html,body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 "Space Grotesk",system-ui,sans-serif}
 body{background:radial-gradient(1200px 600px at 70% -10%,#1a2440 0%,transparent 60%),radial-gradient(900px 500px at -10% 110%,#2a1830 0%,transparent 55%),var(--bg);min-height:100vh}
 button{font:inherit;color:inherit}
-.wrap{max-width:1240px;margin:0 auto;padding:14px 16px 40px}
-header{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:12px}
-.logo{display:flex;align-items:center;gap:10px}
-.logo svg{width:34px;height:34px}
-.logo h1{margin:0;font-size:22px;letter-spacing:.14em;font-weight:700}
-.logo small{display:block;color:var(--ink3);font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin-top:-2px}
-.levels{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
-.lv{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:6px 10px;cursor:pointer;display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink2);transition:.15s}
-.lv:hover{border-color:var(--line2);color:var(--ink)}
-.lv.on{border-color:var(--accent);color:var(--ink);box-shadow:0 0 0 1px var(--accent) inset,0 0 18px #5ee1ff22}
-.lv .tag{font-family:var(--mono);font-size:10px;color:var(--ink3)}
-.lv.daily{background:linear-gradient(135deg,#2b2410,#1c2331);border-color:#5a4a1a;color:var(--accent2)}
-.lv.daily.on{border-color:var(--accent2);box-shadow:0 0 0 1px var(--accent2) inset,0 0 18px #ffcf4a33}
-.lv .done{color:var(--good);font-size:11px}
-.main{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:14px;align-items:start}
-@media (max-width:900px){.main{grid-template-columns:1fr}.levels{margin-left:0}.boardcard{position:static}}
-.card{background:linear-gradient(180deg,var(--card),var(--bg2));border:1px solid var(--line);border-radius:16px}
-.boardcard{display:flex;flex-direction:column;position:sticky;top:12px}
-.bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 14px;border-bottom:1px solid var(--line)}
-.title{font-size:18px;font-weight:600;margin-right:6px}
-.chip{font-family:var(--mono);font-size:11px;background:var(--card2);border:1px solid var(--line);border-radius:999px;padding:3px 8px;color:var(--ink2)}
-.chip b{color:var(--ink)}
-.spacer{flex:1}
-.seg{display:inline-flex;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:2px}
-.seg button{background:none;border:0;padding:5px 10px;border-radius:8px;cursor:pointer;color:var(--ink3);font-size:12px}
-.seg button.on{background:var(--card2);color:var(--ink);box-shadow:0 0 0 1px var(--line2) inset}
-.btn{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:6px 11px;cursor:pointer;font-size:12px;color:var(--ink2);display:inline-flex;align-items:center;gap:6px}
-.btn:disabled{opacity:.4;cursor:not-allowed}
-.btn:hover{color:var(--ink);border-color:var(--line2)}
-.btn.on{color:var(--bad);border-color:var(--bad)}
-.btn.primary{background:linear-gradient(135deg,#1f6f8b,#2b4a9b);border-color:#3b8fb5;color:#fff}
-kbd{font-family:var(--mono);font-size:10px;border:1px solid var(--line2);border-bottom-width:2px;border-radius:4px;padding:0 4px;color:var(--ink3)}
-.goal{display:flex;gap:14px 20px;align-items:center;flex-wrap:wrap;padding:12px 14px;border-bottom:1px solid var(--line);background:linear-gradient(90deg,#5ee1ff0a,transparent)}
-.goal .txt{flex:1 1 260px;min-width:0}
-.goal .what{font-size:15px}
+[hidden]{display:none!important}
+.wrap{max-width:860px;margin:0 auto;padding:16px 16px 40px;display:flex;flex-direction:column;gap:12px}
+header{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:9px;margin-right:auto}
+.logo svg{width:28px;height:28px}
+.logo h1{margin:0;font-size:19px;letter-spacing:.14em;font-weight:700}
+select{font:inherit;font-size:14px;color:var(--ink);background:var(--card);border:1px solid var(--line2);border-radius:10px;padding:7px 10px;cursor:pointer}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px}
+.goal{display:flex;align-items:center;justify-content:space-between;gap:12px 20px;flex-wrap:wrap;padding:14px 16px 0}
+.goal .what{font-size:16px}
 .goal .what b{color:var(--accent)}
-.goal .spec{font-family:var(--mono);font-size:11px;color:var(--ink3);margin-top:2px}
-.goal .step{margin-top:6px;font-size:13px;color:var(--ink2)}
-.goal .step b{color:var(--ink)}
-.goal .step.bad{color:var(--bad)}
-.goal .step.good{color:var(--good)}
-.schem{display:flex;align-items:center;gap:0;flex-wrap:wrap;row-gap:8px}
-.schem .term{font-family:var(--mono);font-size:11px;font-weight:600;padding:2px 6px;border-radius:6px;border:1px solid}
+.goal .what small{display:block;font-family:var(--mono);font-size:11px;color:var(--ink3);margin-top:2px}
+.scorebox{text-align:right;font-variant-numeric:tabular-nums}
+.scorebox .n{font-size:30px;font-weight:700;line-height:1}
+.scorebox .n.dim{color:var(--line2)}
+.scorebox .p{font-family:var(--mono);font-size:11px;color:var(--ink3);margin-top:3px}
+.schem{display:flex;align-items:center;flex-wrap:wrap;row-gap:8px;padding:12px 16px 0}
+.schem .term{font-family:var(--mono);font-size:10px;font-weight:600;padding:2px 5px;border-radius:6px;border:1px solid}
 .schem .neg{color:#8eeaff;border-color:#5ee1ff66}
 .schem .pos{color:#ff8a9a;border-color:#ff5d7366}
-.schem .wire{width:10px;height:2px;background:var(--line2)}
+.schem .wire{width:8px;height:2px;background:var(--line2)}
 .schem .grp{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 4px 2px;border:1px solid var(--line);border-radius:7px;cursor:pointer;background:var(--bg)}
-.schem .grp.on{border-color:var(--ink2);box-shadow:0 0 10px #ffffff22}
+.schem .grp.on{border-color:var(--ink2)}
 .schem .grp.bad{border-color:var(--bad)}
-.schem .grp i{width:9px;height:9px;border-radius:50%;border:1px solid var(--line2)}
-.schem .grp span{font-family:var(--mono);font-size:9px;color:var(--ink3);margin-top:1px}
-.stage{position:relative;display:flex;align-items:center;justify-content:center;padding:34px 10px 30px;min-height:360px}
-#board{width:100%;height:auto;max-height:min(680px,72vh);touch-action:none;user-select:none;-webkit-user-select:none;cursor:crosshair;display:block}
-.facebadge{position:absolute;left:14px;top:12px;font-family:var(--mono);font-size:11px;color:var(--ink3);letter-spacing:.08em;text-transform:uppercase}
-.facebadge b{color:var(--accent)}
-.legend{position:absolute;right:14px;bottom:10px;display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:10px;color:var(--ink3)}
-.legend .grad{width:100px;height:8px;border-radius:4px;background:linear-gradient(90deg,#8d9bab,#e9c46a,#f4a261,#e76f51,#ff2d4a)}
-.hint{padding:8px 14px 12px;color:var(--ink3);font-size:12px;display:flex;gap:14px;flex-wrap:wrap;border-top:1px solid var(--line)}
-.hint span{display:inline-flex;gap:5px;align-items:center}
-.side{display:flex;flex-direction:column;gap:14px}
-.score{padding:16px}
-.score .top{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
-.big{font-size:52px;font-weight:700;line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
-.big small{font-size:16px;color:var(--ink3);font-weight:500;margin-left:4px}
-.status{font-size:12px;color:var(--ink3);margin-top:4px;min-height:18px}
-.status.bad{color:var(--bad)}
-.status.good{color:var(--good)}
-.par{text-align:right;font-size:12px;color:var(--ink3);font-family:var(--mono);line-height:1.6}
-.par b{color:var(--ink2)}
-.medal{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;margin-top:4px;font-family:var(--mono)}
-.metric{margin-top:12px}
-.metric .row{display:flex;justify-content:space-between;font-size:12px;color:var(--ink2)}
-.metric .row span:last-child{font-family:var(--mono);color:var(--ink)}
-.meter{height:7px;background:var(--bg);border-radius:4px;margin-top:5px;overflow:hidden;border:1px solid var(--line)}
-.meter i{display:block;height:100%;border-radius:4px;transition:width .35s}
-.metric .sub{font-size:11px;color:var(--ink3);font-family:var(--mono);margin-top:3px}
-.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
-.stat{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:7px 9px}
-.stat div:first-child{font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em}
-.stat div:last-child{font-family:var(--mono);font-size:14px}
-.share{margin-top:14px;display:flex;gap:8px;align-items:center}
-.share .btn{flex:1;justify-content:center;padding:9px}
-.groups{padding:12px 12px 8px}
-.groups h3,.how h3{margin:2px 4px 8px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);font-weight:600;display:flex;justify-content:space-between}
-.glist{display:flex;flex-direction:column;gap:4px;max-height:360px;overflow:auto;padding-right:2px}
-.g{display:grid;grid-template-columns:28px 72px 1fr auto;align-items:center;gap:8px;padding:5px 7px;border-radius:9px;border:1px solid transparent;cursor:pointer;font-size:12px}
-.g:hover{background:var(--card2)}
-.g.on{border-color:var(--line2);background:var(--card2)}
-.g .sw{width:26px;height:22px;border-radius:11px;display:grid;place-items:center;font-weight:700;font-size:10px;color:#0b0e13}
-.g .cnt{font-family:var(--mono);color:var(--ink2);white-space:nowrap}
-.g .bars{display:flex;gap:2px;align-items:flex-end;height:18px}
-.g .bars i{flex:1;max-width:14px;border-radius:2px 2px 0 0;background:var(--line2);min-height:2px}
-.g .warn{font-family:var(--mono);font-size:10px;color:var(--ink3);text-align:right;white-space:nowrap}
-.g .warn.bad{color:var(--bad)}
-.how{padding:12px 16px 14px;font-size:12.5px;color:var(--ink2)}
-.how p{margin:6px 0}
-.how b{color:var(--ink)}
-#tip{position:fixed;pointer-events:none;background:#0b0e13ee;border:1px solid var(--line2);border-radius:8px;padding:6px 9px;font-family:var(--mono);font-size:11px;color:var(--ink);z-index:10;display:none;white-space:nowrap;box-shadow:0 6px 24px #0008}
+.schem .grp i{width:8px;height:8px;border-radius:50%;border:1px solid var(--line2)}
+.schem .grp span{font-family:var(--mono);font-size:9px;color:var(--ink3)}
+.step{padding:10px 16px 0;font-size:14px;color:var(--ink2);min-height:30px}
+.step b{color:var(--ink)}
+.step.bad{color:var(--bad)}
+.step.good{color:var(--good)}
+.stage{padding:8px 10px}
+#board{width:100%;height:auto;max-height:min(600px,64vh);touch-action:none;user-select:none;-webkit-user-select:none;cursor:crosshair;display:block}
+.tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 16px 14px;border-top:1px solid var(--line);font-size:12px;color:var(--ink3)}
+.tools .sp{flex:1}
+.btn{background:var(--card2);border:1px solid var(--line);border-radius:9px;padding:6px 11px;cursor:pointer;font-size:12px;color:var(--ink2)}
+.btn:hover{color:var(--ink);border-color:var(--line2)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.on{color:var(--accent);border-color:var(--accent)}
+.btn.erase.on{color:var(--bad);border-color:var(--bad)}
+.btn.primary{background:#1f5f86;border-color:#3b8fb5;color:#fff}
+.result{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) auto;gap:10px;align-items:center;padding:14px 16px}
+@media (max-width:640px){.result{grid-template-columns:1fr}}
+.m .k{font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em}
+.m .v{font-family:var(--mono);font-size:14px;margin-top:1px}
+.m .meter{height:5px;background:var(--bg);border-radius:3px;margin-top:5px;overflow:hidden}
+.m .meter i{display:block;height:100%;border-radius:3px;transition:width .35s}
+.result .acts{display:flex;gap:8px}
+details{padding:12px 16px;font-size:13px;color:var(--ink2)}
+details summary{cursor:pointer;color:var(--ink3);font-size:12px;letter-spacing:.06em;text-transform:uppercase}
+details p{margin:8px 0;max-width:65ch}
+details b{color:var(--ink)}
+#tip{position:fixed;pointer-events:none;background:#0b0e13ee;border:1px solid var(--line2);border-radius:8px;padding:6px 9px;font-family:var(--mono);font-size:11px;color:var(--ink);z-index:10;display:none;white-space:nowrap}
 #tip .h{color:var(--ink3)}
-.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);opacity:0;background:var(--card2);border:1px solid var(--line2);padding:8px 14px;border-radius:10px;transition:.25s;font-size:13px;z-index:20}
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);opacity:0;background:var(--card2);border:1px solid var(--line2);padding:8px 14px;border-radius:10px;transition:.25s;font-size:13px;z-index:20;pointer-events:none}
 .toast.show{opacity:1;transform:translateX(-50%)}
 /* svg */
 .cell{transition:opacity .15s}
@@ -133,74 +87,46 @@ kbd{font-family:var(--mono);font-size:10px;border:1px solid var(--line2);border-
 <div class="wrap">
   <header>
     <div class="logo">
-      <svg viewBox="0 0 34 34"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5ee1ff"/><stop offset="1" stop-color="#ffcf4a"/></linearGradient></defs><circle cx="10" cy="11" r="7" fill="none" stroke="url(#lg)" stroke-width="2.4"/><circle cx="24" cy="11" r="7" fill="none" stroke="url(#lg)" stroke-width="2.4"/><circle cx="17" cy="23" r="7" fill="none" stroke="url(#lg)" stroke-width="2.4"/><path d="M10 11L24 11L17 23Z" fill="none" stroke="#ffcf4a" stroke-width="3" stroke-linejoin="round"/></svg>
-      <div><h1>SPOTWELD</h1><small>daily battery interconnect puzzle</small></div>
+      <svg viewBox="0 0 34 34"><circle cx="10" cy="11" r="7" fill="none" stroke="#5ee1ff" stroke-width="2.4"/><circle cx="24" cy="11" r="7" fill="none" stroke="#5ee1ff" stroke-width="2.4"/><circle cx="17" cy="23" r="7" fill="none" stroke="#5ee1ff" stroke-width="2.4"/><path d="M10 11L24 11L17 23Z" fill="none" stroke="#ffcf4a" stroke-width="3" stroke-linejoin="round"/></svg>
+      <h1>SPOTWELD</h1>
     </div>
-    <nav class="levels" id="levels"></nav>
+    <select id="levels" aria-label="Level"></select>
   </header>
 
-  <div class="main">
-    <section class="card boardcard">
-      <div class="bar">
-        <span class="title" id="lvTitle">—</span>
-        <span class="chip" id="cfgChip"></span>
-        <span class="chip" id="cellChip"></span>
-        <span class="spacer"></span>
-        <div class="seg" id="faceSeg" title="Flip pack (F)"><button data-f="1" class="on">Top face</button><button data-f="0">Bottom face</button></div>
-        <div class="seg" id="labSeg" title="Link labels (L)"><button data-l="R" class="on">mΩ</button><button data-l="I">A</button><button data-l="P">W</button><button data-l="off">–</button></div>
-      </div>
-      <div class="goal">
-        <div class="txt"><div class="what" id="goalWhat"></div><div class="spec" id="goalSpec"></div><div class="step" id="goalStep"></div></div>
-        <div class="schem" id="schem" title="Series chain: each box is one parallel group"></div>
-      </div>
-      <div class="stage">
-        <div class="facebadge" id="faceBadge"></div>
-        <svg id="board"></svg>
-        <div class="legend"><span>strip heat</span><span>0 W</span><div class="grad"></div><span id="legMax">0.6 W+</span></div>
-      </div>
-      <div class="hint">
-        <span><kbd>LMB</kbd> drag to weld cells into the active group</span>
-        <span><kbd>RMB</kbd> hold &amp; sweep to erase</span>
-        <span><kbd>F</kbd> flip</span>
-        <span><kbd>Ctrl Z</kbd> undo</span>
-        <span class="spacer"></span>
-        <button class="btn" id="eraseBtn" title="Touch-friendly erase mode">✕ Erase mode</button>
-        <button class="btn" id="undoBtn">↶ Undo</button>
-        <button class="btn" id="clearBtn">Clear</button>
-      </div>
-    </section>
+  <section class="card">
+    <div class="goal">
+      <div class="what" id="goalWhat"></div>
+      <div class="scorebox"><div class="n" id="bigScore"></div><div class="p" id="parBox"></div></div>
+    </div>
+    <div class="schem" id="schem" title="Each box is one parallel group; groups are wired in series"></div>
+    <div class="step" id="goalStep"></div>
+    <div class="stage"><svg id="board"></svg></div>
+    <div class="tools">
+      <span>Left-drag to add · right-drag to erase · hotter strips glow red</span>
+      <span class="sp"></span>
+      <button class="btn" id="valBtn">Values</button>
+      <button class="btn" id="flipBtn">Flip: top</button>
+      <button class="btn erase" id="eraseBtn" title="Erase mode for touch">Erase</button>
+      <button class="btn" id="undoBtn">Undo</button>
+      <button class="btn" id="clearBtn">Clear</button>
+    </div>
+  </section>
 
-    <aside class="side">
-      <section class="card score">
-        <div class="top">
-          <div>
-            <div class="big" id="bigScore">—</div>
-            <div class="status" id="status"></div>
-          </div>
-          <div class="par" id="parBox"></div>
-        </div>
-        <div class="metric"><div class="row"><span>Pack resistance</span><span id="mRv">—</span></div><div class="meter"><i id="mR"></i></div><div class="sub" id="mRs"></div></div>
-        <div class="metric"><div class="row"><span>Current sharing</span><span id="mSv">—</span></div><div class="meter"><i id="mS"></i></div><div class="sub" id="mSs"></div></div>
-        <div class="metric"><div class="row"><span>Group integrity</span><span id="mIv">—</span></div><div class="meter"><i id="mI"></i></div><div class="sub" id="mIs"></div></div>
-        <div class="stats">
-          <div class="stat"><div>Interconnect loss</div><div id="sLoss">—</div></div>
-          <div class="stat"><div>Hottest link</div><div id="sHot">—</div></div>
-        </div>
-        <div class="share"><button class="btn primary" id="shareBtn">Share result</button><button class="btn" id="botBtn" title="Show the bot's layout">Show par</button></div>
-      </section>
-      <section class="card groups">
-        <h3><span>Series chain · parallel groups</span><span id="gProg"></span></h3>
-        <div class="glist" id="glist"></div>
-      </section>
-      <section class="card how">
-        <h3><span>How it works</span></h3>
-        <p><b>S</b> is how many groups sit in series (it sets the voltage). <b>P</b> is how many cells sit side by side in each group (it sets the capacity and current). A 7S3P pack is 7 groups of 3 cells: 25.2 V, 12.6 Ah.</p><p>You weld group S1 first, then S2, and so on. Each group should be one touching cluster, and it has to touch the group before it so current can flow along the chain from PACK − to PACK +.</p>
-        <p>Neighbouring cells get nickel strip automatically. Strips join a group to itself and to the next group in the series. Each strip is about <b>2&nbsp;mΩ per cell pitch</b>; each cell is <b>15&nbsp;mΩ</b>. The pack runs at <b>15&nbsp;A per cell</b>.</p>
-        <p>Score = ½ <b>resistance</b> (vs a perfect busbar) + ½ <b>sharing</b> (how evenly each group's cells carry current), multiplied by <b>integrity</b>. Integrity drops if a group is split into islands that don't touch.</p>
-        <p>The groups alternate orientation, so the strips sit on alternating faces. Flip the pack to see both.</p>
-      </section>
-    </aside>
-  </div>
+  <section class="card result" id="result" hidden>
+    <div class="m"><div class="k">Resistance</div><div class="v" id="mRv"></div><div class="meter"><i id="mR"></i></div></div>
+    <div class="m"><div class="k">Current sharing</div><div class="v" id="mSv"></div><div class="meter"><i id="mS"></i></div></div>
+    <div class="m"><div class="k">Whole groups</div><div class="v" id="mIv"></div><div class="meter"><i id="mI"></i></div></div>
+    <div class="acts"><button class="btn primary" id="shareBtn">Share</button><button class="btn" id="botBtn">Show par</button></div>
+  </section>
+
+  <details class="card">
+    <summary>How it works</summary>
+    <p><b>S</b> is how many groups are wired in series (sets voltage). <b>P</b> is how many cells are in each group, side by side (sets capacity and current). 7S3P = 7 groups of 3 cells.</p>
+    <p>Fill group S1, then S2, and so on. Each group should be one touching cluster and must touch the group before it, so current can flow from PACK − to PACK +.</p>
+    <p>Touching cells are joined by nickel strip: 2 mΩ per cell spacing. Each cell is 15 mΩ and carries about 15 A.</p>
+    <p>Score = half pack resistance (vs a perfect busbar) + half current sharing (how evenly cells in a group carry load), multiplied by the share of groups that are one piece.</p>
+    <p>Groups alternate orientation, so strips are on both faces. Use Flip to see the other side.</p>
+  </details>
 </div>
 <div id="tip"></div>
 <div class="toast" id="toast"></div>
@@ -429,7 +355,7 @@ function botSolve(L,iters=400){
 /* ---------- state ---------- */
 const store={get(k,d){try{const v=localStorage.getItem('spotweld:'+k);return v==null?d:JSON.parse(v);}catch(e){return d;}},set(k,v){try{localStorage.setItem('spotweld:'+k,JSON.stringify(v));}catch(e){}}};
 const LEVELS=[null,...DEMOS.map(prepLevel)];
-let L,asg,active,hist=[],face=1,labMode='R',eraseMode=false,stroke=null,res,par=null,showBot=false;
+let L,asg,active,hist=[],face=1,showVals=false,eraseMode=false,stroke=null,res,par=null,showBot=false;
 
 function loadLevel(k){
   if(k===0&&!LEVELS[0])LEVELS[0]=genDaily();
@@ -506,10 +432,10 @@ function renderBoard(view){
   for(const l of res.links)if(l.face!==face)out.push(linkSvg(l,true));
   for(const l of res.links)if(l.face===face)out.push(linkSvg(l,false));
   // link labels
-  if(labMode!=='off')for(const l of res.links){
+  if(showVals)for(const l of res.links){
     if(l.face!==face||l.bus||l.tbus)continue;
     const A=cells[l.i],B=cells[l.j];
-    const v=labMode==='R'?fmt(l.R,1)+'mΩ':labMode==='I'?(l.I==null?'':fmt(l.I,1)+'A'):(l.W==null?'':fmt(l.W,2)+'W');
+    const v=fmt(l.R,1)+'mΩ';
     if(v==='')continue;
     out.push(`<text class="lt" x="${(A.x+B.x)/2}" y="${(A.y+B.y)/2+0.045}" font-size="0.1" stroke-width="0.045" fill="#e8edf5" text-anchor="middle">${v}</text>`);
   }
@@ -519,11 +445,11 @@ function renderBoard(view){
     if(g>=0){
       const col=PAL[g%PAL.length];
       if(g===active&&!showBot)out.push(`<circle class="activering" cx="${c.x}" cy="${c.y}" r="${R+0.03}" fill="none" stroke="${col}" stroke-width="0.05"/>`);
-      const I=res.cellI[i];
+      const I=showVals?res.cellI[i]:null;
       out.push(`<text class="gt" x="${c.x}" y="${c.y+(I!=null?0.02:0.1)}" font-size="${I!=null?0.24:0.27}" fill="#fff" text-anchor="middle" style="paint-order:stroke" stroke="#0c0f14" stroke-width="0.06">S${g+1}</text>`);
       if(I!=null)out.push(`<text class="lt" x="${c.x}" y="${c.y+0.22}" font-size="0.12" stroke-width="0.04" fill="${col}" text-anchor="middle">${fmt(I,1)} A</text>`);
       const pol=((g%2===0)===(face===1))?'+':'−';
-      out.push(`<text class="lt" x="${c.x}" y="${c.y-0.24}" font-size="0.12" stroke-width="0.03" fill="#ffffff99" text-anchor="middle">${pol}</text>`);
+      if(showVals)out.push(`<text class="lt" x="${c.x}" y="${c.y-0.24}" font-size="0.12" stroke-width="0.03" fill="#ffffff99" text-anchor="middle">${pol}</text>`);
     }
     out.push(`<circle class="cellhit" data-c="${i}" cx="${c.x}" cy="${c.y}" r="${R}" fill="transparent"/>`);
     out.push(`<circle class="hov" cx="${c.x}" cy="${c.y}" r="${R+0.01}" fill="#fff" fill-opacity=".07" stroke="#fff" stroke-opacity=".5" stroke-width="0.025"/>`);
@@ -537,92 +463,50 @@ function renderBoard(view){
   };
   term(0,'−',0);term(S-1,'+',S);
   svg.innerHTML=out.join('');
-  $('faceBadge').innerHTML=showBot?`viewing <b style="color:var(--accent2)">bot par layout</b> · click to dismiss`:`viewing <b>${face?'top':'bottom'}</b> face`;
 }
-function setMeter(id,v,txt,sub){const el=$(id);el.style.width=(v==null?0:clamp(v)*100)+'%';el.style.background=v==null?'transparent':v>.8?'linear-gradient(90deg,#2bb37a,#4ee39a)':v>.5?'linear-gradient(90deg,#d99a1e,#ffcf4a)':'linear-gradient(90deg,#c43a52,#ff5d73)';$(id+'v').textContent=txt;$(id+'s').textContent=sub||'';}
+function setMeter(id,v,txt){const el=$(id);el.style.width=(v==null?0:clamp(v)*100)+'%';el.style.background=v>.8?'#4ee39a':v>.5?'#ffcf4a':'#ff5d73';$(id+'v').textContent=txt;}
 function renderSide(){
-  const {S,P}=L,c=counts(),r=res;
-  $('goalWhat').innerHTML=`Build a <b>${S}S${P}P</b> pack: <b>${S}</b> groups wired in series, each group <b>${P}</b> cells in parallel`;
-  $('goalSpec').textContent=`${S} × ${VCELL} V = ${fmt(S*VCELL,1)} V nominal · ${P} × ${AHCELL} Ah = ${fmt(P*AHCELL,1)} Ah · ${S*P} cells · ${ICELL*P} A load`;
-  {
-    const el=$('goalStep');el.className='step';
-    const n=r.groups[active].length,need=P-n;
-    const firstBad=r.groups.findIndex((gr,g)=>gr.length&&!(g===active&&gr.length<P)&&(!r.touch[g]||r.comps[g]>1));
-    if(showBot){el.innerHTML='Showing the bot\'s layout. Click the board to go back to yours.';}
-    else if(r.complete&&r.open){el.className='step bad';el.innerHTML='Open circuit: some group isn\'t touching the next one in the chain.';}
-    else if(r.complete){el.className='step good';el.innerHTML=`Pack complete: ${fmt(S*VCELL,1)} V, ${fmt(r.Rpack,1)} mΩ. Erase and re-weld to raise the score.`;}
-    else el.innerHTML=`<b>Step ${active+1} of ${S}:</b> pick ${need} more cell${need===1?'':'s'} for group <b>S${active+1}</b>`+(active>0?` · it must touch S${active}`:' · this group connects to PACK −')+(active===S-1?' and PACK +':'')+(firstBad>=0?` <span style="color:var(--bad)">· S${firstBad+1} ${!r.touch[firstBad]?'isn\'t touching S'+firstBad:'is split'}</span>`:'');
-    const sc=['<span class="term neg">PACK −</span>'];
-    for(let g=0;g<S;g++){
-      const gr=r.groups[g],col=PAL[g%PAL.length];
-      const bad=gr.length&&(!r.touch[g]||r.comps[g]>1);
-      let dots='';for(let k=0;k<P;k++)dots+=`<i style="${k<gr.length?`background:${col};border-color:${col}`:''}"></i>`;
-      sc.push('<span class="wire"></span>',`<div class="grp${g===active&&!showBot?' on':''}${bad?' bad':''}" data-g="${g}" title="Group S${g+1}: ${gr.length}/${P} cells">${dots}<span>S${g+1}</span></div>`);
-    }
-    sc.push('<span class="wire"></span>','<span class="term pos">PACK +</span>');
-    $('schem').innerHTML=sc.join('');
-  }
-  $('lvTitle').textContent=L.daily?`Daily #${dayNo} · ${L.name}`:L.name;
-  $('cfgChip').innerHTML=`<b>${S}S${P}P</b>`;
-  $('cellChip').innerHTML=`${L.cells.length} cells · ${L.grid?'grid':'hex'}${L.blurb?' · '+L.blurb:''}`;
-  const placed=asg.filter(g=>g>=0).length;
-  $('gProg').textContent=`${placed}/${L.cells.length}`;
-  // groups
-  const gl=[];
+  const {S,P}=L,r=res;
+  $('goalWhat').innerHTML=`Build <b>${S}S${P}P</b>: ${S} groups in series × ${P} cells each<small>${fmt(S*VCELL,1)} V · ${fmt(P*AHCELL,1)} Ah · ${S*P} cells</small>`;
+  const el=$('goalStep');el.className='step';
+  const need=P-r.groups[active].length;
+  const firstBad=r.groups.findIndex((gr,g)=>gr.length&&!(g===active&&gr.length<P)&&(!r.touch[g]||r.comps[g]>1));
+  if(showBot)el.innerHTML='Showing the bot\'s layout. Click the board to return to yours.';
+  else if(r.complete&&r.open){el.className='step bad';el.textContent='Open circuit: a group isn\'t touching the next one.';}
+  else if(r.complete){el.className='step good';el.textContent=`Pack done: ${fmt(r.Rpack,1)} mΩ total. Erase and re-weld to improve.`;}
+  else if(firstBad>=0){el.className='step bad';el.textContent=`S${firstBad+1} ${!r.touch[firstBad]?'isn\'t touching S'+firstBad:'is split in pieces'}. Right-drag to erase and fix it.`;}
+  else el.innerHTML=`Pick <b>${need}</b> cell${need===1?'':'s'} for <b>S${active+1}</b>`+(active>0?`, touching S${active}`:', the PACK − group');
+  const sc=['<span class="term neg">−</span>'];
   for(let g=0;g<S;g++){
-    const col=PAL[g%PAL.length],st=r.gstat&&r.gstat[g];
-    const n=r.groups[g].length;
-    let bars='';
-    if(st){const mx=Math.max(...st.I);bars=st.I.slice().sort((a,b)=>b-a).map(v=>`<i style="height:${Math.max(8,v/mx*100)}%;background:${col}"></i>`).join('');}
-    else bars=Array.from({length:P},(_,k)=>`<i style="height:${k<n?60:12}%;background:${k<n?col+'88':''}"></i>`).join('');
-    let warn='',bad=false;
-    if(n&&!r.touch[g]){warn=`not touching S${g}`;bad=true;}
-    else if(r.comps[g]>1){warn=`split ×${r.comps[g]}`;bad=true;}
-    else if(st)warn=`±${fmt(st.spread*50,1)}%`;
-    const out=`<div class="g${g===active?' on':''}" data-g="${g}"><div class="sw" style="background:${col}">S${g+1}</div><div class="cnt">${n}/${P} cells</div><div class="bars">${bars}</div><div class="warn${bad?' bad':''}">${warn}</div></div>`;
-    gl.push(out);
+    const gr=r.groups[g],col=PAL[g%PAL.length],bad=gr.length&&!(g===active&&gr.length<P)&&(!r.touch[g]||r.comps[g]>1);
+    let dots='';for(let k=0;k<P;k++)dots+=`<i style="${k<gr.length?`background:${col};border-color:${col}`:''}"></i>`;
+    sc.push('<span class="wire"></span>',`<div class="grp${g===active&&!showBot?' on':''}${bad?' bad':''}" data-g="${g}">${dots}<span>S${g+1}</span></div>`);
   }
-  $('glist').innerHTML=gl.join('');
+  sc.push('<span class="wire"></span>','<span class="term pos">+</span>');
+  $('schem').innerHTML=sc.join('');
   // score
-  const st=$('status');st.className='status';
-  if(r.complete){
-    $('bigScore').innerHTML=`${fmt(r.total,1)}<small>/100</small>`;
-    if(r.open){st.textContent='Open circuit: a group has no strip to the next group.';st.className='status bad';}
-    else if(par&&par.score&&r.total>=par.score-1e-6&&!showBot){st.textContent='⚡ Beat the bot!';st.className='status good';}
-    else st.textContent=showBot?'Bot par layout':'Pack complete. Keep tweaking.';
-  }else{
-    $('bigScore').innerHTML=`<span style="font-size:20px;font-weight:500;color:var(--ink3)">Score appears when the pack is complete</span>`;
-    st.textContent=`${L.cells.length-placed} cells left · welding group ${active+1}`;
-  }
   const best=store.get('best:'+L.id,null);
   if(r.complete&&!r.open&&!showBot&&(best==null||r.total>best)){store.set('best:'+L.id,r.total);renderLevels();}
   const b2=store.get('best:'+L.id,null);
-  let medal='';
-  if(b2!=null&&par&&par.score){const f=b2/par.score;medal=f>=1?['GOLD','#ffcf4a']:f>=.95?['SILVER','#c9d3e0']:f>=.85?['BRONZE','#d9925b']:'';}
-  $('parBox').innerHTML=`par <b>${par?fmt(par.score,1):'…'}</b><br>best <b>${fmt(b2,1)}</b>${medal?`<br><span class="medal" style="border:1px solid ${medal[1]};color:${medal[1]}">${medal[0]}</span>`:''}`;
-  if(r.m){
-    setMeter('mR',r.sR,`${fmt(r.Rpack,1)} mΩ`,`ideal ${fmt(r.Rideal,1)} mΩ · +${fmt(r.overhead*100,1)}% strip overhead${r.complete?'':' (so far)'}`);
-    setMeter('mS',r.sS,`±${fmt(r.spreadMax*50,1)}%`,`worst group spread ${fmt(r.spreadMax*100,1)}% · avg ${fmt(r.spreadMean*100,1)}%`);
-    $('sLoss').textContent=`${fmt(r.loss,2)} W`;
-    $('sHot').textContent=r.hot?`${fmt(r.hot.I,1)} A · ${fmt(r.hot.W,2)} W`:'—';
-  }else{
-    setMeter('mR',null,'—','complete group 1 to start the solver');setMeter('mS',null,'—','');
-    $('sLoss').textContent='—';$('sHot').textContent='—';
+  const bs=$('bigScore');
+  if(r.complete){bs.className='n';bs.textContent=fmt(r.total,1);}else{bs.className='n dim';bs.textContent='--';}
+  $('parBox').textContent=`par ${par?fmt(par.score,1):'…'} · best ${fmt(b2,1)}`;
+  $('result').hidden=!r.complete;
+  if(r.complete){
+    setMeter('mR',r.sR,`${fmt(r.Rpack,1)} mΩ (+${fmt(r.overhead*100,0)}%)`);
+    setMeter('mS',r.sS,`±${fmt(r.spreadMax*50,1)}% worst`);
+    const whole=r.comps.filter(x=>x===1).length;
+    setMeter('mI',r.integ,`${whole} of ${S}`);
   }
-  const splits=r.comps.filter(x=>x>1).length;const pv=r.groups.some(g=>g.length);
-  setMeter('mI',pv?r.integ:null,pv?`×${fmt(r.integ,2)}`:'—',splits?`${splits} group${splits>1?'s':''} split into islands`:pv?'every group is one connected island':'');
   $('botBtn').textContent=showBot?'Hide par':'Show par';
-  const mineDone=counts().every(n=>n===L.P);
-  $('botBtn').disabled=!(par&&par.asg)||(!mineDone&&!showBot);
-  $('botBtn').title=mineDone?'Show the bot\'s layout':'Finish your pack to reveal the bot\'s layout';
+  $('botBtn').disabled=!(par&&par.asg);
 }
 function renderLevels(){
-  const nav=$('levels'),items=[];
-  const cur=LEVELS.indexOf(L);
-  const dBest=store.get('best:daily-'+dKey,null);
-  items.push(`<button class="lv daily${cur===0?' on':''}" data-k="0">☀ Daily #${dayNo}${dBest!=null?` <span class="done">${fmt(dBest,0)}</span>`:''}</button>`);
-  DEMOS.forEach((d,k)=>{const b=store.get('best:'+d.id,null);items.push(`<button class="lv${cur===k+1?' on':''}" data-k="${k+1}">${d.name} <span class="tag">${d.S}S${d.P}P</span>${b!=null?` <span class="done">${fmt(b,0)}</span>`:''}</button>`);});
-  nav.innerHTML=items.join('');
+  const sel=$('levels'),cur=LEVELS.indexOf(L),o=[];
+  const tag=id=>{const b=store.get('best:'+id,null);return b!=null?` (best ${fmt(b,0)})`:'';};
+  o.push(`<option value="0">Daily #${dayNo}${tag('daily-'+dKey)}</option>`);
+  DEMOS.forEach((d,k)=>o.push(`<option value="${k+1}">${d.name} · ${d.S}S${d.P}P${tag(d.id)}</option>`));
+  sel.innerHTML=o.join('');sel.value=String(cur);
 }
 
 /* ---------- input ---------- */
@@ -670,23 +554,21 @@ function tip(e){
   tipEl.style.left=Math.min(e.clientX+14,innerWidth-tipEl.offsetWidth-8)+'px';tipEl.style.top=(e.clientY+14)+'px';
 }
 
-$('levels').addEventListener('click',e=>{const b=e.target.closest('.lv');if(b)loadLevel(+b.dataset.k);});
+$('levels').addEventListener('change',e=>loadLevel(+e.target.value));
 $('schem').addEventListener('click',e=>{const g=e.target.closest('.grp');if(g){active=+g.dataset.g;showBot=false;render();}});
-$('glist').addEventListener('click',e=>{const g=e.target.closest('.g');if(g){active=+g.dataset.g;showBot=false;render();}});
-const setFace=f=>{face=f;[...$('faceSeg').children].forEach(b=>b.classList.toggle('on',+b.dataset.f===f));render();};
-$('faceSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(b)setFace(+b.dataset.f);});
-const LABS=['R','I','P','off'];
-const setLab=m=>{labMode=m;[...$('labSeg').children].forEach(b=>b.classList.toggle('on',b.dataset.l===m));render();};
-$('labSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(b)setLab(b.dataset.l);});
+const setFace=f=>{face=f;$('flipBtn').textContent='Flip: '+(f?'top':'bottom');render();};
+$('flipBtn').onclick=()=>setFace(1-face);
+$('valBtn').onclick=()=>{showVals=!showVals;$('valBtn').classList.toggle('on',showVals);render();};
 $('eraseBtn').onclick=()=>{eraseMode=!eraseMode;$('eraseBtn').classList.toggle('on',eraseMode);};
 const undo=()=>{if(!hist.length)return;asg=hist.pop();showBot=false;active=lowestIncomplete();render();};
 $('undoBtn').onclick=undo;
 $('clearBtn').onclick=()=>{if(!asg.some(g=>g>=0))return;hist.push(asg.slice());asg.fill(-1);active=0;showBot=false;render();};
-$('botBtn').onclick=()=>{if(!par||!par.asg||(!showBot&&!counts().every(n=>n===L.P)))return;showBot=!showBot;render();};
+$('botBtn').onclick=()=>{if(!par||!par.asg)return;showBot=!showBot;render();};
 addEventListener('keydown',e=>{
+  if(e.target.tagName==='SELECT')return;
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();undo();return;}
   if(e.key==='f'||e.key==='F')setFace(1-face);
-  else if(e.key==='l'||e.key==='L')setLab(LABS[(LABS.indexOf(labMode)+1)%LABS.length]);
+  else if(e.key==='v'||e.key==='V')$('valBtn').click();
   else if(e.key==='e'||e.key==='E')$('eraseBtn').click();
 });
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('show'),1800);}
