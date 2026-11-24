@@ -412,7 +412,7 @@ function botSolve(L,iters=400){
 }
 
 /* ---------- state ---------- */
-const store={get(k,d){try{const v=localStorage.getItem('spotweld:'+k);return v==null?d:JSON.parse(v);}catch(e){return d;}},set(k,v){try{localStorage.setItem('spotweld:'+k,JSON.stringify(v));}catch(e){}}};
+const store={get(k,d){try{const v=localStorage.getItem('spotweld5:'+k);return v==null?d:JSON.parse(v);}catch(e){return d;}},set(k,v){try{localStorage.setItem('spotweld5:'+k,JSON.stringify(v));}catch(e){}}};
 const LEVELS=DEMOS.map(prepLevel);
 let L,asg,active,hist=[],showVals=false,eraseMode=false,stroke=null,res,par=null,showBot=false;
 
