@@ -31,6 +31,7 @@ select{font:inherit;font-size:14px;color:var(--ink);background:var(--card);borde
 .goal .what small{display:block;font-family:var(--mono);font-size:11px;color:var(--ink3);margin-top:2px}
 .scorebox{text-align:right;font-variant-numeric:tabular-nums}
 .scorebox .n{font-size:30px;font-weight:700;line-height:1}
+.scorebox .n small{font-size:14px;color:var(--ink3);font-weight:500}
 .scorebox .n.dim{color:var(--line2)}
 .scorebox .p{font-family:var(--mono);font-size:11px;color:var(--ink3);margin-top:3px}
 .schem{display:flex;align-items:center;flex-wrap:wrap;row-gap:8px;padding:12px 16px 0}
@@ -62,6 +63,15 @@ select{font:inherit;font-size:14px;color:var(--ink);background:var(--card);borde
 .btn.erase.on{color:var(--bad);border-color:var(--bad)}
 .btn.primary{background:#1f5f86;border-color:#3b8fb5;color:#fff}
 .result{display:flex;flex-direction:column;gap:14px;padding:16px}
+.k0{font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em}
+.stack{display:flex;height:22px;border-radius:6px;overflow:hidden;background:var(--bg)}
+.stack i{display:block;height:100%;min-width:2px}
+.eq{display:grid;grid-template-columns:auto auto 1fr;gap:6px 14px;align-items:baseline;font-size:13px;color:var(--ink2)}
+.eq .op{font-family:var(--mono);color:var(--ink3);text-align:right}
+.eq .val{font-family:var(--mono);color:var(--ink);white-space:nowrap}
+.eq .sw{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;vertical-align:0}
+.eq .tot{border-top:1px solid var(--line);padding-top:6px}
+.eq .why{font-size:12px;color:var(--ink3)}
 .formula{font-family:var(--mono);font-size:13px;color:var(--ink2);line-height:1.7}
 .formula b{color:var(--ink);font-size:15px}
 .formula .r{color:var(--accent)}
@@ -122,12 +132,9 @@ details b{color:var(--ink)}
   </section>
 
   <section class="card result" id="result" hidden>
-    <div class="formula" id="formula"></div>
-    <div class="parts">
-      <div class="m"><div class="k">Resistance <span id="mRn"></span></div><div class="meter"><i id="mR"></i></div><div class="why" id="mRv"></div></div>
-      <div class="m"><div class="k">Current sharing <span id="mSn"></span></div><div class="meter"><i id="mS"></i></div><div class="why" id="mSv"></div></div>
-      <div class="m"><div class="k">Split groups <span id="mIn"></span></div><div class="meter"><i id="mI"></i></div><div class="why" id="mIv"></div></div>
-    </div>
+    <div class="k0">What your interconnects cost</div>
+    <div class="stack" id="stack"></div>
+    <div class="eq" id="eq"></div>
     <div class="acts"><button class="btn primary" id="shareBtn">Share</button><button class="btn" id="botBtn">Show par</button></div>
   </section>
 
@@ -135,6 +142,7 @@ details b{color:var(--ink)}
     <summary>How it works</summary>
     <p><b>S</b> is how many groups are wired in series (sets voltage). <b>P</b> is how many cells are in each group, side by side (sets capacity and current). 7S3P = 7 groups of 3 cells.</p>
     <p>Fill group S1, then S2, and so on. Each group must touch the group before it, so current can flow from PACK − to PACK +. A group can be one cluster or split into pieces; each extra piece costs that group 10%, which can be worth it if it evens out the current.</p>
+    <p>Your result is the <b>effective resistance</b> in mΩ, lower is better: the pack's resistance, scaled up by how overloaded the hardest-working cell is and by any split groups. Par is the best layout the bot found.</p>
     <p>Touching cells are joined by a strip. Every strip is 1 mΩ and every cell is 10 mΩ.</p>
     <p>Groups alternate direction, so a group's strips to the next group are on one face and its strips to the previous group are on the other. Both faces are shown.</p>
       </details>
@@ -213,7 +221,7 @@ function genDaily(){
     const L=prepLevel({id:'daily-'+dKey,daily:true,name:DAILY_NAMES[hashStr(dKey)%DAILY_NAMES.length],S,P,cells});
     if(!isConnected(L)) continue;
     const b=botSolve(L,0);
-    if(b&&b.res.total>20) return L;
+    if(b&&isFinite(b.res.total)) return L;
   }
   return prepLevel({...DEMOS[1],id:'daily-'+dKey,daily:true});
 }
@@ -292,12 +300,13 @@ function evaluate(L,asg){
   const sp=res.gstat.slice(0,m).map(s=>s.spread);
   res.spreadMean=sp.reduce((a,b)=>a+b,0)/sp.length;res.spreadMax=Math.max(...sp);
   res.overhead=Rp/Ri-1;
-  res.sR=clamp(1-res.overhead/0.6);
-  res.sS=clamp(1-(0.5*res.spreadMean+0.5*res.spreadMax)/0.5);
+  res.load=Math.max(...res.gstat.slice(0,m).map(s=>s.mx/s.mean)); // hardest-working cell vs its group average
   const done=comps.filter((c,g)=>groups[g].length);
-  res.integ=done.length?done.reduce((a,c)=>a+Math.max(0,1-SPLIT_COST*(c-1)),0)/done.length:1;
+  res.extra=comps.reduce((a,c)=>a+Math.max(0,c-1),0);
+  res.splitF=1+SPLIT_COST*res.extra/S;
   if(res.complete){
-    res.total=res.open?0:100*(0.5*res.sR+0.5*res.sS)*res.integ;
+    // effective resistance (mΩ, lower is better): pack resistance, scaled by the worst cell's extra heat (∝ I²) and by splits
+    res.total=res.open?Infinity:Rp*res.load*res.load*res.splitF;
   }
   return res;
 }
@@ -316,7 +325,7 @@ function gauss(A,b,n){
 /* ---------- bot (par) ---------- */
 function botSolve(L,iters=400){
   const N=L.cells.length,{S,P}=L;let best=null;
-  const tryOrder=ord=>{const a=new Array(N);ord.forEach((c,k)=>a[c]=Math.floor(k/P));const r=evaluate(L,a);if(r.total!==undefined&&(!best||r.total>best.res.total))best={asg:a,res:r};};
+  const tryOrder=ord=>{const a=new Array(N);ord.forEach((c,k)=>a[c]=Math.floor(k/P));const r=evaluate(L,a);if(r.total!==undefined&&isFinite(r.total)&&(!best||r.total<best.res.total))best={asg:a,res:r};};
   for(let ang=0;ang<180;ang+=15){
     const t=ang*Math.PI/180,c=Math.cos(t),s=Math.sin(t);
     const ord=[...Array(N).keys()].sort((i,j)=>{const A=L.cells[i],B=L.cells[j];return (A.x*c+A.y*s)-(B.x*c+B.y*s)||(-A.x*s+A.y*c)-(-B.x*s+B.y*c);});
@@ -355,14 +364,14 @@ function botSolve(L,iters=400){
   };
   const R0=rng32(hashStr(L.id+'g'));
   const starts=[...Array(N).keys()].sort((i,j)=>L.nb[i].length-L.nb[j].length).slice(0,Math.min(N,14));
-  for(const st of starts)for(let rep=0;rep<3;rep++){const a=grow(st,R0);const r=evaluate(L,a);if(r.total!==undefined&&(!best||r.total>best.res.total))best={asg:a,res:r};}
+  for(const st of starts)for(let rep=0;rep<3;rep++){const a=grow(st,R0);const r=evaluate(L,a);if(r.total!==undefined&&isFinite(r.total)&&(!best||r.total<best.res.total))best={asg:a,res:r};}
   if(!best)return null;
   const R=rng32(hashStr(L.id));
   for(let it=0;it<iters;it++){
     const pr=L.pairs[Math.floor(R()*L.pairs.length)];
     const a=best.asg.slice();if(a[pr.i]===a[pr.j])continue;
     [a[pr.i],a[pr.j]]=[a[pr.j],a[pr.i]];
-    const r=evaluate(L,a);if(r.total>best.res.total)best={asg:a,res:r};
+    const r=evaluate(L,a);if(r.total<best.res.total)best={asg:a,res:r};
   }
   return best;
 }
@@ -378,9 +387,9 @@ function loadLevel(k){
   asg=store.get('asg:'+L.id,null);
   if(!asg||asg.length!==L.cells.length)asg=new Array(L.cells.length).fill(-1);
   hist=[];showBot=false;active=lowestIncomplete();
-  par=store.get('par3:'+L.id,null);
+  par=store.get('par4:'+L.id,null);
   renderLevels();render();
-  if(par==null)setTimeout(()=>{const b=botSolve(L);par=b?{score:b.res.total,asg:b.asg}:{score:0,asg:null};store.set('par3:'+L.id,par);render();},30);
+  if(par==null)setTimeout(()=>{const b=botSolve(L);par=b?{score:b.res.total,asg:b.asg}:{score:null,asg:null};store.set('par4:'+L.id,par);render();},30);
 }
 function counts(){const c=new Array(L.S).fill(0);asg.forEach(g=>{if(g>=0)c[g]++;});return c;}
 function lowestIncomplete(){const c=counts();for(let g=0;g<L.S;g++)if(c[g]<L.P)return g;return L.S-1;}
@@ -454,7 +463,7 @@ function renderSide(){
   const firstBad=r.groups.findIndex((gr,g)=>gr.length&&!(g===active&&gr.length<P)&&!r.touch[g]);
   if(showBot)el.innerHTML='Showing the bot\'s layout. Click the board to return to yours.';
   else if(r.complete&&r.open){el.className='step bad';el.textContent='Open circuit: a group isn\'t touching the next one.';}
-  else if(r.complete){el.className='step good';el.textContent=`Pack done: ${fmt(r.Rpack,1)} mΩ total. Erase and re-weld to improve.`;}
+  else if(r.complete){el.className='step good';el.textContent=par&&par.score!=null&&r.total<=par.score+1e-6?'Pack done. You matched or beat the bot.':'Pack done. Erase and re-weld to bring the effective resistance down.';}
   else if(firstBad>=0){el.className='step bad';el.textContent=`S${firstBad+1} isn't touching S${firstBad}, so no current can reach it. Right-drag to erase and fix it.`;}
   else el.innerHTML=`Pick <b>${need}</b> cell${need===1?'':'s'} for <b>S${active+1}</b>`+(active>0?`, touching S${active}`:', the PACK − group');
   const sc=['<span class="term neg">−</span>'];
@@ -466,27 +475,32 @@ function renderSide(){
   sc.push('<span class="wire"></span>','<span class="term pos">+</span>');
   $('schem').innerHTML=sc.join('');
   // score
-  const best=store.get('best3:'+L.id,null);
-  if(r.complete&&!r.open&&!showBot&&(best==null||r.total>best)){store.set('best3:'+L.id,r.total);renderLevels();}
-  const b2=store.get('best3:'+L.id,null);
+  const best=store.get('best4:'+L.id,null);
+  if(r.complete&&!r.open&&!showBot&&(best==null||r.total<best)){store.set('best4:'+L.id,r.total);renderLevels();}
+  const b2=store.get('best4:'+L.id,null);
   const bs=$('bigScore');
-  if(r.complete){bs.className='n';bs.textContent=fmt(r.total,1);}else{bs.className='n dim';bs.textContent='--';}
-  $('parBox').textContent=`par ${par?fmt(par.score,1):'…'} · best ${fmt(b2,1)}`;
+  if(r.complete&&!r.open){bs.className='n';bs.innerHTML=`${fmt(r.total,2)}<small> mΩ</small>`;}else{bs.className='n dim';bs.textContent='--';}
+  $('parBox').textContent=`effective · lower is better · par ${par&&par.score!=null?fmt(par.score,2):'…'} · best ${fmt(b2,2)}`;
   $('result').hidden=!r.complete;
-  if(r.complete){
-    const whole=r.comps.filter(x=>x===1).length,R100=r.sR*100,S100=r.sS*100;
-    $('formula').innerHTML=r.open?'Open circuit: score <b>0</b>':`score = (½ × <b>${fmt(R100,0)}</b> resistance + ½ × <b>${fmt(S100,0)}</b> sharing) × <b>${fmt(r.integ,2)}</b> split factor = <b class="r">${fmt(r.total,1)}</b>`;
-    setMeter('mR',r.sR,`Pack is <b>${fmt(r.Rpack,1)} mΩ</b>. A perfect busbar would give ${fmt(r.Rideal,1)} mΩ (${S} × ${RC} mΩ ÷ ${L.P}). Strips add <b>${fmt(r.overhead*100,1)}%</b>. 100 at +0%, 0 at +60%.`,fmt(R100,0)+'/100');
-    setMeter('mS',r.sS,`In each group, compare the cell doing the most work with the one doing the least. Worst group: <b>${fmt(r.spreadMax*100,1)}%</b> apart, average ${fmt(r.spreadMean*100,1)}%. 100 at 0%, 0 at 50%.`,fmt(S100,0)+'/100');
-    const extra=r.comps.reduce((a,c)=>a+Math.max(0,c-1),0);
-    setMeter('mI',r.integ,extra?`<b>${S-whole} of ${S}</b> groups are split (${extra} extra piece${extra>1?'s':''}). Each extra piece costs its group ${SPLIT_COST*100}%, averaged over all groups.`:`All ${S} groups are one piece. Each extra piece would cost its group ${SPLIT_COST*100}%.`,'×'+fmt(r.integ,2));
-  }
+  if(r.complete&&!r.open){
+    const strips=r.Rpack-r.Rideal,afterLoad=r.Rpack*r.load*r.load,loadAdd=afterLoad-r.Rpack,splitAdd=r.total-afterLoad;
+    const C={cell:'#5b7cff',strip:'#ffcf4a',load:'#fb8500',split:'#d08cff'};
+    const seg=(v,c)=>`<i style="width:${Math.max(0,v)/r.total*100}%;background:${c}"></i>`;
+    $('stack').innerHTML=seg(r.Rideal,C.cell)+seg(strips,C.strip)+seg(loadAdd,C.load)+seg(splitAdd,C.split);
+    const row=(op,c,val,label,why)=>`<span class="op">${op}</span><span class="val">${c?`<span class="sw" style="background:${c}"></span>`:''}${val}</span><span>${label}${why?`<div class="why">${why}</div>`:''}</span>`;
+    $('eq').innerHTML=
+      row('',C.cell,`${fmt(r.Rideal,2)} mΩ`,'cells alone',`${S} in series × ${RC} mΩ ÷ ${L.P} in parallel. You can't beat this.`)+
+      row('+',C.strip,`${fmt(strips,2)} mΩ`,'from the strips',`Every strip is 1 mΩ. More paths between groups means less added.`)+
+      row('×',C.load,`${fmt(r.load,3)}²`,'hardest-working cell',`It carries ${fmt((r.load-1)*100,1)}% more than its group's average. Cell heat grows with current squared, so this counts twice.`)+
+      row('×',C.split,`${fmt(r.splitF,3)}`,'split groups',r.extra?`${r.extra} extra piece${r.extra>1?'s':''} across ${S} groups, ${SPLIT_COST*100}% each, averaged. Split groups are harder to monitor, but can be worth it.`:`Every group is one piece.`)+
+      `<span class="op tot">=</span><span class="val tot"><b>${fmt(r.total,2)} mΩ</b></span><span class="tot">effective resistance${par&&par.score!=null?` · bot par ${fmt(par.score,2)} mΩ`:''}</span>`;
+  }else if(r.complete){$('stack').innerHTML='';$('eq').innerHTML='<span></span><span class="val">Open circuit</span><span>A group isn\'t touching the next one.</span>';}
   $('botBtn').textContent=showBot?'Hide par':'Show par';
   $('botBtn').disabled=!(par&&par.asg);
 }
 function renderLevels(){
   const sel=$('levels'),cur=LEVELS.indexOf(L),o=[];
-  const tag=id=>{const b=store.get('best3:'+id,null);return b!=null?` (best ${fmt(b,0)})`:'';};
+  const tag=id=>{const b=store.get('best4:'+id,null);return b!=null?` (best ${fmt(b,1)} mΩ)`:'';};
   o.push(`<option value="0">Daily #${dayNo}${tag('daily-'+dKey)}</option>`);
   DEMOS.forEach((d,k)=>o.push(`<option value="${k+1}">${d.name} · ${d.S}S${d.P}P${tag(d.id)}</option>`));
   sel.innerHTML=o.join('');sel.value=String(cur);
@@ -555,8 +569,7 @@ function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');cle
 $('shareBtn').onclick=async()=>{
   const r=evaluate(L,asg);
   if(!r.complete||r.open){toast('Finish the pack first');return;}
-  const blk=v=>{const n=Math.round(clamp(v)*5);return '🟩'.repeat(n)+'⬛'.repeat(5-n);};
-  const txt=`⚡ Spotweld ${L.daily?'#'+dayNo:'· '+L.name} · ${L.S}S${L.P}P\nScore ${fmt(r.total,1)}${par&&par.score?` (par ${fmt(par.score,1)})`:''}\nΩ  ${blk(r.sR)}\n⇄  ${blk(r.sS)}\n◎  ${blk(r.integ)}\n${location.href.split('#')[0]}`;
+  const txt=`⚡ Spotweld ${L.daily?'#'+dayNo:'· '+L.name} · ${L.S}S${L.P}P\n${fmt(r.total,2)} mΩ effective${par&&par.score!=null?` (par ${fmt(par.score,2)})`:''}\nstrips +${fmt(r.Rpack-r.Rideal,2)} mΩ · worst cell +${fmt((r.load-1)*100,1)}% · ${r.extra} split pieces\n${location.href.split('#')[0]}`;
   try{await navigator.clipboard.writeText(txt);toast('Result copied to clipboard');}catch(_){prompt('Copy your result:',txt);}
 };
 
