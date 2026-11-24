@@ -239,6 +239,7 @@ const PREF=ICELL*ICELL*RL/1000; // W in one link carrying one cell's current
 const HEATMAX=PREF*2.25;
 let SPLIT_COST=0.1; // per extra island in a group
 const UNEVEN_W=0.5; // weight on the busiest cell's extra heat
+const HOT_I=1.2, HOT_W=10; // strips above 1.2× one cell's current are hot spots; their excess heat counts 10×
 const PAL=['#4cc9f0','#f72585','#a7e36f','#ffb703','#9d6bff','#06d6a0','#fb8500','#5b7cff','#ff6b8b','#7fe3f0','#d08cff','#ffd166','#3ddc84','#ff8fab'];
 const $=id=>document.getElementById(id);
 const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
@@ -356,7 +357,9 @@ function evaluate(L,asg){
   if(res.complete){
     // effective resistance (mΩ, lower is better): pack resistance, scaled by the worst cell's extra heat (∝ I²) and by splits
     res.uf=1+UNEVEN_W*(res.load*res.load-1);
-    res.total=res.open?Infinity:Rp*res.uf*res.splitF;
+    const Wthr=(HOT_I*ICELL)**2*RL/1000;let hn=0,hx=0;for(const l of links)if(l.W!=null&&!l.bus&&!l.tbus&&l.W>Wthr){hn++;hx+=l.W-Wthr;}
+    res.hotN=hn;res.hotX=hx*1000/(ICELL*P)**2;res.hotPen=HOT_W*res.hotX;
+    res.total=res.open?Infinity:Rp*res.uf*res.splitF+res.hotPen;
   }
   return res;
 }
@@ -437,9 +440,9 @@ function loadLevel(k){
   asg=store.get('asg:'+L.id,null);
   if(!asg||asg.length!==L.cells.length)asg=new Array(L.cells.length).fill(-1);
   hist=[];showBot=false;active=lowestIncomplete();
-  par=store.get('par6:'+L.id,null);
+  par=store.get('par7:'+L.id,null);
   renderLevels();render();
-  if(par==null)setTimeout(()=>{const b=botSolve(L);par=b?{score:b.res.total,asg:b.asg}:{score:null,asg:null};store.set('par6:'+L.id,par);render();},30);
+  if(par==null)setTimeout(()=>{const b=botSolve(L);par=b?{score:b.res.total,asg:b.asg}:{score:null,asg:null};store.set('par7:'+L.id,par);render();},30);
 }
 function counts(){const c=new Array(L.S).fill(0);asg.forEach(g=>{if(g>=0)c[g]++;});return c;}
 function lowestIncomplete(){const c=counts();for(let g=0;g<L.S;g++)if(c[g]<L.P)return g;return L.S-1;}
@@ -486,9 +489,9 @@ function renderFace(view,face,svg){
   fl.forEach((st,k)=>{const A=cells[st.i],B=cells[st.j],L2=`x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}"`;
     if(hlJ&&st.p===hlJ&&view[st.i]!==view[st.j])out.push(`<line ${L2} stroke="var(--accent)" stroke-width="${SW+0.12}" stroke-linecap="round" opacity=".8"/>`);
     out.push(`<line class="lk" data-l="${face}:${k}" ${L2} stroke="${NI}" stroke-width="${SW}" stroke-linecap="round"/>`);});
-  fl.forEach((st,k)=>{if(st.bus||st.tbus||st.W==null)return;const t=Math.min(1,clamp(st.W/HEATMAX)*1.5);if(t<0.05)return;
-    const A=cells[st.i],B=cells[st.j],c=DK?heatDark(t):heatColor(t),id=`hg${face}_${k}`,op=(0.45+0.55*t).toFixed(2);
-    defs.push(`<linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}"><stop offset=".3" stop-color="${c}" stop-opacity="0"/><stop offset=".5" stop-color="${c}" stop-opacity="${op}"/><stop offset=".7" stop-color="${c}" stop-opacity="0"/></linearGradient>`);
+  fl.forEach((st,k)=>{if(st.bus||st.tbus||st.W==null)return;const t=clamp((st.I/ICELL-HOT_I)/0.8);if(st.I/ICELL<=HOT_I)return;
+    const A=cells[st.i],B=cells[st.j],c=DK?heatDark(0.3+0.7*t):heatColor(0.4+0.6*t),id=`hg${face}_${k}`,op=(0.8+0.2*t).toFixed(2);
+    defs.push(`<linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}"><stop offset=".25" stop-color="${c}" stop-opacity="0"/><stop offset=".42" stop-color="${c}" stop-opacity="${op}"/><stop offset=".58" stop-color="${c}" stop-opacity="${op}"/><stop offset=".75" stop-color="${c}" stop-opacity="0"/></linearGradient>`);
     out.push(`<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="url(#${id})" stroke-width="${SW}" pointer-events="none"/>`);});
   out.push(`<defs>${defs.join('')}</defs>`);
   cells.forEach((c,i)=>{
@@ -540,9 +543,9 @@ function renderSide(){
   $('schem').innerHTML=sc.join('');
   $('schem').style.gridTemplateColumns=`repeat(${S-1},minmax(0,1fr) var(--kw)) minmax(0,1fr)`;
   // score vs par
-  const best=store.get('best5:'+L.id,null);
-  if(done&&!showBot&&(best==null||r.total<best)){store.set('best5:'+L.id,r.total);renderLevels();}
-  const b2=store.get('best5:'+L.id,null),pr=par&&par.score;
+  const best=store.get('best6:'+L.id,null);
+  if(done&&!showBot&&(best==null||r.total<best)){store.set('best6:'+L.id,r.total);renderLevels();}
+  const b2=store.get('best6:'+L.id,null),pr=par&&par.score;
   $('bigScore').innerHTML=done?`${fmt(r.total,2)}<small> mΩ</small>`:`<small>par</small> ${pr!=null?fmt(pr,2):'…'}<small> mΩ</small>`;
   const n=done&&!showBot?starsFor(r.total,pr,L.optimal):starsFor(b2,pr,L.optimal);
   $('stars').innerHTML=`<b>${'★'.repeat(n)}</b>${'☆'.repeat(3-n)}`;
@@ -551,14 +554,14 @@ function renderSide(){
   // where the resistance goes
   const bd=$('bd');
   if(done){
-    const strips=r.Rpack-r.Rideal,uneven=r.Rpack*r.uf-r.Rpack,split=r.total-r.Rpack*r.uf;
-    const C=['var(--line)','#e9a23b','#e5484d','#8e6cf0'];
+    const strips=r.Rpack-r.Rideal,uneven=r.Rpack*r.uf-r.Rpack,split=r.Rpack*r.uf*(r.splitF-1),hot=r.hotPen;
+    const C=['var(--line)','#e9a23b','#e5484d','#8e6cf0','#f43f5e'];
     const bc=busyCells(r);busyCell=bc;const bgs=[...new Set(bc.map(i=>asg[i]+1))];
     const Ip2=(ICELL*P)**2,ser=r.links.filter(l=>l.W!=null&&asg[l.i]!==asg[l.j]).reduce((a,l)=>a+l.W,0)*1000/Ip2,par_=r.links.filter(l=>l.W!=null&&asg[l.i]===asg[l.j]).reduce((a,l)=>a+l.W,0)*1000/Ip2;
     const Jn=(r.junc||[]).filter(j=>isFinite(j.R)),stripMath=`${Jn.length} links ${Jn.length>4?Jn.slice(0,3).map(j=>fmt(j.R,2)).join(' + ')+' + …':Jn.map(j=>fmt(j.R,2)).join(' + ')} = ${fmt(ser,2)}`+(r.Rpack-r.Rideal-ser>0.005?` + ${fmt(r.Rpack-r.Rideal-ser,2)} within groups`:'');
-    const math=[`${S} × ${RC} mΩ ÷ ${P}`,stripMath,`${fmt(r.Rpack,2)} × ½ × (${fmt(r.load,3)}² − 1)`,`${fmt(r.Rpack*r.uf,2)} × 10% × ${r.extra} extra ÷ ${S}`];
-    const parts=[[r.Rideal,'cells','fixed by the S×P'],[strips,'strips','add strips between groups'],[uneven,'uneven cells',`busiest cell +${fmt((r.load-1)*100,1)}%`],[split,'split groups',r.extra?`${r.extra} extra pieces`:'none']];
-    const big=Math.max(strips,uneven,split);
+    const math=[`${S} × ${RC} mΩ ÷ ${P}`,stripMath,`${fmt(r.Rpack,2)} × ½ × (${fmt(r.load,3)}² − 1)`,`${fmt(r.Rpack*r.uf,2)} × 10% × ${r.extra} extra ÷ ${S}`,r.hotN?`10 × excess heat in ${r.hotN} strip${r.hotN>1?'s':''} over 1.2× a cell's current`:'no strip over 1.2× a cell\'s current'];
+    const parts=[[r.Rideal,'cells','fixed by the S×P'],[strips,'strips','add strips between groups'],[uneven,'uneven cells',`busiest cell +${fmt((r.load-1)*100,1)}%`],[split,'split groups',r.extra?`${r.extra} extra pieces`:'none'],[hot,'hot spots','']];
+    const big=Math.max(strips,uneven,split,hot);
     bd.innerHTML=`<div class="h">Score breakdown</div><div class="bar">${parts.map((p,k)=>`<i style="width:${p[0]/r.total*100}%;background:${C[k]}"></i>`).join('')}</div><div class="rows">${parts.map((p,k)=>`<span class="v">${k?'+':''}${fmt(p[0],2)}</span><span${k&&p[0]===big&&big>0.01?' style="color:var(--ink);font-weight:600"':''}><span class="sw" style="background:${C[k]}"></span> ${p[1]}</span><span class="m">${math[k]}${k===2?(bc.length?` · <span class="busy" data-busy="1">${bc.length>1?bc.length+' busiest cells in '+bgs.map(g=>'S'+g).join(', '):'busiest is an S'+bgs[0]+' cell'}</span>`:' · cells share evenly'):''}</span>`).join('')}<span class="v" style="border-top:1px solid var(--line);padding-top:3px">${fmt(r.total,2)}</span><span style="border-top:1px solid var(--line);padding-top:3px">mΩ</span><span></span></div>`;
   }else bd.innerHTML='';
   {const sb=$('submitBtn');sb.hidden=!done||showBot;if(done)sb.href=`https://github.com/henry-has/henry-has.github.io/issues/new?title=${encodeURIComponent(`spotweld: ${L.name} ${fmt(r.total,2)} mΩ`)}&body=${encodeURIComponent(`Submit this issue as is. A bot checks the layout and adds it to the leaderboard.\n\nlevel: ${L.id}\nlayout: ${asg.map(g=>g.toString(36)).join('')}`)}`;}
@@ -571,7 +574,7 @@ function renderLB(){const list=(LB&&LB[L.id])||[];$('lb').hidden=!list.length;
   $('lbList').innerHTML=list.slice(0,10).map((e,k)=>`<li data-k="${k}" title="Load this layout"><b>${e.score.toFixed(2)}</b>${String(e.user).replace(/[^A-Za-z0-9-]/g,'')}</li>`).join('');}
 function renderLevels(){
   const cur=LEVELS.indexOf(L);
-  $('levels').innerHTML=DEMOS.map((d,k)=>{const b=store.get('best5:'+d.id,null),pp=store.get('par6:'+d.id,null),n=b==null?0:starsFor(b,pp&&pp.score,d.optimal);
+  $('levels').innerHTML=DEMOS.map((d,k)=>{const b=store.get('best6:'+d.id,null),pp=store.get('par7:'+d.id,null),n=b==null?0:starsFor(b,pp&&pp.score,d.optimal);
     return `<button type="button" data-k="${k}" aria-current="${k===cur}">${d.name}<span class="cfg">${d.S}S${d.P}P</span>${n?`<span class="st">${'★'.repeat(n)}</span>`:''}</button>`;}).join('');
   const on=$('levels').querySelector('[aria-current="true"]');if(on)on.scrollIntoView({block:'nearest',inline:'nearest'});
 }
