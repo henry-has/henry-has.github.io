@@ -51,10 +51,10 @@ svg{width:100%;height:auto;display:block;touch-action:none;cursor:crosshair}
 .legend{color:var(--mute);font-size:12px;margin-top:8px}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:-1px;margin:0 3px 0 8px;border:3px solid}
 /* svg bits */
-.strip{stroke:#262a35;stroke-width:.14;stroke-linecap:round}
-.par{stroke:#fff;stroke-width:.09;stroke-linecap:round;opacity:.95}
-.glow1{stroke:var(--red);stroke-width:.5;stroke-linecap:round;opacity:.55;filter:blur(3px);animation:gl 1s infinite}
-.glow2{stroke:var(--amber);stroke-width:.45;stroke-linecap:round;opacity:.45;filter:blur(3px)}
+.strip{stroke:#1f2330;stroke-width:.2;stroke-linecap:round}
+.par{stroke:#fff;stroke-width:.11;stroke-linecap:round;opacity:.95}
+.glow1{stroke:var(--red);stroke-width:.6;stroke-linecap:round;opacity:.55;filter:blur(3px);animation:gl 1s infinite}
+.glow2{stroke:var(--amber);stroke-width:.5;stroke-linecap:round;opacity:.45;filter:blur(3px)}
 @keyframes gl{50%{opacity:.15}}
 .cn{font:700 .5px system-ui;text-anchor:middle;dominant-baseline:central;fill:#fff;pointer-events:none}
 .pol{font:700 .26px system-ui;text-anchor:middle;dominant-baseline:central;pointer-events:none}
@@ -76,9 +76,9 @@ kbd{background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:
 </header>
 <main>
   <div class="bar">
-    <div><span class="task" id="task"></span><div class="status" id="status"></div></div>
+    <div><span class="task" id="task"></span><div class="status" id="status"></div><div class="status" id="hint"></div></div>
     <div class="sp"></div>
-    <button data-lvl="0">Level 1</button><button data-lvl="1">Level 2</button>
+    <span id="lvls" style="display:contents"></span>
     <button id="erase" title="Same as right-click (for touch)">Erase mode</button>
     <button id="clear">Clear</button>
   </div>
@@ -131,9 +131,20 @@ function level2(){ // hex donut, 42 cells
     if(d>=1.9&&d<=3.75)c.push([x,y]);
   } return c;
 }
+const hexRows=(rows)=>{const c=[];rows.forEach(([n,off],r)=>{for(let i=0;i<n;i++)c.push([i+off+(r%2?.5:0),r*S3]);});return c;};
+function level3(){const c=[];for(let r=0;r<6;r++)for(let i=0;i<4;i++)c.push([i,r]);return c;} // square grid
+function level4(){return hexRows([[3,0],[3,0],[3,0],[3,0],[3,0],[3,0],[6,0],[6,0]]);} // L shape
+function level5(){const rows=[];for(let r=0;r<7;r++)rows.push([r+1,-(r)/2+ (r%2? -0.5:0)+0]);
+  const c=[];for(let r=0;r<7;r++)for(let i=0;i<=r;i++)c.push([i-r/2,r*S3]);return c;} // triangle, 28
+function level6(){const c=[];for(let r=-7;r<=7;r++)for(let i=-7;i<=7;i++){
+    const x=i+(r&1?.5:0),y=r*S3,d=Math.hypot(x,y);if(d>=1.5&&d<=3.8)c.push([x,y]);}return c;} // big donut, 48
 const LEVELS=[
   {name:'Level 1',S:7,P:3,cells:level1(),hint:'A simple block, like a small LVB.'},
-  {name:'Level 2',S:7,P:6,cells:level2(),hint:'A donut. Wedges, rings, spirals… your call.'}
+  {name:'Level 2',S:7,P:6,cells:level2(),hint:'A donut. Wedges, rings, spirals… your call.'},
+  {name:'Level 3',S:6,P:4,cells:level3(),hint:'Square packing: cells only touch 4 neighbours.'},
+  {name:'Level 4',S:6,P:5,cells:level4(),hint:'An L-shaped pack. The corner is tricky.'},
+  {name:'Level 5',S:4,P:7,cells:level5(),hint:'A triangle: 28 cells in 4 groups.'},
+  {name:'Level 6',S:8,P:6,cells:level6(),hint:'A big donut: 8 groups of 6.'}
 ];
 
 /* ---------- state ---------- */
@@ -151,7 +162,7 @@ function load(i){
   minY=Math.min(...cells.map(c=>c.y))-1.2;maxY=Math.max(...cells.map(c=>c.y))+1.2;
   for(const s of [$('svgA'),$('svgB')])s.setAttribute('viewBox',`${minX} ${minY} ${maxX-minX} ${maxY-minY}`);
   document.querySelectorAll('[data-lvl]').forEach(b=>b.classList.toggle('on',+b.dataset.lvl===i));
-  $('task').textContent=`${L.name}: ${L.S}s${L.P}p — ${L.S*L.P} cells`;
+  $('task').textContent=`${L.name}: ${L.S}s${L.P}p — ${L.S*L.P} cells`;$('hint').textContent=L.hint;
   $('next').style.display='none';
   update();
 }
@@ -232,11 +243,13 @@ function evaluate(){
 function drawSide(svg,side){
   const flip=side==='B', X=x=>flip?(minX+maxX-x):x;
   let h='',tx='';
+  const bridge=(a,b,f)=>{const ax=X(cells[a].x),ay=cells[a].y,bx=X(cells[b].x),by=cells[b].y;
+    return `x1="${ax+(bx-ax)*f}" y1="${ay+(by-ay)*f}" x2="${ax+(bx-ax)*(1-f)}" y2="${ay+(by-ay)*(1-f)}"`;};
   // strips
   const sp=sim.pairs.filter(([a,b,k])=>sideOf(k)===side);
   for(const [a,b,k] of sp){
     const n=sim.n[k], g=n<=1?'glow1':n===2?'glow2':'';
-    const l=`x1="${X(cells[a].x)}" y1="${cells[a].y}" x2="${X(cells[b].x)}" y2="${cells[b].y}"`;
+    const l=bridge(a,b,.3);
     if(g)h+=`<line class="${g}" ${l}/>`;
   }
   // cells
@@ -259,11 +272,10 @@ function drawSide(svg,side){
   });
   // parallel plates (same-group neighbours), visible on both sides
   for(const [a,b] of adj)if(grp[a]>=0&&grp[a]===grp[b])
-    h+=`<line class="par" x1="${X(cells[a].x)}" y1="${cells[a].y}" x2="${X(cells[b].x)}" y2="${cells[b].y}"/>`;
+    h+=`<line class="par" ${bridge(a,b,.3)}/>`;
   // strips on top of cells
   for(const [a,b,k] of sp){
-    const l=`x1="${X(cells[a].x)}" y1="${cells[a].y}" x2="${X(cells[b].x)}" y2="${cells[b].y}"`;
-    h+=`<line class="strip" ${l}/>`;
+    h+=`<line class="strip" ${bridge(a,b,.24)}/>`;
   }
   // pack terminals
   const term=(g,txt,plus)=>{ // draw label at group centroid on its terminal side
@@ -342,6 +354,7 @@ $('chips').addEventListener('click',e=>{const c=e.target.closest('.chip');if(c){
 $('clear').onclick=()=>{grp=cells.map(()=>-1);active=0;update();};
 $('erase').onclick=()=>{eraseMode=!eraseMode;$('erase').classList.toggle('on',eraseMode);update();};
 $('next').onclick=()=>load(lvlIdx+1);
+$('lvls').innerHTML=LEVELS.map((l,i)=>`<button data-lvl="${i}">${i+1}</button>`).join('');
 document.querySelectorAll('[data-lvl]').forEach(b=>b.onclick=()=>load(+b.dataset.lvl));
 $('help').onclick=()=>$('modal').classList.add('show');
 $('go').onclick=()=>$('modal').classList.remove('show');
