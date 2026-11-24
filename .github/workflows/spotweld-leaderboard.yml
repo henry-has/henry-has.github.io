@@ -1,0 +1,34 @@
+name: Spotweld leaderboard
+on:
+  issues:
+    types: [opened]
+permissions:
+  contents: write
+  issues: write
+concurrency: spotweld-leaderboard
+jobs:
+  submit:
+    if: startsWith(github.event.issue.title, 'spotweld:')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify and record
+        id: v
+        env:
+          BODY: ${{ github.event.issue.body }}
+          USER: ${{ github.event.issue.user.login }}
+        run: node .github/scripts/spotweld-verify.js
+      - name: Commit
+        if: steps.v.outputs.changed == 'true'
+        run: |
+          git config user.name "spotweld-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add spotweld/leaderboard.json
+          git commit -m "Spotweld leaderboard: ${{ github.event.issue.user.login }}"
+          git pull --rebase && git push
+      - name: Reply and close
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MSG: ${{ steps.v.outputs.msg }}
+          N: ${{ github.event.issue.number }}
+        run: gh issue close "$N" --repo "$GITHUB_REPOSITORY" --comment "$MSG"
