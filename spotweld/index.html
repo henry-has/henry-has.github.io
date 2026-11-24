@@ -192,7 +192,7 @@ button.txt.on{color:var(--crit);background:transparent}
 
   <div class="tools2">
     <div class="edit"><button class="txt" id="undoBtn" type="button">Undo</button><button class="txt" id="eraseBtn" type="button">Erase</button><button class="txt" id="clearBtn" type="button">Clear</button></div>
-    <div class="after"><button class="txt" id="loadBtn" type="button" hidden>Cell load</button><button class="txt" id="botBtn" type="button">Show par</button><button class="txt pri" id="shareBtn" type="button" hidden>Share</button><button class="txt pri" id="nextBtn" type="button" hidden>Next level →</button></div>
+    <div class="after"><button class="txt" id="botBtn" type="button">Show par</button><button class="txt pri" id="shareBtn" type="button" hidden>Share</button><button class="txt pri" id="nextBtn" type="button" hidden>Next level →</button></div>
   </div>
 
   <section class="loss" id="bd"></section>
@@ -206,7 +206,6 @@ button.txt.on{color:var(--crit);background:transparent}
     <li><b>Left-click or drag</b> to add cells to the highlighted group. When it's full you move to the next. Click a group in the series chain to go back to it.</li>
     <li><b>Right-click or drag</b> to erase (touch: Erase). Ctrl Z undoes.</li>
     <li>Touching cells get a strip. Each group must touch the one before it. More strips between groups is better; hot strips glow.</li>
-    <li>After finishing, press <b>Cell load</b>: each cell shows how much more (red) or less (blue) current it carries than the rest of its group.</li>
     <li>★ finish · ★★ within 5% of par · ★★★ beat par.</li>
   </ol>
   <button class="btn primary" id="go" type="button">Got it</button>
@@ -446,7 +445,7 @@ function render(){
   if(!showBot){store.set('asg:'+L.id,asg);}
   renderBoard(view);renderSide();
 }
-let strips=[[],[]],hlJ=0,loadView=false;
+let strips=[[],[]],hlJ=0;
 function renderBoard(view){
   renderFace(view,1,$('boardT'));renderFace(view,0,$('boardB'));
 }
@@ -458,10 +457,7 @@ function renderFace(view,face,svg){
   const out=[``];
   cells.forEach((c,i)=>{
     const g=view[i];
-    const lv=loadView&&res.complete&&!res.open&&g>=0&&res.gstat[g];
-    if(lv){const dv=res.cellI[i]/res.gstat[g].mean-1,a=Math.min(1,Math.abs(dv)/0.10);
-      out.push(`<circle cx="${c.x}" cy="${c.y}" r="${R}" fill="${dv>0?'#e5484d':'#3b82f6'}" fill-opacity="${(0.08+0.82*a).toFixed(2)}" stroke="var(--cell-line)" stroke-width="0.03"/>`);}
-    else if(g>=0){const col=PAL[g%PAL.length];out.push(`<circle cx="${c.x}" cy="${c.y}" r="${R}" fill="${col}" fill-opacity="${g===active&&!showBot?0.4:0.22}" stroke="${col}" stroke-width="0.04"/>`);}
+    if(g>=0){const col=PAL[g%PAL.length];out.push(`<circle cx="${c.x}" cy="${c.y}" r="${R}" fill="${col}" fill-opacity="${g===active&&!showBot?0.4:0.22}" stroke="${col}" stroke-width="0.04"/>`);}
     else out.push(`<circle cx="${c.x}" cy="${c.y}" r="${R}" fill="var(--cell)" stroke="var(--cell-line)" stroke-width="0.03"/>`);
   });
   const fl=res.links.filter(l=>l.face===face);strips[face]=fl;
@@ -472,16 +468,14 @@ function renderFace(view,face,svg){
     const bus=st.bus||st.tbus;
     const t=st.W!=null?clamp(st.W/HEATMAX):0,col=bus?'var(--bus)':heatColor(t);
     if(hlJ&&st.p===hlJ&&view[st.i]!==view[st.j])out.push(`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--accent)" stroke-width="0.3" stroke-linecap="round" opacity=".7"/>`);
-    out.push(`<line class="lk" data-l="${face}:${k}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="0.16" stroke-linecap="round"${bus?' stroke-dasharray="0.06 0.06"':''}${loadView&&res.complete?' opacity=".25"':''}/>`);
+    out.push(`<line class="lk" data-l="${face}:${k}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="0.16" stroke-linecap="round"${bus?' stroke-dasharray="0.06 0.06"':''}/>`);
   });
   cells.forEach((c,i)=>{
     const g=view[i];
     if(g>=0){
       const col=PAL[g%PAL.length];
       if(g===active&&!showBot&&!res.complete)out.push(`<circle class="activering" cx="${c.x}" cy="${c.y}" r="${R+0.03}" fill="none" stroke="${col}" stroke-width="0.05"/>`);
-      if(loadView&&res.complete&&!res.open&&res.gstat[g]){const dv=(res.cellI[i]/res.gstat[g].mean-1)*100;
-        out.push(`<text class="gt" x="${c.x}" y="${c.y-0.02}" font-size="0.2" fill="#fff" text-anchor="middle" style="paint-order:stroke" stroke="#0c0f14" stroke-width="0.05">${Math.abs(dv)<0.5?'0':(dv>0?'+':'−')+Math.abs(dv).toFixed(0)}%</text><text class="lt" x="${c.x}" y="${c.y+0.2}" font-size="0.11" fill="var(--ink-3)" text-anchor="middle">S${g+1}</text>`);}
-      else out.push(`<text class="gt" x="${c.x}" y="${c.y+0.09}" font-size="0.25" fill="#fff" text-anchor="middle" style="paint-order:stroke" stroke="#0c0f14" stroke-width="0.06">S${g+1}</text>`);
+      out.push(`<text class="gt" x="${c.x}" y="${c.y+0.09}" font-size="0.25" fill="#fff" text-anchor="middle" style="paint-order:stroke" stroke="#0c0f14" stroke-width="0.06">S${g+1}</text>`);
     }
     out.push(`<circle class="cellhit" data-c="${i}" cx="${c.x}" cy="${c.y}" r="${R}" fill="transparent"/>`);
     out.push(`<circle class="hov" cx="${c.x}" cy="${c.y}" r="${R+0.01}" fill="#fff" fill-opacity=".07" stroke="#fff" stroke-opacity=".5" stroke-width="0.025"/>`);
@@ -507,7 +501,7 @@ function renderSide(){
   else if(firstBad>=0){el.className='step bad';el.textContent=`S${firstBad+1} isn't touching S${firstBad}`;}
   else if(done){const w=(r.junc||[]).filter(j=>isFinite(j.R)).reduce((a,b)=>!a||b.R>a.R?b:a,null);
     const pr=par&&par.score,n=starsFor(r.total,pr,L.optimal);el.className=n===3?'step good':'step';
-    el.textContent=n===3?(L.optimal?'Best possible layout.':'You beat par.'):`Weakest link is S${w.q}→S${w.q+1}. Check Cell load for overworked cells.`;}
+    el.textContent=n===3?(L.optimal?'Best possible layout.':'You beat par.'):`Weakest link is S${w.q}→S${w.q+1}. Re-weld around it to beat par.`;}
   else el.innerHTML=`Place ${need} more cell${need===1?'':'s'} in S${active+1}`+(active>0?`, touching S${active}`:', the PACK − group');
   // chain: groups with fill bars, links between them
   const J=r.junc||[],fin=J.filter(j=>isFinite(j.R)),worst=fin.length>1?fin.reduce((a,b)=>b.R>a.R?b:a):null;
@@ -537,7 +531,6 @@ function renderSide(){
     const big=Math.max(strips,uneven,split);
     bd.innerHTML=`<div class="h">Score breakdown</div><div class="bar">${parts.map((p,k)=>`<i style="width:${p[0]/r.total*100}%;background:${C[k]}"></i>`).join('')}</div><div class="rows">${parts.map((p,k)=>`<span class="v">${k?'+':''}${fmt(p[0],2)}</span><span${k&&p[0]===big&&big>0.01?' style="color:var(--ink);font-weight:600"':''}><span class="sw" style="background:${C[k]}"></span> ${p[1]}</span><span></span>`).join('')}<span class="v" style="border-top:1px solid var(--line);padding-top:3px">${fmt(r.total,2)}</span><span style="border-top:1px solid var(--line);padding-top:3px">mΩ</span><span></span></div>`;
   }else bd.innerHTML='';
-  $('loadBtn').hidden=!(r.complete&&!r.open);$('loadBtn').textContent=loadView?'Hide cell load':'Cell load';$('loadBtn').classList.toggle('pri',loadView);
   $('botBtn').textContent=showBot?'Hide par':'Show par';
 }
 function renderLevels(){
@@ -600,7 +593,6 @@ $('schem').addEventListener('mouseleave',()=>{if(hlJ){hlJ=0;renderBoard(showBot&
 $('schem').addEventListener('click',e=>{const g=e.target.closest('button.g');if(g){active=+g.dataset.g;showBot=false;render();}});
 $('eraseBtn').onclick=()=>{eraseMode=!eraseMode;$('eraseBtn').classList.toggle('on',eraseMode);};
 $('nextBtn').onclick=()=>loadLevel(LEVELS.indexOf(L)+1);
-$('loadBtn').onclick=()=>{loadView=!loadView;render();};
 $('help').onclick=()=>$('modal').classList.add('show');
 $('go').onclick=()=>{$('modal').classList.remove('show');store.set('seenRules',1);};
 $('modal').addEventListener('click',e=>{if(e.target.id==='modal')$('go').click();});
