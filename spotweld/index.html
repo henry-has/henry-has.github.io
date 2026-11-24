@@ -72,10 +72,10 @@ select{font:inherit;font-size:13px;color:var(--ink);background:var(--bg);border:
 .chain{display:grid;grid-template-columns:repeat(var(--n,8),minmax(0,1fr))}
 @media (max-width:760px){.chain{grid-template-columns:repeat(auto-fill,minmax(44px,1fr))}}
 .chain button{background:var(--bg);border-radius:0;margin:0 -1px -1px 0;padding:6px 2px 5px;display:flex;flex-direction:column;align-items:center;gap:4px;min-height:48px;font-size:13px;font-weight:600;position:relative}
-.chain button .d{display:flex;flex-wrap:wrap;justify-content:center;gap:2px;max-width:34px}
-.chain button i{width:6px;height:6px;border-radius:50%;border:1px solid var(--line)}
+.chain button .fr{font-size:11px;font-weight:400;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.chain button.full .fr{color:var(--ink-2)}
+.chain button.on .fr{color:inherit;opacity:.8}
 .chain button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);z-index:1}
-.chain button.on i{border-color:var(--accent-ink)}
 .chain button.bad{border-color:var(--crit);color:var(--crit);z-index:1}
 .jl{display:grid;grid-template-columns:auto auto auto 1fr;gap:2px 8px;align-items:center;font-size:12px}
 .jl .r{display:contents;cursor:default}
@@ -476,8 +476,7 @@ function renderSide(){
   const sc=[];
   for(let g=0;g<S;g++){
     const gr=r.groups[g],col=PAL[g%PAL.length],bad=gr.length&&!(g===active&&gr.length<P)&&!r.touch[g];
-    let dots='';for(let k=0;k<P;k++)dots+=`<i style="${k<gr.length?`background:${col};border-color:${col}`:''}"></i>`;
-    sc.push(`<button type="button" class="${g===active&&!showBot?'on':''}${bad?' bad':''}" data-g="${g}" title="Group S${g+1}: ${gr.length}/${P} cells">S${g+1}<span class="d">${dots}</span></button>`);
+    sc.push(`<button type="button" class="${g===active&&!showBot?'on':''}${gr.length===P?' full':''}${bad?' bad':''}" data-g="${g}" title="Group S${g+1}: ${gr.length}/${P} cells">S${g+1}<span class="fr">${gr.length}/${P}</span></button>`);
   }
   $('schem').innerHTML=sc.join('');
   $('schem').style.setProperty('--n',S);
