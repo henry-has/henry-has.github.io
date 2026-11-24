@@ -164,6 +164,8 @@ button.txt.on{color:var(--crit);background:transparent}
 .loss .rows .sw{width:8px;height:8px;display:inline-block}
 .loss .rows .tip{color:var(--ink-3);font-size:12px}
 .loss .calc{font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums;line-height:1.5}
+.loss .busy{font-size:12px;color:var(--ink-3);cursor:default;border-bottom:1px dotted var(--ink-3);justify-self:start}
+.loss .busy:hover{color:var(--crit);border-color:var(--crit)}
 .loss .h{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
 </style>
 </head>
@@ -193,7 +195,7 @@ button.txt.on{color:var(--crit);background:transparent}
 
   <div class="tools2">
     <div class="edit"><button class="txt" id="undoBtn" type="button">Undo</button><button class="txt" id="eraseBtn" type="button">Erase</button><button class="txt" id="clearBtn" type="button">Clear</button></div>
-    <div class="after"><button class="txt" id="botBtn" type="button">Show par</button><button class="txt pri" id="shareBtn" type="button" hidden>Share</button><button class="txt pri" id="nextBtn" type="button" hidden>Next level →</button></div>
+    <div class="after"><button class="txt" id="botBtn" type="button">Show par</button><button class="txt pri" id="nextBtn" type="button" hidden>Next level →</button></div>
   </div>
 
   <section class="loss" id="bd"></section>
@@ -446,7 +448,7 @@ function render(){
   if(!showBot){store.set('asg:'+L.id,asg);}
   renderBoard(view);renderSide();
 }
-let strips=[[],[]],hlJ=0;
+let strips=[[],[]],hlJ=0,busyCell=-1,showBusy=false;
 function renderBoard(view){
   renderFace(view,1,$('boardT'));renderFace(view,0,$('boardB'));
 }
@@ -481,6 +483,7 @@ function renderFace(view,face,svg){
       if(g===active&&!showBot&&!res.complete)out.push(`<circle class="activering" cx="${c.x}" cy="${c.y}" r="${R+0.03}" fill="none" stroke="${col}" stroke-width="0.05"/>`);
       out.push(`<text class="gt" x="${c.x}" y="${c.y+0.09}" font-size="0.25" fill="#fff" text-anchor="middle" style="paint-order:stroke" stroke="#0c0f14" stroke-width="0.06">S${g+1}</text>`);
     }
+    if(showBusy&&i===busyCell)out.push(`<circle cx="${c.x}" cy="${c.y}" r="${R+0.07}" fill="none" stroke="var(--crit)" stroke-width="0.08"/>`);
     out.push(`<circle class="cellhit" data-c="${i}" cx="${c.x}" cy="${c.y}" r="${R}" fill="transparent"/>`);
     out.push(`<circle class="hov" cx="${c.x}" cy="${c.y}" r="${R+0.01}" fill="#fff" fill-opacity=".07" stroke="#fff" stroke-opacity=".5" stroke-width="0.025"/>`);
   });
@@ -525,15 +528,16 @@ function renderSide(){
   const n=done&&!showBot?starsFor(r.total,pr,L.optimal):starsFor(b2,pr,L.optimal);
   $('stars').innerHTML=`<b>${'★'.repeat(n)}</b>${'☆'.repeat(3-n)}`;
   $('roParD').innerHTML=done?`par ${fmt(pr,2)} · <b>${r.total-pr>=0?'+':''}${fmt(r.total-pr,2)}</b>`+(b2!=null?` · best ${fmt(b2,2)}`:''):(b2!=null?`best ${fmt(b2,2)}`:'lower is better');
-  $('shareBtn').hidden=!done;{const k=LEVELS.indexOf(L);$('nextBtn').hidden=!(done&&!showBot&&k<LEVELS.length-1);}
+  {const k=LEVELS.indexOf(L);$('nextBtn').hidden=!(done&&!showBot&&k<LEVELS.length-1);}
   // where the resistance goes
   const bd=$('bd');
   if(done){
     const strips=r.Rpack-r.Rideal,uneven=r.Rpack*r.load*r.load-r.Rpack,split=r.total-r.Rpack*r.load*r.load;
     const C=['var(--line)','#e9a23b','#e5484d','#8e6cf0'];
+    let bi=-1,bq=0;asg.forEach((g,i)=>{if(g<0||!r.gstat[g])return;const q=r.cellI[i]/r.gstat[g].mean;if(q>bq){bq=q;bi=i;}});busyCell=bi;
     const parts=[[r.Rideal,'cells','fixed by the S×P'],[strips,'strips','add strips between groups'],[uneven,'uneven cells',`busiest cell +${fmt((r.load-1)*100,1)}%`],[split,'split groups',r.extra?`${r.extra} extra pieces`:'none']];
     const big=Math.max(strips,uneven,split);
-    bd.innerHTML=`<div class="h">Score breakdown</div><div class="bar">${parts.map((p,k)=>`<i style="width:${p[0]/r.total*100}%;background:${C[k]}"></i>`).join('')}</div><div class="rows">${parts.map((p,k)=>`<span class="v">${k?'+':''}${fmt(p[0],2)}</span><span${k&&p[0]===big&&big>0.01?' style="color:var(--ink);font-weight:600"':''}><span class="sw" style="background:${C[k]}"></span> ${p[1]}</span><span></span>`).join('')}<span class="v" style="border-top:1px solid var(--line);padding-top:3px">${fmt(r.total,2)}</span><span style="border-top:1px solid var(--line);padding-top:3px">mΩ</span><span></span></div><div class="calc">${fmt(r.Rpack,2)} pack × ${fmt(r.load,3)}² busiest cell × ${fmt(r.splitF,3)} splits = ${fmt(r.total,2)}<br>busiest cell = an S${r.gstat.findIndex(x=>x&&x.mx/x.mean===r.load)+1} cell at ${fmt(r.load,3)}× its group's average<br>splits = 1 + 10% × ${r.extra} extra piece${r.extra===1?'':'s'} ÷ ${S} groups</div>`;
+    bd.innerHTML=`<div class="h">Score breakdown</div><div class="bar">${parts.map((p,k)=>`<i style="width:${p[0]/r.total*100}%;background:${C[k]}"></i>`).join('')}</div><div class="rows">${parts.map((p,k)=>`<span class="v">${k?'+':''}${fmt(p[0],2)}</span><span${k&&p[0]===big&&big>0.01?' style="color:var(--ink);font-weight:600"':''}><span class="sw" style="background:${C[k]}"></span> ${p[1]}</span>${k===2&&bi>=0?`<span class="busy" data-busy="1">busiest: S${asg[bi]+1} cell, +${fmt((r.load-1)*100,1)}%</span>`:'<span></span>'}`).join('')}<span class="v" style="border-top:1px solid var(--line);padding-top:3px">${fmt(r.total,2)}</span><span style="border-top:1px solid var(--line);padding-top:3px">mΩ</span><span></span></div><div class="calc">${fmt(r.Rpack,2)} pack × ${fmt(r.load,3)}² busiest cell × ${fmt(r.splitF,3)} splits = ${fmt(r.total,2)}<br>splits = 1 + 10% × ${r.extra} extra piece${r.extra===1?'':'s'} ÷ ${S} groups</div>`;
   }else bd.innerHTML='';
   $('botBtn').textContent=showBot?'Hide par':'Show par';
 }
@@ -596,6 +600,8 @@ $('schem').addEventListener('mouseover',e=>{const r=e.target.closest('.k[data-q]
 $('schem').addEventListener('mouseleave',()=>{if(hlJ){hlJ=0;renderBoard(showBot&&par&&par.asg?par.asg:asg);}});
 $('schem').addEventListener('click',e=>{const g=e.target.closest('button.g');if(g){active=+g.dataset.g;showBot=false;render();}});
 $('eraseBtn').onclick=()=>{eraseMode=!eraseMode;$('eraseBtn').classList.toggle('on',eraseMode);};
+$('bd').addEventListener('mouseover',e=>{const on=!!e.target.closest('[data-busy]');if(on!==showBusy){showBusy=on;renderBoard(showBot&&par&&par.asg?par.asg:asg);}});
+$('bd').addEventListener('mouseleave',()=>{if(showBusy){showBusy=false;renderBoard(showBot&&par&&par.asg?par.asg:asg);}});
 $('nextBtn').onclick=()=>loadLevel(LEVELS.indexOf(L)+1);
 $('help').onclick=()=>$('modal').classList.add('show');
 $('go').onclick=()=>{$('modal').classList.remove('show');store.set('seenRules',1);};
@@ -609,12 +615,6 @@ addEventListener('keydown',e=>{
   if(e.key==='e'||e.key==='E')$('eraseBtn').click();
 });
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('show'),1800);}
-$('shareBtn').onclick=async()=>{
-  const r=evaluate(L,asg);
-  if(!r.complete||r.open){toast('Finish the pack first');return;}
-  const txt=`⚡ Spotweld · ${L.name} · ${L.S}S${L.P}P ${starStr(starsFor(r.total,par&&par.score,L.optimal))}\n${fmt(r.total,2)} mΩ effective${par&&par.score!=null?` (par ${fmt(par.score,2)})`:''}\nstrips +${fmt(r.Rpack-r.Rideal,2)} mΩ · worst cell +${fmt((r.load-1)*100,1)}% · ${r.extra} split pieces\n${location.href.split('#')[0]}`;
-  try{await navigator.clipboard.writeText(txt);toast('Result copied to clipboard');}catch(_){prompt('Copy your result:',txt);}
-};
 
 
 if(!store.get('seenRules',0))$('modal').classList.add('show');
