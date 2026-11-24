@@ -282,8 +282,7 @@ function _dt(b,k,sh){const r=atob(b),u=new Uint8Array(r.length);let x=k>>>0;for(
   const f=Array.from(new Float32Array(u.buffer),v=>Math.round(v*1e4)/1e4);const build=(o,d)=>{if(d===sh.length-1)return f.slice(o,o+sh[d]);const st=sh.slice(d+1).reduce((a,c)=>a*c,1);return Array.from({length:sh[d]},(_,i)=>build(o+i*st,d+1));};return build(0,0);}
 const DUDT_X=_dt('uC1SNsdRCzKUAP5dv3meMCnZqJzIPMgVOudtiAMXnyOIuCuSVD13MWkgFoUpH3CCftUR+Ai4JyO7j37hpoQNbUdAs4aHZup682I+T/ACGVY=',3191193158,[20]);
 const DUDT=_dt('Rak5ZvfNQljrQxJXEvtS8j9OAa7ozCNSQWJ/SpK43kWhaTjBB47zqg51eobXpsk21DqsEy5ovWfgoajYmlKXpFLcOGEDtvnb4tvqnvBAKQY=',1852730803,[20]).map(v=>v*1e-3);
-// About:Energy RS50 export, 40 A discharge, 25 °C start, 37 °C ambient (temperature °C every 10 s)
-const AE={/* redacted */};
+const AE={/* redacted */}; // validation curves removed (unused)
 // About:Energy RS50 DCIR powermaps, mΩ: 30 s discharge pulses capped at 0.5C, 1C, 2C, 4C, 10C (median pulse currents below, A)
 const RM_SOC=_dt('Qa7BljUNttcNU1DwDXvUkudVY59sEhp3369eomu0q0JoAu/0Q00TRvpszJFdPJddC+1yt0Pd4qCglYRDEzLRZcoD82UaS5yh37mY4Q==',3947639951,[19]);
 const RM_T=_dt('j7HatCoN25sNBWybW48UVkAkMgHF6gLPLj+6GLHDtfCKf0uWEyzih63NxUU=',2654274369,[11]);
