@@ -6,154 +6,179 @@
 <title>Spotweld</title>
 <meta name="description" content="Spotweld, a battery packaging game: wire cylindrical cells into an SxP pack with low, even interconnect resistance.">
 <style>
-:root{--bg:#faf8f3;--card:#ffffff;--ink:#1d1d1f;--mute:#6b6b70;--line:#e3dfd4;--cell:#d9d5c8;--accent:#1d1d1f;--red:#ef2b2b;--amber:#f59e0b;--ok:#2f9e6b;--blue:#3b82f6;--strip:#1f2330;--star:#e8a800}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141416;--card:#1e1e22;--ink:#f2f0ea;--mute:#9a9aa2;--line:#33333a;--cell:#3a3a42;--accent:#f2f0ea;--strip:#0b0c10;color-scheme:dark}}
-:root[data-theme="dark"]{--bg:#141416;--card:#1e1e22;--ink:#f2f0ea;--mute:#9a9aa2;--line:#33333a;--cell:#3a3a42;--accent:#f2f0ea;--strip:#0b0c10;color-scheme:dark}
+/* Same plain layout as RS50 Pack Thermal Sim: header, readouts, board + control panel. */
+:root{
+  --bg:#ffffff; --line:#d0d0d0; --ink:#111111; --ink-2:#444444; --ink-3:#777777;
+  --accent:#1a5fb4; --accent-ink:#ffffff; --stage:#f2f2f2; --crit:#c62828; --good:#1b8a5a; --star:#c98500;
+  --cell:#e2e2e2; --cell-line:#bdbdbd; --strip:#9a9a9a; --bus:#7a7a7a;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#161616; --line:#3a3a3a; --ink:#eeeeee; --ink-2:#bbbbbb; --ink-3:#888888;
+  --accent:#6aa5ef; --accent-ink:#000000; --stage:#0e0e0e; --crit:#ef6b6b; --good:#4cc38a; --star:#e0a52a;
+  --cell:#262626; --cell-line:#444444; --strip:#8d8d8d; --bus:#5c5c5c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#161616; --line:#3a3a3a; --ink:#eeeeee; --ink-2:#bbbbbb; --ink-3:#888888;
+  --accent:#6aa5ef; --accent-ink:#000000; --stage:#0e0e0e; --crit:#ef6b6b; --good:#4cc38a; --star:#e0a52a;
+  --cell:#262626; --cell-line:#444444; --strip:#8d8d8d; --bus:#5c5c5c; color-scheme:dark}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-user-select:none;user-select:none}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 [hidden]{display:none!important}
-header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 16px;border-bottom:1px solid var(--line)}
-h1{font:800 22px/1 Georgia,"Times New Roman",serif;margin:0;letter-spacing:-.5px}
-h1 small{font:600 12px system-ui,sans-serif;color:var(--mute);margin-left:8px;letter-spacing:0}
-button{font:inherit;font-size:14px;font-weight:600;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:7px 12px;border-radius:999px;cursor:pointer}
-button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
-button.primary{background:var(--accent);color:var(--bg);border-color:var(--accent)}
-button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-button:disabled{opacity:.4;cursor:default}
-main{max-width:1100px;margin:0 auto;padding:0 16px 40px}
-.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding-block:12px}
-.bar .sp{flex:1}
-.task{font-weight:700;font-size:17px}
-.status{color:var(--mute);min-height:21px}
-.status b{color:var(--ink)}
-.status.bad{color:var(--red)}
-.status.good{color:var(--ok)}
-.lvls{display:flex;gap:4px;flex-wrap:wrap}
-.lvls button{min-width:36px;padding:7px 10px}
-.lvls button .st{color:var(--star);font-size:10px;margin-left:2px}
-.lvls button.on .st{color:inherit}
-.boards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:4px 0 12px}
-@media(max-width:760px){.boards{grid-template-columns:1fr}}
-.board{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:8px}
-.board h3,.panel h3{margin:2px 6px 4px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
-.bd{width:100%;height:auto;display:block;touch-action:none;cursor:crosshair;max-height:62vh}
-.panels{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media(max-width:760px){.panels{grid-template-columns:1fr}}
-.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px}
-.panel h3{margin:0 0 8px}
-.chips{display:flex;flex-wrap:wrap;gap:8px}
-.chip{display:flex;align-items:center;gap:8px;padding:5px 10px 5px 5px;border-radius:999px;border:2px solid transparent;background:var(--bg);font-weight:700}
-.chip.on{border-color:var(--ink);background:var(--bg);color:var(--ink)}
-.chip.bad{border-color:var(--red)}
-.chip b{width:28px;height:28px;border-radius:50%;color:#fff;display:grid;place-items:center;font-size:13px}
-.chip span{font-variant-numeric:tabular-nums;font-size:13px}
-.chip.full span{color:var(--ok)}
-.links{display:grid;gap:6px}
-.link{display:grid;grid-template-columns:52px 1fr 64px 92px;align-items:center;gap:8px;padding:5px 8px;border-radius:8px;background:var(--bg);font-size:13px;font-variant-numeric:tabular-nums;border:1px solid transparent}
-.link .bars{display:flex;gap:2px;flex-wrap:wrap}
-.link .bars i{width:7px;height:12px;border-radius:2px;background:var(--ok)}
-.link small{color:var(--mute);text-align:right}
-.link.n0{border-color:var(--red);color:var(--red)} .link.n0 .bars i{background:var(--red);opacity:.3}
-.link.n1{border-color:var(--red);animation:pulse 1.1s infinite} .link.n1 .bars i{background:var(--red)}
-.link.n2{border-color:var(--amber)} .link.n2 .bars i{background:var(--amber)}
-.link.weak{border-color:var(--red)}
-.link.weak small{color:var(--red);font-weight:700}
-.link:hover{border-color:var(--blue)}
-@keyframes pulse{50%{box-shadow:0 0 12px var(--red)}}
-.scorep{margin-top:12px}
-.score{display:flex;gap:12px 16px;align-items:center;flex-wrap:wrap}
-.big{font:800 34px Georgia,"Times New Roman",serif;font-variant-numeric:tabular-nums}
-.big small{font:600 14px system-ui,sans-serif;color:var(--mute);margin-left:3px}
-.stars{font-size:24px;letter-spacing:2px;color:var(--line)}
+.wrap{max-width:1300px;margin:0 auto;padding:12px 16px 24px;display:grid;gap:12px}
+h1{font-size:18px;margin:0}
+header{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.sub{margin:0;color:var(--ink-2);font-size:12px}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+button{font:inherit;font-size:13px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:3px;padding:4px 8px;cursor:pointer}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+button:disabled{opacity:.45;cursor:not-allowed}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.on{background:var(--crit);color:#fff;border-color:var(--crit)}
+.row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.stars{color:var(--line);letter-spacing:1px}
 .stars b{color:var(--star);font-weight:400}
-#verdict{flex:1;min-width:200px;color:var(--mute);font-size:14px}
-#verdict b{color:var(--ink)}
-.bd2{display:grid;grid-template-columns:auto auto 1fr;gap:3px 10px;align-items:baseline;font-size:13px;color:var(--mute);margin-top:10px;max-width:420px}
-.bd2 .op{text-align:right}
-.bd2 .v{color:var(--ink);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+h2{font-size:13px;margin:0 0 6px}
+select{font:inherit;font-size:13px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:3px;padding:4px 6px}
+.lvl{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--ink-2)}
+.main{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:12px;align-items:start}
+@media (max-width:900px){.main{grid-template-columns:minmax(0,1fr)}}
+.work{border:1px solid var(--line);display:grid}
+.goal{display:flex;justify-content:space-between;align-items:flex-start;gap:8px 16px;flex-wrap:wrap;padding:8px 10px;border-bottom:1px solid var(--line)}
+.goal .what{font-size:13px}
+.goal .what b{font-weight:600}
+.score{text-align:right}
+.score .v{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:20px;line-height:1.1}
+.score .v small{font-size:11px;color:var(--ink-3)}
+.score .d{font-size:11px;color:var(--ink-3);font-family:ui-monospace,Menlo,Consolas,monospace}
+.chainbar{display:flex;align-items:stretch;gap:6px;padding:8px 10px;background:var(--stage);border-bottom:1px solid var(--line)}
+.chainbar .term{display:flex;align-items:center;font-size:11px;color:var(--ink-3);white-space:nowrap}
+.chainbar .chain{flex:1;min-width:0}
+.boards{background:var(--stage);padding:6px 8px}
+.tools{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:8px 10px;border-top:1px solid var(--line)}
+.tools .sp{flex:1}
+.card{border:1px solid var(--line);padding:8px 10px}
+.card .note{margin:6px 0 0}
+.step{font-size:12px;color:var(--ink-2);min-height:17px;margin-top:2px}
+.step b{color:var(--ink)}
+.step.bad{color:var(--crit)}
+.step.good{color:var(--good)}
+.boards{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:700px){.boards{grid-template-columns:1fr}}
+.face{display:grid;gap:2px;min-width:0}
+.face .lbl{font-size:11px;color:var(--ink-3);text-align:center}
+.bd{width:100%;height:auto;max-height:min(560px,62vh);touch-action:none;user-select:none;-webkit-user-select:none;cursor:crosshair;display:block}
+.hint{font-size:11px;color:var(--ink-3)}
+.note{color:var(--ink-3);font-size:11px}
+.side{display:grid;gap:12px;align-content:start}
+.chain{display:grid;grid-template-columns:repeat(var(--n,8),minmax(0,1fr))}
+@media (max-width:760px){.chain{grid-template-columns:repeat(auto-fill,minmax(44px,1fr))}}
+.chain button{background:var(--bg);border-radius:0;margin:0 -1px -1px 0;padding:6px 2px 5px;display:flex;flex-direction:column;align-items:center;gap:4px;min-height:48px;font-size:13px;font-weight:600;position:relative}
+.chain button .d{display:flex;flex-wrap:wrap;justify-content:center;gap:2px;max-width:34px}
+.chain button i{width:6px;height:6px;border-radius:50%;border:1px solid var(--line)}
+.chain button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);z-index:1}
+.chain button.on i{border-color:var(--accent-ink)}
+.chain button.bad{border-color:var(--crit);color:var(--crit);z-index:1}
+.jl{display:grid;grid-template-columns:auto auto auto 1fr;gap:2px 8px;align-items:center;font-size:12px}
+.jl .r{display:contents;cursor:default}
+.jl .r>*{padding:1px 0}
+.jl .r:hover>*{background:var(--stage)}
+.jl .n{font-family:ui-monospace,Menlo,Consolas,monospace;text-align:right;white-space:nowrap}
+.jl .bar{height:6px;background:var(--stage);border:1px solid var(--line);position:relative}
+.jl .bar i{position:absolute;left:0;top:0;bottom:0;background:var(--ink-3)}
+.jl .weak{color:var(--crit)}
+.jl .weak .bar i{background:var(--crit)}
+.jl .h{color:var(--ink-3);font-size:11px}
+.bd2{display:grid;grid-template-columns:auto auto 1fr;gap:3px 8px;align-items:baseline;font-size:12px;color:var(--ink-2)}
+.bd2 .op{font-family:ui-monospace,Menlo,Consolas,monospace;color:var(--ink-3);text-align:right}
+.bd2 .v{font-family:ui-monospace,Menlo,Consolas,monospace;color:var(--ink);white-space:nowrap;text-align:right}
+.bd2 .t{display:none}
+.bd2 .g{color:var(--ink-3)}
 .bd2 .tot{border-top:1px solid var(--line);padding-top:4px}
-.legend{color:var(--mute);font-size:12px;margin-top:10px}
-.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:-1px;margin:0 3px 0 8px;border:3px solid}
-#tip{position:fixed;pointer-events:none;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-size:12px;color:var(--ink);z-index:10;display:none;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.15)}
-#tip .h{color:var(--mute)}
-.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);opacity:0;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:8px 14px;transition:opacity .2s;font-size:13px;z-index:20;pointer-events:none}
+.bd2 .h{display:none}
+#tip{position:fixed;pointer-events:none;background:var(--bg);border:1px solid var(--line);padding:4px 6px;font-size:12px;color:var(--ink);z-index:10;display:none;white-space:nowrap}
+#tip .h{font-weight:600}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);opacity:0;background:var(--bg);border:1px solid var(--line);padding:6px 10px;transition:opacity .2s;font-size:12px;z-index:20;pointer-events:none}
 .toast.show{opacity:1}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;place-items:center;padding:16px;z-index:30}
+footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);padding-top:8px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;place-items:center;padding:16px;z-index:30}
 .modal.show{display:grid}
-.sheet{background:var(--card);border-radius:18px;max-width:560px;max-height:92vh;overflow:auto;padding:22px}
-.sheet h2{font:800 26px Georgia,"Times New Roman",serif;margin:0 0 4px}
-.sheet ol{padding-left:20px;margin:12px 0}
-.sheet li{margin:7px 0}
-kbd{background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:0 5px;font-size:13px}
+.sheet{background:var(--bg);border:1px solid var(--line);max-width:520px;max-height:92vh;overflow:auto;padding:16px 18px}
+.sheet h2{font-size:16px;margin:0}
+.sheet ol{padding-left:20px;margin:10px 0 14px;font-size:13px;color:var(--ink-2)}
+.sheet li{margin:6px 0}
+.sheet b{color:var(--ink)}
 /* svg */
 .cellhit:hover + .hov{opacity:1}
 .hov{opacity:0;pointer-events:none}
-.cn{font:700 .42px system-ui,sans-serif;text-anchor:middle;dominant-baseline:central;fill:#fff;pointer-events:none}
-.pol{font:700 .22px system-ui,sans-serif;text-anchor:middle;dominant-baseline:central;fill:#fff;opacity:.9;pointer-events:none}
-.strip{stroke:var(--strip);stroke-width:.17;stroke-linecap:round}
-.par{stroke:#fff;stroke-width:.17;stroke-linecap:round;opacity:.9;pointer-events:none}
-.glow1{stroke:var(--red);stroke-width:.55;stroke-linecap:round;opacity:.55;filter:blur(3px);animation:gl 1s infinite;pointer-events:none}
-.glow2{stroke:var(--amber);stroke-width:.5;stroke-linecap:round;opacity:.45;filter:blur(3px);pointer-events:none}
-@keyframes gl{50%{opacity:.15}}
-@keyframes ar{50%{stroke-opacity:.3}}
-.activering{animation:ar 1.4s ease-in-out infinite}
-@media (prefers-reduced-motion:reduce){.activering,.glow1,.link.n1{animation:none}}
+@keyframes pulse{0%,100%{stroke-opacity:1}50%{stroke-opacity:.35}}
+.activering{animation:pulse 1.4s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){.activering{animation:none}}
+.lt{font-family:ui-monospace,Menlo,Consolas,monospace;pointer-events:none}
+.gt{font-weight:700;pointer-events:none}
 </style>
 </head>
 <body><img src="https://hits.sh/henry-has.github.io/spotweld.svg" alt="" width="1" height="1" referrerpolicy="no-referrer" style="position:absolute;opacity:0;pointer-events:none">
-<header>
-  <h1>Spotweld<small>battery packaging game</small></h1>
-  <div><button id="help" type="button">? Rules</button></div>
-</header>
-<main>
-  <div class="bar">
-    <div><span class="task" id="goalWhat"></span><div class="status" id="goalStep"></div></div>
-    <div class="sp"></div>
-    <div class="lvls" id="levels"></div>
-    <button id="eraseBtn" type="button" title="Same as right-drag (for touch)">Erase mode</button>
-    <button id="undoBtn" type="button">Undo</button>
-    <button id="clearBtn" type="button">Clear</button>
-  </div>
-
-  <div class="boards">
-    <div class="board"><h3>Side A · top</h3><svg class="bd" id="boardT"></svg></div>
-    <div class="board"><h3>Side B · bottom (flipped over)</h3><svg class="bd" id="boardB"></svg></div>
-  </div>
-
-  <div class="panels">
-    <div class="panel"><h3>Groups (series order) · cells in each</h3><div class="chips" id="schem"></div>
-      <div class="legend">Click a group to continue it. Group 1 is PACK −, the last group is PACK +.</div></div>
-    <div class="panel"><h3>Link resistance between groups</h3><div class="links" id="junc"></div>
-      <div class="legend">Hover a link to highlight its strips. Red edge marks the weakest link.</div></div>
-  </div>
-
-  <div class="panel scorep">
-    <h3>Score · pack resistance, lower is better</h3>
-    <div class="score">
-      <div class="big" id="bigScore">—</div><div class="stars" id="stars"></div>
-      <div id="verdict"></div>
-      <button id="botBtn" type="button">Show par</button>
-      <button class="primary" id="shareBtn" type="button" hidden>Share</button>
-      <button class="primary" id="nextBtn" type="button" hidden>Next level →</button>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Spotweld</h1>
+      <p class="sub">Battery packaging game</p>
     </div>
-    <div class="bd2" id="bd"></div>
-    <div class="legend">White lines = cells in parallel · dark strips = series links · glow = hot strip. Cell ring: <i style="border-color:var(--red)"></i>carries too much <i style="border-color:var(--blue)"></i>carries too little</div>
-  </div>
-</main>
+    <div class="row">
+      <button class="btn" id="help" type="button">Rules</button>
+      <label class="lvl"><span>Level</span><select id="levels" aria-label="Level"></select></label>
+    </div>
+  </header>
 
+  <div class="main">
+    <section class="work">
+      <div class="goal">
+        <div><div class="what" id="goalWhat"></div><div class="step" id="goalStep"></div></div>
+        <div class="score"><div class="stars" id="stars"></div><div class="v" id="bigScore">–</div><div class="d"><span id="roParD">par</span> <span id="roPar">–</span> · best <span id="roBest">–</span></div></div>
+      </div>
+      <div class="chainbar">
+        <span class="term">PACK −</span>
+        <div class="chain" id="schem"></div>
+        <span class="term">PACK +</span>
+      </div>
+      <div class="boards"><div class="face"><div class="lbl">Top face</div><svg class="bd" id="boardT"></svg></div><div class="face"><div class="lbl">Bottom face (seen from above)</div><svg class="bd" id="boardB"></svg></div></div>
+      <div class="tools">
+        <span class="hint">Left-drag adds cells to the highlighted group · right-drag erases</span>
+        <span class="sp"></span>
+        <button class="btn" id="undoBtn" type="button">Undo</button>
+        <button class="btn" id="clearBtn" type="button">Clear</button>
+        <button class="btn" id="eraseBtn" type="button" title="Erase mode for touch screens">Erase</button>
+        <button class="btn" id="botBtn" type="button">Show par</button>
+        <button class="btn primary" id="shareBtn" type="button" hidden>Share</button>
+        <button class="btn primary" id="nextBtn" type="button" hidden>Next level</button>
+      </div>
+    </section>
+    <aside class="side">
+      <section class="card">
+        <h2>Links between groups</h2>
+        <div class="jl" id="junc"></div>
+        <p class="note">Strip resistance between each pair of groups, counting how evenly its strips share current. Red is the weakest link. Hover a row to see its strips.</p>
+      </section>
+      <section class="card">
+        <h2>Score breakdown</h2>
+        <div class="bd2" id="bd"></div>
+        <p class="note" id="roRD"></p>
+      </section>
+    </aside>
+  </div>
+  <footer>Spotweld · battery packaging game · strips 1 mΩ, cells 10 mΩ · rings after finishing: red = cell works harder than its group, blue = easier</footer>
+</div>
 <div class="modal" id="modal"><div class="sheet">
   <h2>Spotweld</h2>
-  <div style="color:var(--mute)">Lay out a cylindrical-cell battery pack with low, even interconnect resistance.</div>
   <ol>
-    <li><b>Goal:</b> split the cells into <b>S groups of P cells</b> (10S4P = 10 groups of 4). Cells in a group are in <b>parallel</b>; groups are wired in <b>series</b> in number order, 1 → 2 → 3 …</li>
-    <li><b>Place cells:</b> <kbd>left-click</kbd> or drag over cells. When a group is full you move on to the next one. Click a group chip, or start a drag on one of its cells, to work on it again.</li>
-    <li><b>Erase:</b> <kbd>right-click</kbd> or drag (touch: <i>Erase mode</i>). <kbd>Ctrl Z</kbd> undoes.</li>
-    <li><b>Interconnects:</b> wherever a cell of group <i>n</i> touches a cell of group <i>n+1</i>, a strip joins them. Odd links (1–2, 3–4 …) sit on Side A, even links on Side B. More strips between two groups means a stronger link.</li>
-    <li><b>Stars:</b> ★ finish · ★★ within 5% of par · ★★★ beat par (on First Weld, match it).</li>
+    <li>Split the cells into <b>S groups of P cells</b>. 10S4P means 10 groups of 4. Cells in a group are in parallel; groups are in series, S1 → S2 → S3 …</li>
+    <li><b>Left-click or drag</b> to add cells to the highlighted group. When it's full you move to the next. Click a group in the series chain to go back to it.</li>
+    <li><b>Right-click or drag</b> to erase (touch: Erase). Ctrl Z undoes.</li>
+    <li>Touching cells get a strip. Each group must touch the one before it. More strips between groups is better; hot strips glow.</li>
+    <li>After finishing, red rings mark cells working harder than their group, blue rings easier.</li>
+    <li>★ finish · ★★ within 5% of par · ★★★ beat par.</li>
   </ol>
-  <button class="primary" id="go" type="button">Start</button>
+  <button class="btn primary" id="go" type="button">Got it</button>
 </div></div>
-
 <div id="tip"></div>
 <div class="toast" id="toast"></div>
 
@@ -167,7 +192,7 @@ const VCELL=3.6, AHCELL=4.2; // nominal 21700
 const PREF=ICELL*ICELL*RL/1000; // W in one link carrying one cell's current
 const HEATMAX=PREF*2.25;
 let SPLIT_COST=0.1; // per extra island in a group
-const gcol=g=>`hsl(${(g*360/(L?L.S:8)+8)%360} 62% 46%)`;
+const PAL=['#4cc9f0','#f72585','#a7e36f','#ffb703','#9d6bff','#06d6a0','#fb8500','#5b7cff','#ff6b8b','#7fe3f0','#d08cff','#ffd166','#3ddc84','#ff8fab'];
 const $=id=>document.getElementById(id);
 const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
 
@@ -393,105 +418,120 @@ function renderBoard(view){
   renderFace(view,1,$('boardT'));renderFace(view,0,$('boardB'));
 }
 function renderFace(view,face,svg){
-  // face 1 = Side A (top); face 0 = Side B, drawn mirrored as if the pack were flipped over
-  const {S,P}=L,R=0.44,cells=L.cells,flip=face===0,X=x=>flip?L.w-x:x;
-  const padX=0.7,padY=1.1;
-  svg.setAttribute('viewBox',`${-padX} ${-padY} ${L.w+2*padX} ${L.h+2*padY}`);
-  const out=[],tx=[];
-  const seg=(a,b,f)=>{const ax=X(cells[a].x),ay=cells[a].y,bx=X(cells[b].x),by=cells[b].y;return `x1="${ax+(bx-ax)*f}" y1="${ay+(by-ay)*f}" x2="${ax+(bx-ax)*(1-f)}" y2="${ay+(by-ay)*(1-f)}"`;};
-  const fl=res.links.filter(l=>l.face===face);strips[face]=fl;
-  const ser=fl.filter(l=>view[l.i]!==view[l.j]);
-  // glow under hot series strips
-  for(const l of ser){const t=l.W!=null?l.W/HEATMAX:0;if(t>0.75)out.push(`<line class="glow1" ${seg(l.i,l.j,.35)}/>`);else if(t>0.45)out.push(`<line class="glow2" ${seg(l.i,l.j,.35)}/>`);
-    if(hlJ&&l.p===hlJ)out.push(`<line ${seg(l.i,l.j,.3)} stroke="var(--blue)" stroke-width=".42" stroke-linecap="round" opacity=".55"/>`);}
-  const done=res.complete&&!res.open;
+  const pad=0.75,{S}=L,R=0.46;
+  // bottom face seen from above keeps the same left/right so cells line up
+  const cells=L.cells;
+  svg.setAttribute('viewBox',`${-pad} ${-pad} ${L.w+2*pad} ${L.h+2*pad}`);
+  const out=[``];
   cells.forEach((c,i)=>{
-    const g=view[i],x=X(c.x),y=c.y;
-    out.push(`<circle cx="${x}" cy="${y}" r="${R}" fill="${g<0?'var(--cell)':gcol(g)}"/>`);
-    if(done&&g>=0&&res.gstat[g]){const r=res.cellI[i]/res.gstat[g].mean;
-      if(r>1.04)out.push(`<circle cx="${x}" cy="${y}" r=".5" fill="none" stroke="var(--red)" stroke-width=".08" opacity="${Math.min(1,(r-1)*6)}"/>`);
-      else if(r<.96)out.push(`<circle cx="${x}" cy="${y}" r=".5" fill="none" stroke="var(--blue)" stroke-width=".08" opacity="${Math.min(1,(1-r)*6)}"/>`);}
-    if(g>=0&&g===active&&!showBot&&!done)out.push(`<circle class="activering" cx="${x}" cy="${y}" r=".5" fill="none" stroke="var(--ink)" stroke-width=".06"/>`);
-    if(g>=0){tx.push(`<text class="cn" x="${x}" y="${y-.04}">${g+1}</text>`);tx.push(`<text class="pol" x="${x}" y="${y+.27}">${((g%2===0)===(face===1))?'+':'−'}</text>`);}
+    const g=view[i];
+    if(g>=0){const col=PAL[g%PAL.length];out.push(`<circle cx="${c.x}" cy="${c.y}" r="${R}" fill="${col}" fill-opacity="${g===active&&!showBot?0.4:0.22}" stroke="${col}" stroke-width="0.04"/>`);}
+    else out.push(`<circle cx="${c.x}" cy="${c.y}" r="${R}" fill="var(--cell)" stroke="var(--cell-line)" stroke-width="0.03"/>`);
   });
-  // parallel plates (same-group neighbours) and series strips, one capsule shape
-  for(const l of fl)if(view[l.i]===view[l.j])out.push(`<line class="par" ${seg(l.i,l.j,.35)}/>`);
-  ser.forEach(l=>out.push(`<line class="strip lk" data-l="${face}:${fl.indexOf(l)}" ${seg(l.i,l.j,.35)}/>`));
-  // pack terminals
+  const fl=res.links.filter(l=>l.face===face);strips[face]=fl;
+  const maxW=Math.max(1e-9,...res.links.map(l=>l.W||0));
+  fl.forEach((st,k)=>{
+    const A=cells[st.i],B=cells[st.j],dx=B.x-A.x,dy=B.y-A.y,d=Math.hypot(dx,dy),ux=dx/d,uy=dy/d,o=0.3;
+    const x1=A.x+ux*o,y1=A.y+uy*o,x2=B.x-ux*o,y2=B.y-uy*o;
+    const bus=st.bus||st.tbus;
+    const t=st.W!=null?clamp(st.W/HEATMAX):0,col=bus?'var(--bus)':heatColor(t);
+    if(hlJ&&st.p===hlJ&&view[st.i]!==view[st.j])out.push(`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--accent)" stroke-width="0.3" stroke-linecap="round" opacity=".7"/>`);
+    out.push(`<line class="lk" data-l="${face}:${k}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="0.16" stroke-linecap="round"${bus?' stroke-dasharray="0.06 0.06"':''}/>`);
+  });
+  cells.forEach((c,i)=>{
+    const g=view[i];
+    if(g>=0){
+      const col=PAL[g%PAL.length];
+      if(res.complete&&!res.open&&res.gstat[g]){const q=res.cellI[i]/res.gstat[g].mean;
+        if(q>1.04)out.push(`<circle cx="${c.x}" cy="${c.y}" r="${R+0.04}" fill="none" stroke="var(--crit)" stroke-width="0.07" opacity="${Math.min(1,0.45+(q-1)*8)}"/>`);
+        else if(q<0.96)out.push(`<circle cx="${c.x}" cy="${c.y}" r="${R+0.04}" fill="none" stroke="#3b82f6" stroke-width="0.07" opacity="${Math.min(1,0.45+(1-q)*8)}"/>`);}
+      if(g===active&&!showBot&&!res.complete)out.push(`<circle class="activering" cx="${c.x}" cy="${c.y}" r="${R+0.03}" fill="none" stroke="${col}" stroke-width="0.05"/>`);
+      out.push(`<text class="gt" x="${c.x}" y="${c.y+0.09}" font-size="0.25" fill="#fff" text-anchor="middle" style="paint-order:stroke" stroke="#0c0f14" stroke-width="0.06">S${g+1}</text>`);
+    }
+    out.push(`<circle class="cellhit" data-c="${i}" cx="${c.x}" cy="${c.y}" r="${R}" fill="transparent"/>`);
+    out.push(`<circle class="hov" cx="${c.x}" cy="${c.y}" r="${R+0.01}" fill="#fff" fill-opacity=".07" stroke="#fff" stroke-opacity=".5" stroke-width="0.025"/>`);
+  });
   const term=(g,label,plate)=>{
-    if(plate%2!==face)return;const gr=res.groups[g];if(!gr.length)return;
-    const col=label==='+'?'#e11d48':'#2563eb';
-    for(const i of gr)out.push(`<circle cx="${X(cells[i].x)}" cy="${cells[i].y}" r=".5" fill="none" stroke="${col}" stroke-width=".06" stroke-dasharray=".1 .08"/>`);
-    const cx=gr.reduce((a,i)=>a+X(cells[i].x),0)/gr.length,ys=gr.map(i=>cells[i].y),low=(Math.max(...ys)+Math.min(...ys))/2>L.h/2;
-    tx.push(`<text x="${cx}" y="${low?Math.max(...ys)+.85:Math.min(...ys)-.7}" font-size=".32" font-weight="700" text-anchor="middle" stroke="var(--card)" stroke-width=".12" paint-order="stroke" fill="${col}">PACK ${label}</text>`);
+    if(plate%2!==face)return;
+    const gr=res.groups[g];if(!gr.length)return;
+    const tc=gr.reduce((a,i)=>cells[i].y<cells[a].y-1e-6?i:a,gr[0]),cx=cells[tc].x,cy=cells[tc].y-0.02;
+    const c=label==='+'?'var(--crit)':'var(--accent)';
+    out.push(`<rect x="${cx-0.36}" y="${cy-0.62}" width="0.72" height="0.22" rx="0.03" fill="var(--bg)" stroke="${c}" stroke-width="0.025"/><text class="lt" x="${cx}" y="${cy-0.47}" font-size="0.12" stroke-width="0" fill="${c}" text-anchor="middle">PACK ${label}</text>`);
   };
   term(0,'−',0);term(S-1,'+',S);
-  const hit=cells.map((c,i)=>`<circle class="cellhit" data-c="${i}" cx="${X(c.x)}" cy="${c.y}" r="${R}" fill="transparent"/><circle class="hov" cx="${X(c.x)}" cy="${c.y}" r="${R}" fill="none" stroke="var(--ink)" stroke-width=".07"/>`);
-  svg.innerHTML=out.join('')+tx.join('')+hit.join('');
+  svg.innerHTML=out.join('');
 }
 function renderSide(){
   const {S,P}=L,r=res;
-  $('goalWhat').textContent=`${L.name}: ${S}s${P}p · ${S*P} cells`;
-  const el=$('goalStep');el.className='status';
+  $('goalWhat').innerHTML=`Build <b>${S}S${P}P</b>: ${S} groups in series, ${P} cells in parallel each · ${S*P} cells`;
+  const el=$('goalStep');el.className='step';
   const need=P-r.groups[active].length;
   const firstBad=r.groups.findIndex((gr,g)=>gr.length&&!(g===active&&gr.length<P)&&!r.touch[g]);
-  const placed=asg.filter(g=>g>=0).length;
-  if(showBot)el.textContent='Showing the bot\'s layout. Click the board to return to yours.';
-  else if(eraseMode)el.textContent='Erase mode: drag over cells to remove them.';
-  else if(r.complete&&r.open){el.className='status bad';el.textContent='Open circuit: a group isn\'t touching the next one.';}
-  else if(r.complete)el.textContent='All cells placed. Erase and re-place cells to bring the score down.';
-  else if(firstBad>=0){el.className='status bad';el.textContent=`Group ${firstBad+1} isn't touching group ${firstBad}, so no current can reach it.`;}
-  else el.innerHTML=`Placing group <b>${active+1}</b> (${r.groups[active].length}/${P})`+(active>0?`, touching group ${active}`:'')+` · ${placed}/${S*P} cells placed`;
-  // group chips
-  $('schem').innerHTML=Array.from({length:S},(_,g)=>{const n=r.groups[g].length,bad=n&&!(g===active&&n<P)&&!r.touch[g];
-    return `<button type="button" class="chip${g===active&&!showBot?' on':''}${n===P?' full':''}${bad?' bad':''}" data-g="${g}"><b style="background:${gcol(g)}">${g+1}</b><span>${n}/${P}</span></button>`;}).join('');
-  // links between groups: strip count live, resistance once solved
+  if(showBot)el.innerHTML='Showing the bot\'s layout. Click the board to return to yours.';
+  else if(r.complete&&r.open){el.className='step bad';el.textContent='Open circuit: a group isn\'t touching the next one.';}
+  else if(r.complete){el.className='step good';const pr=par&&par.score;const n=starsFor(r.total,pr,L.optimal);
+    el.textContent=pr==null?'Pack done.':n===3?(L.optimal?'★★★ Best possible layout.':`★★★ You beat par (${fmt(pr,2)} mΩ).`):n===2?`★★ Close. ${L.optimal?'Reach':'Beat'} ${fmt(pr,2)} mΩ for ★★★.`:`★ Done. ${fmt(pr*TWO_STAR,2)} mΩ for ★★, ${L.optimal?'':'under '}${fmt(pr,2)} mΩ for ★★★.`;}
+  else if(firstBad>=0){el.className='step bad';el.textContent=`S${firstBad+1} isn't touching S${firstBad}, so no current can reach it. Right-drag to erase and fix it.`;}
+  else el.innerHTML=`Pick <b>${need}</b> cell${need===1?'':'s'} for <b>S${active+1}</b>`+(active>0?`, touching S${active}`:', the PACK − group')+` · ${asg.filter(x=>x>=0).length}/${S*P} placed`;
+  const sc=[];
+  for(let g=0;g<S;g++){
+    const gr=r.groups[g],col=PAL[g%PAL.length],bad=gr.length&&!(g===active&&gr.length<P)&&!r.touch[g];
+    let dots='';for(let k=0;k<P;k++)dots+=`<i style="${k<gr.length?`background:${col};border-color:${col}`:''}"></i>`;
+    sc.push(`<button type="button" class="${g===active&&!showBot?'on':''}${bad?' bad':''}" data-g="${g}" title="Group S${g+1}: ${gr.length}/${P} cells">S${g+1}<span class="d">${dots}</span></button>`);
+  }
+  $('schem').innerHTML=sc.join('');
+  $('schem').style.setProperty('--n',S);
+  // links between groups
   {
-    const J=r.junc||[],fin=J.filter(j=>isFinite(j.R)),worst=fin.length>1?fin.reduce((a,b)=>b.R>a.R?b:a):null;
-    const cntq=q=>r.links.filter(l=>l.p===q&&asg[l.i]!==asg[l.j]).length;
-    $('junc').innerHTML=Array.from({length:S-1},(_,k)=>{const q=k+1,j=J.find(x=>x.q===q),n=j?j.n:cntq(q);
-      const has=r.groups[k].length&&r.groups[q].length;
-      const Rtxt=j&&isFinite(j.R)?`${fmt(j.R,2)} mΩ`:n?`~${fmt(RL/n,2)} mΩ`:(has?'open':'–');
-      const cls=!has?'':n===0?'n0':n===1?'n1':n===2?'n2':'';
-      return `<div class="link ${cls}${j&&j===worst?' weak':''}" data-q="${q}"><b>${q}–${q+1}</b><div class="bars">${n?'<i></i>'.repeat(Math.min(n,14)):''}</div><span>${n} strip${n===1?'':'s'}</span><small>${Rtxt} · ${q%2?'A':'B'}</small></div>`;}).join('');
+    const J=r.junc||[],fin=J.filter(j=>isFinite(j.R));
+    const worst=fin.length>1?fin.reduce((a,b)=>b.R>a.R?b:a):null,maxR=Math.max(1e-9,...fin.map(j=>j.R));
+    let h='<span class="h">link</span><span class="h">strips</span><span class="h n">mΩ</span><span class="h"></span>';
+    for(let q=1;q<S;q++){
+      const j=J.find(x=>x.q===q);
+      if(!j){h+=`<span class="r"><span>S${q}→S${q+1}</span><span class="n">–</span><span class="n">–</span><span></span></span>`;continue;}
+      const w=j===worst;
+      h+=`<span class="r${w?' weak':''}" data-q="${q}"><span>S${q}→S${q+1}</span><span class="n">${j.n}</span><span class="n">${isFinite(j.R)?fmt(j.R,2):'open'}</span><span class="bar" title="busiest strip carries ${fmt(j.spread*100,0)}% over the average"><i style="width:${isFinite(j.R)?Math.max(4,j.R/maxR*100):100}%"></i></span></span>`;
+    }
+    $('junc').innerHTML=h;
   }
   // score
   const best=store.get('best4:'+L.id,null);
   if(r.complete&&!r.open&&!showBot&&(best==null||r.total<best)){store.set('best4:'+L.id,r.total);renderLevels();}
-  const b2=store.get('best4:'+L.id,null),pr=par&&par.score,done=r.complete&&!r.open;
-  $('bigScore').innerHTML=done?`${fmt(r.total,2)}<small>mΩ</small>`:'—';
-  const n=done&&!showBot?starsFor(r.total,pr,L.optimal):starsFor(b2,pr,L.optimal);
-  $('stars').innerHTML=`<b>${'★'.repeat(n)}</b>${'☆'.repeat(3-n)}`;
-  const parTxt=`par <b>${pr!=null?fmt(pr,2):'…'}</b> · best <b>${b2==null?'–':fmt(b2,2)}</b>`;
-  let v;
-  if(!done)v='Place every cell to see the score. '+parTxt;
-  else if(showBot)v='Bot layout. '+parTxt;
-  else{const w=(r.junc||[]).filter(j=>isFinite(j.R)).reduce((a,b)=>!a||b.R>a.R?b:a,null);
-    const msg=n===3?(L.optimal?'★★★ Best possible layout.':'★★★ You beat par.'):n===2?`Close. ${L.optimal?'Match':'Beat'} ${fmt(pr,2)} for ★★★.`:`${fmt(pr*TWO_STAR,2)} or less for ★★.`;
-    v=`${msg} ${parTxt}`+(w?`<br>Weakest link: ${w.q}–${w.q+1} with ${w.n} strip${w.n===1?'':'s'}.`:'');}
-  $('verdict').innerHTML=v;
-  $('shareBtn').hidden=!done||showBot;
-  const k=LEVELS.indexOf(L);$('nextBtn').hidden=!(done&&!showBot&&n>=1&&k<LEVELS.length-1);
+  const b2=store.get('best4:'+L.id,null);
+  const bs=$('bigScore');
+  const done=r.complete&&!r.open,mo=v=>v==null||!isFinite(v)?'–':`${fmt(v,2)}<small>mΩ</small>`;
+  bs.innerHTML=done?mo(r.total):'–';
+  $('roPar').textContent=par&&par.score!=null?fmt(par.score,2):'…';$('roParD').textContent='par';
+  $('roBest').textContent=b2==null?'–':fmt(b2,2);
+  $('roRD').textContent=done?(r.extra?`${S-r.comps.filter(x=>x===1).length} of ${S} groups split · busiest cell +${fmt((r.load-1)*100,1)}%`:`every group in one piece · busiest cell +${fmt((r.load-1)*100,1)}%`):'';
+  {const n=r.complete&&!r.open&&!showBot?starsFor(r.total,par&&par.score,L.optimal):starsFor(b2,par&&par.score,L.optimal);$('stars').innerHTML=`<b>${'★'.repeat(n)}</b>${'☆'.repeat(3-n)}`;}
+  $('shareBtn').hidden=!(r.complete&&!r.open);
+  {const k=LEVELS.indexOf(L);$('nextBtn').hidden=!(r.complete&&!r.open&&!showBot&&k<LEVELS.length-1);}
   const bd=$('bd');
-  if(done){
-    const row=(op,v,label)=>`<span class="op">${op}</span><span class="v">${v}</span><span>${label}</span>`;
-    bd.innerHTML=row('',fmt(r.Rideal,2),'cells alone')+row('+',fmt(r.Rpack-r.Rideal,2),'strips')+row('=',fmt(r.Rpack,2),'pack resistance, mΩ')+
-      row('×',fmt(r.load,3)+'²',`busiest cell, +${fmt((r.load-1)*100,1)}% over its group`)+row('×',fmt(r.splitF,3),r.extra?`${r.extra} split piece${r.extra>1?'s':''}`:'no split groups')+
-      `<span class="op tot">=</span><span class="v tot"><b>${fmt(r.total,2)}</b></span><span class="tot">score</span>`;
-  }else bd.innerHTML='';
+  if(r.complete&&!r.open){
+    const row=(op,v,label,tag)=>`<span class="op">${op}</span><span class="v">${v}</span><span>${label} <span class="g">(${tag==='real'?'circuit':'game rule'})</span></span>`;
+    bd.innerHTML=
+      row('',`${fmt(r.Rideal,2)}`,`cells alone`,'real')+
+      row('+',`${fmt(r.Rpack-r.Rideal,2)}`,'strips','real')+
+      row('=',`${fmt(r.Rpack,2)}`,'pack mΩ','real')+
+      row('×',`${fmt(r.load,3)}²`,'busiest cell','game')+
+      row('×',`${fmt(r.splitF,3)}`,'split groups','game')+
+      `<span class="op tot">=</span><span class="v tot"><b>${fmt(r.total,2)}</b></span><span class="tot">score, mΩ</span>`;
+  }else bd.innerHTML='<span></span><span></span><span class="g">Finish the pack to see it.</span>';
   $('botBtn').textContent=showBot?'Hide par':'Show par';
   $('botBtn').disabled=!(par&&par.asg);
 }
 function renderLevels(){
   const cur=LEVELS.indexOf(L);
   $('levels').innerHTML=DEMOS.map((d,k)=>{const b=store.get('best4:'+d.id,null),pp=store.get('par4:'+d.id,null),n=b==null?0:starsFor(b,pp&&pp.score,d.optimal);
-    return `<button type="button" data-k="${k}" class="${k===cur?'on':''}" title="${d.name} · ${d.S}S${d.P}P">${k+1}${n?`<span class="st">${'★'.repeat(n)}</span>`:''}</button>`;}).join('');
+    return `<option value="${k}">${d.name} · ${d.S}S${d.P}P${n?' '+'★'.repeat(n):''}</option>`;}).join('');
+  $('levels').value=String(cur);
 }
 
 /* ---------- input ---------- */
 let curSvg=null;
 function svgPt(e){const sv=curSvg||e.currentTarget;const p=sv.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(sv.getScreenCTM().inverse());}
-function cellAt(e){const p=svgPt(e);if((curSvg||e.currentTarget).id==='boardB')p.x=L.w-p.x;let bi=-1,bd=0.5;L.cells.forEach((c,i)=>{const d=Math.hypot(c.x-p.x,c.y-p.y);if(d<bd){bd=d;bi=i;}});return bi;}
+function cellAt(e){const p=svgPt(e);let bi=-1,bd=0.5;L.cells.forEach((c,i)=>{const d=Math.hypot(c.x-p.x,c.y-p.y);if(d<bd){bd=d;bi=i;}});return bi;}
 function apply(e,first){
   const i=cellAt(e);if(i<0||i===stroke.last)return;stroke.last=i;
   if(stroke.mode==='erase'){if(asg[i]>=0){asg[i]=-1;stroke.changed=true;render();}return;}
@@ -525,21 +565,21 @@ function tip(e){
   const t=e.target;let html='';
   if(t.classList&&t.classList.contains('lk')){
     const [f,k]=t.dataset.l.split(':').map(Number),l=strips[f][k],v=showBot&&par?par.asg:asg,a=v[l.i],b=v[l.j];
-    html=`<span class="h">${a!==b?'series strip '+(Math.min(a,b)+1)+'–'+(Math.max(a,b)+1):'parallel strip in group '+(a+1)}</span><br>`+(l.bus||l.tbus?'pack terminal plate':'1 mΩ');
+    html=`<span class="h">${a!==b?'series strip S'+(Math.min(a,b)+1)+'→S'+(Math.max(a,b)+1):'parallel strip in S'+(a+1)}</span><br>`+(l.bus||l.tbus?'pack terminal plate':'1 mΩ');
   }else if(t.classList&&t.classList.contains('cellhit')){
     const i=+t.dataset.c,g=(showBot&&par?par.asg:asg)[i];
-    html=g<0?'<span class="h">empty cell</span>':`<span class="h">cell in group ${g+1}</span><br>10 mΩ`;
+    html=g<0?'<span class="h">empty cell</span>':`<span class="h">cell in group S${g+1}</span><br>10 mΩ`;
   }
   if(!html)return hideTip();
   tipEl.innerHTML=html;tipEl.style.display='block';
   tipEl.style.left=Math.min(e.clientX+14,innerWidth-tipEl.offsetWidth-8)+'px';tipEl.style.top=(e.clientY+14)+'px';
 }
 
-$('levels').addEventListener('click',e=>{const b=e.target.closest('button');if(b)loadLevel(+b.dataset.k);});
-$('junc').addEventListener('mouseover',e=>{const r=e.target.closest('.link[data-q]');const q=r?+r.dataset.q:0;if(q!==hlJ){hlJ=q;renderBoard(showBot&&par&&par.asg?par.asg:asg);}});
+$('levels').addEventListener('change',e=>loadLevel(+e.target.value));
+$('junc').addEventListener('mouseover',e=>{const r=e.target.closest('.r[data-q]');const q=r?+r.dataset.q:0;if(q!==hlJ){hlJ=q;renderBoard(showBot&&par&&par.asg?par.asg:asg);}});
 $('junc').addEventListener('mouseleave',()=>{if(hlJ){hlJ=0;renderBoard(showBot&&par&&par.asg?par.asg:asg);}});
 $('schem').addEventListener('click',e=>{const g=e.target.closest('button');if(g){active=+g.dataset.g;showBot=false;render();}});
-$('eraseBtn').onclick=()=>{eraseMode=!eraseMode;$('eraseBtn').classList.toggle('on',eraseMode);render();};
+$('eraseBtn').onclick=()=>{eraseMode=!eraseMode;$('eraseBtn').classList.toggle('on',eraseMode);};
 $('nextBtn').onclick=()=>loadLevel(LEVELS.indexOf(L)+1);
 $('help').onclick=()=>$('modal').classList.add('show');
 $('go').onclick=()=>{$('modal').classList.remove('show');store.set('seenRules',1);};
