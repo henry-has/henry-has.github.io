@@ -238,6 +238,7 @@ function hexagon(R,hole=-1){const c=[];for(let q=-R;q<=R;q++)for(let r=-R;r<=R;r
 
 const DEMOS=[
  {id:'first',name:'First Weld',S:4,P:2,grid:true,optimal:true,cells:fromGrid(['####','####'])},
+ {id:'brick',name:'LVB',S:7,P:3,optimal:true,cells:fromDW(['o o o o o o o',' o o o o o o o','o o o o o o o'])},
  {id:'para',name:'Parallelogram',S:10,P:4,cells:fromRows([8,8,8,8,8],r=>r/2)},
  {id:'wedgejr',name:'Wedge Jr',S:9,P:4,cells:fromRows([8,7,6,5,4,3,2,1])},
  {id:'ramp',name:'Ramp',S:12,P:4,cells:fromRows([10,9,8,8,7,6])},
