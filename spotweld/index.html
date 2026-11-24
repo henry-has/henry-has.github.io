@@ -126,7 +126,7 @@ details b{color:var(--ink)}
     <div class="parts">
       <div class="m"><div class="k">Resistance <span id="mRn"></span></div><div class="meter"><i id="mR"></i></div><div class="why" id="mRv"></div></div>
       <div class="m"><div class="k">Current sharing <span id="mSn"></span></div><div class="meter"><i id="mS"></i></div><div class="why" id="mSv"></div></div>
-      <div class="m"><div class="k">Whole groups <span id="mIn"></span></div><div class="meter"><i id="mI"></i></div><div class="why" id="mIv"></div></div>
+      <div class="m"><div class="k">Split groups <span id="mIn"></span></div><div class="meter"><i id="mI"></i></div><div class="why" id="mIv"></div></div>
     </div>
     <div class="acts"><button class="btn primary" id="shareBtn">Share</button><button class="btn" id="botBtn">Show par</button></div>
   </section>
@@ -134,7 +134,7 @@ details b{color:var(--ink)}
   <details class="card">
     <summary>How it works</summary>
     <p><b>S</b> is how many groups are wired in series (sets voltage). <b>P</b> is how many cells are in each group, side by side (sets capacity and current). 7S3P = 7 groups of 3 cells.</p>
-    <p>Fill group S1, then S2, and so on. Each group should be one touching cluster and must touch the group before it, so current can flow from PACK − to PACK +.</p>
+    <p>Fill group S1, then S2, and so on. Each group must touch the group before it, so current can flow from PACK − to PACK +. A group can be one cluster or split into pieces; each extra piece costs that group 10%, which can be worth it if it evens out the current.</p>
     <p>Touching cells are joined by a strip. Every strip is 1 mΩ and every cell is 10 mΩ.</p>
     <p>Groups alternate direction, so a group's strips to the next group are on one face and its strips to the previous group are on the other. Both faces are shown.</p>
       </details>
@@ -151,6 +151,7 @@ const ICELL=15;   // A per cell
 const VCELL=3.6, AHCELL=4.2; // nominal 21700
 const PREF=ICELL*ICELL*RL/1000; // W in one link carrying one cell's current
 const HEATMAX=PREF*2.25;
+let SPLIT_COST=0.1; // per extra island in a group
 const PAL=['#4cc9f0','#f72585','#a7e36f','#ffb703','#9d6bff','#06d6a0','#fb8500','#5b7cff','#ff6b8b','#7fe3f0','#d08cff','#ffd166','#3ddc84','#ff8fab'];
 const $=id=>document.getElementById(id);
 const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
@@ -167,8 +168,8 @@ const DEMOS=[
  {id:'strip',name:'Strip',S:6,P:2,cells:fromDW(['o o o o o o',' o o o o o o'])},
  {id:'brick',name:'The Brick',S:7,P:3,cells:fromDW(['o o o o o o o',' o o o o o o o','o o o o o o o'])},
  {id:'ell',name:'L-Shape',S:6,P:3,grid:true,cells:fromGrid(['##....','##....','##....','######','######'])},
- {id:'fork',name:'Fork',S:4,P:2,grid:true,cells:fromGrid(['#.#','#.#','#.#','.#.','.#.']),
-  blurb:'No layout keeps every group in one piece here. Find the least-bad split.'},
+ {id:'comb3',name:'Comb',S:5,P:3,grid:true,cells:fromGrid(['.###.','#.#.#','#.#.#','#.#.#','#.#.#']),
+  blurb:'Long thin teeth. Splitting a group across teeth is allowed and may pay off.'},
  {id:'halo',name:'Halo',S:6,P:3,cells:hexagon(2,0)},
  {id:'heart',name:'Heart',S:5,P:5,cells:fromDW([' o o   o o','o o o o o o',' o o o o o','  o o o o','   o o o','    o o','     o'])},
  {id:'pyramid',name:'Pyramid',S:7,P:4,cells:fromDW(['      o','     o o','    o o o','   o o o o','  o o o o o',' o o o o o o','o o o o o o o'])},
@@ -294,7 +295,7 @@ function evaluate(L,asg){
   res.sR=clamp(1-res.overhead/0.6);
   res.sS=clamp(1-(0.5*res.spreadMean+0.5*res.spreadMax)/0.5);
   const done=comps.filter((c,g)=>groups[g].length);
-  res.integ=done.length?done.reduce((a,c)=>a+1/c,0)/done.length:1;
+  res.integ=done.length?done.reduce((a,c)=>a+Math.max(0,1-SPLIT_COST*(c-1)),0)/done.length:1;
   if(res.complete){
     res.total=res.open?0:100*(0.5*res.sR+0.5*res.sS)*res.integ;
   }
@@ -377,9 +378,9 @@ function loadLevel(k){
   asg=store.get('asg:'+L.id,null);
   if(!asg||asg.length!==L.cells.length)asg=new Array(L.cells.length).fill(-1);
   hist=[];showBot=false;active=lowestIncomplete();
-  par=store.get('par:'+L.id,null);
+  par=store.get('par3:'+L.id,null);
   renderLevels();render();
-  if(par==null)setTimeout(()=>{const b=botSolve(L);par=b?{score:b.res.total,asg:b.asg}:{score:0,asg:null};store.set('par:'+L.id,par);render();},30);
+  if(par==null)setTimeout(()=>{const b=botSolve(L);par=b?{score:b.res.total,asg:b.asg}:{score:0,asg:null};store.set('par3:'+L.id,par);render();},30);
 }
 function counts(){const c=new Array(L.S).fill(0);asg.forEach(g=>{if(g>=0)c[g]++;});return c;}
 function lowestIncomplete(){const c=counts();for(let g=0;g<L.S;g++)if(c[g]<L.P)return g;return L.S-1;}
@@ -450,41 +451,42 @@ function renderSide(){
   $('goalWhat').innerHTML=`Build <b>${S}S${P}P</b>: ${S} groups in series × ${P} cells each<small>${S*P} cells · strip 1 mΩ · cell 10 mΩ</small>`+(L.blurb?`<small class="blurb">${L.blurb}</small>`:'');
   const el=$('goalStep');el.className='step';
   const need=P-r.groups[active].length;
-  const firstBad=r.groups.findIndex((gr,g)=>gr.length&&!(g===active&&gr.length<P)&&(!r.touch[g]||r.comps[g]>1));
+  const firstBad=r.groups.findIndex((gr,g)=>gr.length&&!(g===active&&gr.length<P)&&!r.touch[g]);
   if(showBot)el.innerHTML='Showing the bot\'s layout. Click the board to return to yours.';
   else if(r.complete&&r.open){el.className='step bad';el.textContent='Open circuit: a group isn\'t touching the next one.';}
   else if(r.complete){el.className='step good';el.textContent=`Pack done: ${fmt(r.Rpack,1)} mΩ total. Erase and re-weld to improve.`;}
-  else if(firstBad>=0){el.className='step bad';el.textContent=`S${firstBad+1} ${!r.touch[firstBad]?'isn\'t touching S'+firstBad:'is split in pieces'}. Right-drag to erase and fix it.`;}
+  else if(firstBad>=0){el.className='step bad';el.textContent=`S${firstBad+1} isn't touching S${firstBad}, so no current can reach it. Right-drag to erase and fix it.`;}
   else el.innerHTML=`Pick <b>${need}</b> cell${need===1?'':'s'} for <b>S${active+1}</b>`+(active>0?`, touching S${active}`:', the PACK − group');
   const sc=['<span class="term neg">−</span>'];
   for(let g=0;g<S;g++){
-    const gr=r.groups[g],col=PAL[g%PAL.length],bad=gr.length&&!(g===active&&gr.length<P)&&(!r.touch[g]||r.comps[g]>1);
+    const gr=r.groups[g],col=PAL[g%PAL.length],bad=gr.length&&!(g===active&&gr.length<P)&&!r.touch[g];
     let dots='';for(let k=0;k<P;k++)dots+=`<i style="${k<gr.length?`background:${col};border-color:${col}`:''}"></i>`;
     sc.push('<span class="wire"></span>',`<div class="grp${g===active&&!showBot?' on':''}${bad?' bad':''}" data-g="${g}">${dots}<span>S${g+1}</span></div>`);
   }
   sc.push('<span class="wire"></span>','<span class="term pos">+</span>');
   $('schem').innerHTML=sc.join('');
   // score
-  const best=store.get('best:'+L.id,null);
-  if(r.complete&&!r.open&&!showBot&&(best==null||r.total>best)){store.set('best:'+L.id,r.total);renderLevels();}
-  const b2=store.get('best:'+L.id,null);
+  const best=store.get('best3:'+L.id,null);
+  if(r.complete&&!r.open&&!showBot&&(best==null||r.total>best)){store.set('best3:'+L.id,r.total);renderLevels();}
+  const b2=store.get('best3:'+L.id,null);
   const bs=$('bigScore');
   if(r.complete){bs.className='n';bs.textContent=fmt(r.total,1);}else{bs.className='n dim';bs.textContent='--';}
   $('parBox').textContent=`par ${par?fmt(par.score,1):'…'} · best ${fmt(b2,1)}`;
   $('result').hidden=!r.complete;
   if(r.complete){
     const whole=r.comps.filter(x=>x===1).length,R100=r.sR*100,S100=r.sS*100;
-    $('formula').innerHTML=r.open?'Open circuit: score <b>0</b>':`score = (½ × <b>${fmt(R100,0)}</b> resistance + ½ × <b>${fmt(S100,0)}</b> sharing) × <b>${fmt(r.integ,2)}</b> whole groups = <b class="r">${fmt(r.total,1)}</b>`;
+    $('formula').innerHTML=r.open?'Open circuit: score <b>0</b>':`score = (½ × <b>${fmt(R100,0)}</b> resistance + ½ × <b>${fmt(S100,0)}</b> sharing) × <b>${fmt(r.integ,2)}</b> split factor = <b class="r">${fmt(r.total,1)}</b>`;
     setMeter('mR',r.sR,`Pack is <b>${fmt(r.Rpack,1)} mΩ</b>. A perfect busbar would give ${fmt(r.Rideal,1)} mΩ (${S} × ${RC} mΩ ÷ ${L.P}). Strips add <b>${fmt(r.overhead*100,1)}%</b>. 100 at +0%, 0 at +60%.`,fmt(R100,0)+'/100');
     setMeter('mS',r.sS,`In each group, compare the cell doing the most work with the one doing the least. Worst group: <b>${fmt(r.spreadMax*100,1)}%</b> apart, average ${fmt(r.spreadMean*100,1)}%. 100 at 0%, 0 at 50%.`,fmt(S100,0)+'/100');
-    setMeter('mI',r.integ,`Groups in one piece: <b>${whole} of ${S}</b>. A group split into n pieces counts as 1/n.`,'×'+fmt(r.integ,2));
+    const extra=r.comps.reduce((a,c)=>a+Math.max(0,c-1),0);
+    setMeter('mI',r.integ,extra?`<b>${S-whole} of ${S}</b> groups are split (${extra} extra piece${extra>1?'s':''}). Each extra piece costs its group ${SPLIT_COST*100}%, averaged over all groups.`:`All ${S} groups are one piece. Each extra piece would cost its group ${SPLIT_COST*100}%.`,'×'+fmt(r.integ,2));
   }
   $('botBtn').textContent=showBot?'Hide par':'Show par';
   $('botBtn').disabled=!(par&&par.asg);
 }
 function renderLevels(){
   const sel=$('levels'),cur=LEVELS.indexOf(L),o=[];
-  const tag=id=>{const b=store.get('best:'+id,null);return b!=null?` (best ${fmt(b,0)})`:'';};
+  const tag=id=>{const b=store.get('best3:'+id,null);return b!=null?` (best ${fmt(b,0)})`:'';};
   o.push(`<option value="0">Daily #${dayNo}${tag('daily-'+dKey)}</option>`);
   DEMOS.forEach((d,k)=>o.push(`<option value="${k+1}">${d.name} · ${d.S}S${d.P}P${tag(d.id)}</option>`));
   sel.innerHTML=o.join('');sel.value=String(cur);
@@ -560,7 +562,7 @@ $('shareBtn').onclick=async()=>{
 
 let start=store.get('last',0);if(!(start>=0&&start<LEVELS.length))start=0;
 loadLevel(start);
-window.__spot={evaluate,botSolve,LEVELS,get L(){return L;},get res(){return res;}};
+window.__spot={evaluate,botSolve,LEVELS,prepLevel,fromGrid,fromDW,setSplit:v=>{SPLIT_COST=v;},get L(){return L;},get res(){return res;}};
 })();
 </script>
 </body>
