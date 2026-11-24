@@ -51,8 +51,8 @@ svg{width:100%;height:auto;display:block;touch-action:none;cursor:crosshair}
 .legend{color:var(--mute);font-size:12px;margin-top:8px}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:-1px;margin:0 3px 0 8px;border:3px solid}
 /* svg bits */
-.strip{stroke:#d5d8de;stroke-width:.1;stroke-linecap:round}
-.strip-o{stroke:#3a3e48;stroke-width:.16;stroke-linecap:round}
+.strip{stroke:#262a35;stroke-width:.14;stroke-linecap:round}
+.par{stroke:#fff;stroke-width:.09;stroke-linecap:round;opacity:.95}
 .glow1{stroke:var(--red);stroke-width:.5;stroke-linecap:round;opacity:.55;filter:blur(3px);animation:gl 1s infinite}
 .glow2{stroke:var(--amber);stroke-width:.45;stroke-linecap:round;opacity:.45;filter:blur(3px)}
 @keyframes gl{50%{opacity:.15}}
@@ -97,7 +97,7 @@ kbd{background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:
     <h3>Current sharing</h3>
     <div class="score"><div class="big" id="score">—</div><div class="stars" id="stars"></div><div id="verdict" style="flex:1;min-width:200px"></div>
       <button class="primary" id="next" style="display:none">Next level →</button></div>
-    <div class="legend">Cell ring: <i style="border-color:var(--red)"></i>carries too much <i style="border-color:var(--blue)"></i>carries too little <i style="border-color:transparent;border-style:dashed;outline:1px dashed var(--mute)"></i>no current</div>
+    <div class="legend">White lines = cells wired in parallel; dark strips = series links. Cell ring: <i style="border-color:var(--red)"></i>carries too much <i style="border-color:var(--blue)"></i>carries too little <i style="border-color:transparent;border-style:dashed;outline:1px dashed var(--mute)"></i>no current</div>
   </div>
 </main>
 
@@ -110,7 +110,7 @@ kbd{background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:
     <li><b>Erase:</b> <kbd>right-click</kbd> or drag over cells (touch: use <i>Erase mode</i>). Groups don't have to be touching, but touching cells in the same group share a plate, and a lonely cell carries little current.</li>
     <li><b>Interconnects:</b> wherever a cell of group <i>n</i> touches a cell of group <i>n+1</i>, a nickel strip joins them. Odd links (1–2, 3–4…) sit on <b>Side A</b>, even links (2–3, 4–5…) on <b>Side B</b>, so alternating groups are flipped. More strips = lower link resistance.</li>
     <li><b>Glow:</b> <span class="red">red</span> = only one strip (bottleneck), <span class="amb">amber</span> = two, dashed = none, so no current can flow at all. A cell with no strips carries nothing.</li>
-    <li><b>Score:</b> we simulate the resistor network. Aim for every cell to carry the same current and every link to have similar resistance. ★★★ ≥ 95%.</li>
+    <li><b>Score:</b> we simulate the resistor network. Aim for every cell to carry the same current and every link to have similar resistance. ★★★ ≥ 90%. It's strict: even the best layouts lose points to uneven links and corner cells.</li>
   </ol>
   <button class="primary" id="go">Start</button>
 </div></div>
@@ -209,6 +209,7 @@ function solve(pairs){
   const V=id=>{const m=map(id);return A[m][M]/A[m][m];};
   return cells.map((_,c)=>Math.abs(V(2*c)-V(2*c+1))/R_CELL);
 }
+function sim_rl(n){return n.map(x=>R_STRIP/x);}
 function evaluate(){
   const {n,pairs}=links();
   const full=grp.every(g=>g>=0);
@@ -219,7 +220,9 @@ function evaluate(){
       I=solve(pairs);
       const ideal=1/L.P;
       const dev=I.map(i=>Math.abs(i-ideal)/ideal);
-      score=Math.max(0,100*(1-dev.reduce((a,b)=>a+b,0)/dev.length*1.5));
+      const mean=dev.reduce((a,b)=>a+b,0)/dev.length, mx=Math.max(...dev);
+      const rl=sim_rl(n), linkSpread=1-Math.min(...rl)/Math.max(...rl);
+      score=Math.max(0,100-(mean*250+mx*40+linkSpread*40));
     }
   }
   return {n,pairs,I,score,full};
@@ -254,10 +257,13 @@ function drawSide(svg,side){
       tx+=`<text class="pol" x="${x}" y="${y+.3}" fill="#fff" opacity=".9">${plusHere?'+':'−'}</text>`;
     }
   });
+  // parallel plates (same-group neighbours), visible on both sides
+  for(const [a,b] of adj)if(grp[a]>=0&&grp[a]===grp[b])
+    h+=`<line class="par" x1="${X(cells[a].x)}" y1="${cells[a].y}" x2="${X(cells[b].x)}" y2="${cells[b].y}"/>`;
   // strips on top of cells
   for(const [a,b,k] of sp){
     const l=`x1="${X(cells[a].x)}" y1="${cells[a].y}" x2="${X(cells[b].x)}" y2="${cells[b].y}"`;
-    h+=`<line class="strip-o" ${l}/><line class="strip" ${l}/>`;
+    h+=`<line class="strip" ${l}/>`;
   }
   // pack terminals
   const term=(g,txt,plus)=>{ // draw label at group centroid on its terminal side
@@ -293,12 +299,12 @@ function update(){
   // score
   if(sim.full){
     const s=sim.score; $('score').textContent=s.toFixed(0)+'%';
-    const st=s>=95?3:s>=85?2:s>=60?1:0;
+    const st=s>=90?3:s>=75?2:s>=50?1:0;
     $('stars').textContent='★'.repeat(st)+'☆'.repeat(3-st);
     const min=Math.min(...sim.n), minK=sim.n.indexOf(min);
     $('verdict').textContent=min===0?`Link ${minK+1}–${minK+2} has no strips: the pack is open-circuit.`:
       min<=2?`Weakest link: ${minK+1}–${minK+2} with ${min} strip${min>1?'s':''}. Add more touching cells between those groups.`:
-      s>=95?'Beautifully even.':'Some cells work harder than others. Look at the rings.';
+      s>=90?'Beautifully even.':'Some cells work harder than others. Look at the rings.';
     $('next').style.display=lvlIdx<LEVELS.length-1?'':'none';
   }else{$('score').textContent='—';$('stars').textContent='';$('verdict').textContent='Place every cell to see the simulation.';$('next').style.display='none';}
 }
