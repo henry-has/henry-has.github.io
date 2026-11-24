@@ -166,6 +166,7 @@ button.txt.on{color:var(--crit);background:transparent}
 .loss .calc{font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums;line-height:1.5}
 .loss .busy{font-size:12px;color:var(--ink-3);cursor:default;border-bottom:1px dotted var(--ink-3);justify-self:start}
 .loss .busy:hover{color:var(--crit);border-color:var(--crit)}
+.loss .busy0{font-size:12px;color:var(--ink-3)}
 .loss .h{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
 </style>
 </head>
@@ -448,7 +449,7 @@ function render(){
   if(!showBot){store.set('asg:'+L.id,asg);}
   renderBoard(view);renderSide();
 }
-let strips=[[],[]],hlJ=0,busyCell=-1,showBusy=false;
+let strips=[[],[]],hlJ=0,busyCell=[],showBusy=false;
 function renderBoard(view){
   renderFace(view,1,$('boardT'));renderFace(view,0,$('boardB'));
 }
@@ -483,7 +484,7 @@ function renderFace(view,face,svg){
       if(g===active&&!showBot&&!res.complete)out.push(`<circle class="activering" cx="${c.x}" cy="${c.y}" r="${R+0.03}" fill="none" stroke="${col}" stroke-width="0.05"/>`);
       out.push(`<text class="gt" x="${c.x}" y="${c.y+0.09}" font-size="0.25" fill="#fff" text-anchor="middle" style="paint-order:stroke" stroke="#0c0f14" stroke-width="0.06">S${g+1}</text>`);
     }
-    if(showBusy&&i===busyCell)out.push(`<circle cx="${c.x}" cy="${c.y}" r="${R+0.07}" fill="none" stroke="var(--crit)" stroke-width="0.08"/>`);
+    if(showBusy&&busyCell.includes(i))out.push(`<circle cx="${c.x}" cy="${c.y}" r="${R+0.07}" fill="none" stroke="var(--crit)" stroke-width="0.08"/>`);
     out.push(`<circle class="cellhit" data-c="${i}" cx="${c.x}" cy="${c.y}" r="${R}" fill="transparent"/>`);
     out.push(`<circle class="hov" cx="${c.x}" cy="${c.y}" r="${R+0.01}" fill="#fff" fill-opacity=".07" stroke="#fff" stroke-opacity=".5" stroke-width="0.025"/>`);
   });
@@ -497,6 +498,10 @@ function renderFace(view,face,svg){
   term(0,'−',0);term(S-1,'+',S);
   svg.innerHTML=out.join('');
 }
+function weakLinks(r){const fin=(r.junc||[]).filter(j=>isFinite(j.R));if(fin.length<2)return [];
+  const k=j=>Math.round(j.R*100),mx=Math.max(...fin.map(k)),w=fin.filter(j=>k(j)===mx);return w.length===fin.length?[]:w;}
+function busyCells(r){const qs=[];asg.forEach((g,i)=>{if(g>=0&&r.gstat[g])qs.push([i,r.cellI[i]/r.gstat[g].mean]);});if(!qs.length)return [];
+  const mx=Math.max(...qs.map(x=>x[1]));if(mx-1<0.0005)return [];return qs.filter(x=>x[1]>mx-0.0005).map(x=>x[0]);}
 function renderSide(){
   const {S,P}=L,r=res,placed=asg.filter(x=>x>=0).length,done=r.complete&&!r.open;
   $('goalWhat').innerHTML=`<b>${S}S${P}P</b> · ${S} groups of ${P} · ${placed}/${S*P} cells placed`;
@@ -506,17 +511,17 @@ function renderSide(){
   if(showBot)el.textContent='Bot\'s layout. Click the board to return.';
   else if(r.complete&&r.open){el.className='step bad';el.textContent='Open circuit: a group isn\'t touching the next.';}
   else if(firstBad>=0){el.className='step bad';el.textContent=`S${firstBad+1} isn't touching S${firstBad}`;}
-  else if(done){const w=(r.junc||[]).filter(j=>isFinite(j.R)).reduce((a,b)=>!a||b.R>a.R?b:a,null);
+  else if(done){const w=weakLinks(r);
     const pr=par&&par.score,n=starsFor(r.total,pr,L.optimal);el.className=n===3?'step good':'step';
-    el.textContent=n===3?(L.optimal?'Best possible layout.':'You beat par.'):`Weakest link is S${w.q}→S${w.q+1}. Re-weld around it to beat par.`;}
+    el.textContent=n===3?(L.optimal?'Best possible layout.':'You beat par.'):(w.length>2?`${w.length} links tie for weakest at ${fmt(w[0].R,2)} mΩ (red in the chain).`:w.length?`Weakest link${w.length>1?'s are ':' is '}${w.map(j=>`S${j.q}→S${j.q+1}`).join(' and ')}. Re-weld around ${w.length>1?'them':'it'} to beat par.`:'All links are equal. Even out the cells to beat par.');}
   else el.innerHTML=`Place ${need} more cell${need===1?'':'s'} in S${active+1}`+(active>0?`, touching S${active}`:', the PACK − group');
   // chain: groups with fill bars, links between them
-  const J=r.junc||[],fin=J.filter(j=>isFinite(j.R)),worst=fin.length>1?fin.reduce((a,b)=>b.R>a.R?b:a):null;
+  const J=r.junc||[],weak=weakLinks(r);
   const sc=[];
   for(let g=0;g<S;g++){
     const n=r.groups[g].length,col=PAL[g%PAL.length],bad=n&&!(g===active&&n<P)&&!r.touch[g];
     sc.push(`<button type="button" class="g${g===active&&!showBot&&!r.complete?' on':''}${bad?' bad':''}" data-g="${g}" title="Group S${g+1}: ${n}/${P} cells">S${g+1}<span class="f"><i style="width:${n/P*100}%;background:${col}"></i></span></button>`);
-    if(g<S-1){const j=J.find(x=>x.q===g+1);sc.push(`<span class="k${j&&j===worst?' weak':''}" data-q="${g+1}" title="${j?j.n+' strips':''}"><b></b>${j&&isFinite(j.R)?fmt(j.R,2):''}</span>`);}
+    if(g<S-1){const j=J.find(x=>x.q===g+1);sc.push(`<span class="k${j&&weak.includes(j)?' weak':''}" data-q="${g+1}" title="${j?j.n+' strips':''}"><b></b>${j&&isFinite(j.R)?fmt(j.R,2):''}</span>`);}
   }
   $('schem').innerHTML=sc.join('');
   $('schem').style.gridTemplateColumns=`repeat(${S-1},minmax(0,1fr) var(--kw)) minmax(0,1fr)`;
@@ -534,10 +539,10 @@ function renderSide(){
   if(done){
     const strips=r.Rpack-r.Rideal,uneven=r.Rpack*r.load*r.load-r.Rpack,split=r.total-r.Rpack*r.load*r.load;
     const C=['var(--line)','#e9a23b','#e5484d','#8e6cf0'];
-    let bi=-1,bq=0;asg.forEach((g,i)=>{if(g<0||!r.gstat[g])return;const q=r.cellI[i]/r.gstat[g].mean;if(q>bq){bq=q;bi=i;}});busyCell=bi;
+    const bc=busyCells(r);busyCell=bc;const bgs=[...new Set(bc.map(i=>asg[i]+1))];
     const parts=[[r.Rideal,'cells','fixed by the S×P'],[strips,'strips','add strips between groups'],[uneven,'uneven cells',`busiest cell +${fmt((r.load-1)*100,1)}%`],[split,'split groups',r.extra?`${r.extra} extra pieces`:'none']];
     const big=Math.max(strips,uneven,split);
-    bd.innerHTML=`<div class="h">Score breakdown</div><div class="bar">${parts.map((p,k)=>`<i style="width:${p[0]/r.total*100}%;background:${C[k]}"></i>`).join('')}</div><div class="rows">${parts.map((p,k)=>`<span class="v">${k?'+':''}${fmt(p[0],2)}</span><span${k&&p[0]===big&&big>0.01?' style="color:var(--ink);font-weight:600"':''}><span class="sw" style="background:${C[k]}"></span> ${p[1]}</span>${k===2&&bi>=0?`<span class="busy" data-busy="1">busiest: S${asg[bi]+1} cell, +${fmt((r.load-1)*100,1)}%</span>`:'<span></span>'}`).join('')}<span class="v" style="border-top:1px solid var(--line);padding-top:3px">${fmt(r.total,2)}</span><span style="border-top:1px solid var(--line);padding-top:3px">mΩ</span><span></span></div><div class="calc">${fmt(r.Rpack,2)} pack × ${fmt(r.load,3)}² busiest cell × ${fmt(r.splitF,3)} splits = ${fmt(r.total,2)}<br>splits = 1 + 10% × ${r.extra} extra piece${r.extra===1?'':'s'} ÷ ${S} groups</div>`;
+    bd.innerHTML=`<div class="h">Score breakdown</div><div class="bar">${parts.map((p,k)=>`<i style="width:${p[0]/r.total*100}%;background:${C[k]}"></i>`).join('')}</div><div class="rows">${parts.map((p,k)=>`<span class="v">${k?'+':''}${fmt(p[0],2)}</span><span${k&&p[0]===big&&big>0.01?' style="color:var(--ink);font-weight:600"':''}><span class="sw" style="background:${C[k]}"></span> ${p[1]}</span>${k===2?(bc.length?`<span class="busy" data-busy="1">busiest: ${bc.length>1?bc.length+' cells in '+bgs.map(g=>'S'+g).join(', '):'S'+bgs[0]+' cell'}, +${fmt((r.load-1)*100,1)}%</span>`:'<span class="busy0">cells share evenly</span>'):'<span></span>'}`).join('')}<span class="v" style="border-top:1px solid var(--line);padding-top:3px">${fmt(r.total,2)}</span><span style="border-top:1px solid var(--line);padding-top:3px">mΩ</span><span></span></div><div class="calc">${fmt(r.Rpack,2)} pack × ${fmt(r.load,3)}² busiest cell × ${fmt(r.splitF,3)} splits = ${fmt(r.total,2)}<br>splits = 1 + 10% × ${r.extra} extra piece${r.extra===1?'':'s'} ÷ ${S} groups</div>`;
   }else bd.innerHTML='';
   $('botBtn').textContent=showBot?'Hide par':'Show par';
 }
