@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spotweld</title>
+<meta name="description" content="Battery interconnect puzzle: wire cylindrical cells into an SxP pack with low, even resistance.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0c0f14; --bg2:#121721; --card:#161c27; --card2:#1c2331; --line:#263042; --line2:#334055;
+  --ink:#e8edf5; --ink2:#a9b4c6; --ink3:#6c7a91; --accent:#5ee1ff; --accent2:#ffcf4a; --bad:#ff5d73; --good:#4ee39a;
+  --mono:"JetBrains Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 "Space Grotesk",system-ui,sans-serif}
+body{background:var(--bg);min-height:100vh}
+button{font:inherit;color:inherit}
+[hidden]{display:none!important}
+.wrap{max-width:1100px;margin:0 auto;padding:16px 16px 40px;display:flex;flex-direction:column;gap:12px}
+header{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:9px;margin-right:auto}
+.logo svg{width:28px;height:28px}
+.logo h1{margin:0;font-size:19px;letter-spacing:.14em;font-weight:700}
+select{font:inherit;font-size:14px;color:var(--ink);background:var(--card);border:1px solid var(--line2);border-radius:10px;padding:7px 10px;cursor:pointer}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px}
+.goal{display:flex;align-items:center;justify-content:space-between;gap:12px 20px;flex-wrap:wrap;padding:14px 16px 0}
+.goal .what{font-size:16px}
+.goal .what b{color:var(--accent)}
+.goal .what small{display:block;font-family:var(--mono);font-size:11px;color:var(--ink3);margin-top:2px}
+.scorebox{text-align:right;font-variant-numeric:tabular-nums}
+.scorebox .n{font-size:30px;font-weight:700;line-height:1}
+.scorebox .n small{font-size:14px;color:var(--ink3);font-weight:500}
+.scorebox .n.dim{color:var(--line2)}
+.stars{font-size:18px;letter-spacing:2px;color:var(--line2);margin-bottom:2px}
+.stars b{color:var(--accent2);font-weight:400}
+.scorebox .p{font-family:var(--mono);font-size:11px;color:var(--ink3);margin-top:3px}
+.schem{display:flex;align-items:center;flex-wrap:wrap;row-gap:8px;padding:12px 16px 0}
+.schem .term{font-family:var(--mono);font-size:10px;font-weight:600;padding:2px 5px;border-radius:6px;border:1px solid}
+.schem .neg{color:#8eeaff;border-color:#5ee1ff66}
+.schem .pos{color:#ff8a9a;border-color:#ff5d7366}
+.schem .wire{width:8px;height:2px;background:var(--line2)}
+.schem .grp{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 4px 2px;border:1px solid var(--line);border-radius:7px;cursor:pointer;background:var(--bg)}
+.schem .grp.on{border-color:var(--ink2)}
+.schem .grp.bad{border-color:var(--bad)}
+.schem .grp i{width:8px;height:8px;border-radius:50%;border:1px solid var(--line2)}
+.schem .grp span{font-family:var(--mono);font-size:9px;color:var(--ink3)}
+.step{padding:10px 16px 0;font-size:14px;color:var(--ink2);min-height:30px}
+.step b{color:var(--ink)}
+.step.bad{color:var(--bad)}
+.step.good{color:var(--good)}
+.stage{padding:8px 10px}
+.boards{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:700px){.boards{grid-template-columns:1fr}}
+.face{display:flex;flex-direction:column;gap:4px;min-width:0}
+.face .lbl{font-family:var(--mono);font-size:11px;color:var(--ink3);letter-spacing:.08em;text-transform:uppercase;text-align:center}
+.bd{width:100%;height:auto;max-height:min(560px,60vh);touch-action:none;user-select:none;-webkit-user-select:none;cursor:crosshair;display:block}
+.tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 16px 14px;border-top:1px solid var(--line);font-size:12px;color:var(--ink3)}
+.tools .sp{flex:1}
+.bd2{padding:14px 16px;display:grid;grid-template-columns:auto auto 1fr auto;gap:8px 14px;align-items:baseline;font-size:13px;color:var(--ink2)}
+.bd2 .op{font-family:var(--mono);color:var(--ink3);text-align:right}
+.bd2 .v{font-family:var(--mono);color:var(--ink);white-space:nowrap;text-align:right}
+.bd2 .t{font-size:10px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em;padding:1px 6px;border-radius:5px;border:1px solid var(--line2);color:var(--ink3);white-space:nowrap}
+.bd2 .t.real{color:var(--good);border-color:var(--good)}
+.bd2 .tot{border-top:1px solid var(--line);padding-top:8px}
+.bd2 .h{grid-column:1/-1;font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em}
+.btn{background:var(--card2);border:1px solid var(--line);border-radius:9px;padding:6px 11px;cursor:pointer;font-size:12px;color:var(--ink2)}
+.btn:hover{color:var(--ink);border-color:var(--line2)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.on{color:var(--accent);border-color:var(--accent)}
+.btn.erase.on{color:var(--bad);border-color:var(--bad)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#0c0f14}
+.blurb{color:var(--accent2)}
+#tip{position:fixed;pointer-events:none;background:#0b0e13ee;border:1px solid var(--line2);border-radius:8px;padding:6px 9px;font-family:var(--mono);font-size:11px;color:var(--ink);z-index:10;display:none;white-space:nowrap}
+#tip .h{color:var(--ink3)}
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);opacity:0;background:var(--card2);border:1px solid var(--line2);padding:8px 14px;border-radius:10px;transition:.25s;font-size:13px;z-index:20;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%)}
+/* svg */
+.cell{transition:opacity .15s}
+.cellhit:hover + .hov{opacity:1}
+.hov{opacity:0;pointer-events:none;transition:opacity .1s}
+@keyframes pulse{0%,100%{stroke-opacity:.95}50%{stroke-opacity:.35}}
+.activering{animation:pulse 1.4s ease-in-out infinite}
+@keyframes pop{0%{transform:scale(.6)}100%{transform:scale(1)}}
+.lt{font-family:var(--mono);paint-order:stroke;stroke:#0c0f14;stroke-linejoin:round;pointer-events:none}
+.gt{font-family:"Space Grotesk",sans-serif;font-weight:700;pointer-events:none}
+</style>
+</head>
+<body><img src="https://hits.sh/henry-has.github.io/spotweld.svg" alt="" width="1" height="1" referrerpolicy="no-referrer" style="position:absolute;opacity:0;pointer-events:none">
+<div class="wrap">
+  <header>
+    <div class="logo">
+      <svg viewBox="0 0 34 34"><circle cx="10" cy="11" r="7" fill="none" stroke="#5ee1ff" stroke-width="2.4"/><circle cx="24" cy="11" r="7" fill="none" stroke="#5ee1ff" stroke-width="2.4"/><circle cx="17" cy="23" r="7" fill="none" stroke="#5ee1ff" stroke-width="2.4"/><path d="M10 11L24 11L17 23Z" fill="none" stroke="#ffcf4a" stroke-width="3" stroke-linejoin="round"/></svg>
+      <h1>SPOTWELD</h1>
+    </div>
+    <select id="levels" aria-label="Level"></select>
+  </header>
+
+  <section class="card">
+    <div class="goal">
+      <div class="what" id="goalWhat"></div>
+      <div class="scorebox"><div class="stars" id="stars"></div><div class="n" id="bigScore"></div><div class="p" id="parBox"></div></div>
+    </div>
+    <div class="schem" id="schem" title="Each box is one parallel group; groups are wired in series"></div>
+    <div class="step" id="goalStep"></div>
+    <div class="stage boards"><div class="face"><div class="lbl">Top face</div><svg class="bd" id="boardT"></svg></div><div class="face"><div class="lbl">Bottom face (seen from above)</div><svg class="bd" id="boardB"></svg></div></div>
+    <div class="tools">
+      <span>Left-drag to add · right-drag to erase</span>
+      <span class="sp"></span>
+      <button class="btn erase" id="eraseBtn" title="Erase mode for touch">Erase</button>
+      <button class="btn" id="undoBtn">Undo</button>
+      <button class="btn" id="clearBtn">Clear</button>
+      <button class="btn" id="botBtn">Show par</button>
+      <button class="btn primary" id="shareBtn" hidden>Share</button>
+    </div>
+  </section>
+  <section class="card bd2" id="bd" hidden></section>
+
+
+
+
+</div>
+<div id="tip"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+(()=>{
+const SQ3=Math.sqrt(3);
+const RC=10;      // mΩ per cell
+const RL=1.0;     // mΩ per strip
+const ICELL=15;   // A per cell
+const VCELL=3.6, AHCELL=4.2; // nominal 21700
+const PREF=ICELL*ICELL*RL/1000; // W in one link carrying one cell's current
+const HEATMAX=PREF*2.25;
+let SPLIT_COST=0.1; // per extra island in a group
+const PAL=['#4cc9f0','#f72585','#a7e36f','#ffb703','#9d6bff','#06d6a0','#fb8500','#5b7cff','#ff6b8b','#7fe3f0','#d08cff','#ffd166','#3ddc84','#ff8fab'];
+const $=id=>document.getElementById(id);
+const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
+
+/* ---------- shapes ---------- */
+function fromDW(rows){const c=[];rows.forEach((row,r)=>{for(let k=0;k<row.length;k++)if(row[k]==='o')c.push({x:k/2,y:r*SQ3/2});});return c;}
+function fromGrid(rows){const c=[];rows.forEach((row,r)=>{for(let k=0;k<row.length;k++)if(row[k]==='#')c.push({x:k,y:r});});return c;}
+// rows of hex cells: counts[r] cells starting at x0(r)
+function fromRows(counts,x0=r=>(r%2)/2){const c=[];counts.forEach((n,r)=>{for(let k=0;k<n;k++)c.push({x:x0(r)+k,y:r*SQ3/2});});return c;}
+function axial(q,r){return {x:q+r/2,y:r*SQ3/2};}
+function hexagon(R,hole=-1){const c=[];for(let q=-R;q<=R;q++)for(let r=-R;r<=R;r++){const d=Math.max(Math.abs(q),Math.abs(r),Math.abs(q+r));if(d<=R&&d>hole)c.push(axial(q,r));}return c;}
+
+const DEMOS=[
+ {id:'first',name:'First Weld',S:4,P:2,grid:true,optimal:true,cells:fromGrid(['####','####'])},
+ {id:'para',name:'Parallelogram',S:10,P:4,cells:fromRows([8,8,8,8,8],r=>r/2)},
+ {id:'wedgejr',name:'Wedge Jr',S:9,P:4,cells:fromRows([8,7,6,5,4,3,2,1])},
+ {id:'ramp',name:'Ramp',S:12,P:4,cells:fromRows([10,9,8,8,7,6])},
+ {id:'icecream',name:'Ice Cream',S:12,P:3,cells:fromRows([4,5,6,7,6,3,2,2,1],r=>[1.5,1,.5,0,.5,2,2.5,2,2.5][r])},
+ {id:'wedge',name:'Wedge',S:14,P:6,cells:fromRows([13,12,12,10,9,7,6,5,4,3,2,1])},
+];
+
+/* ---------- daily ---------- */
+function hashStr(s){let h=2166136261;for(const ch of s){h^=ch.charCodeAt(0);h=Math.imul(h,16777619);}return h>>>0;}
+function rng32(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const today=new Date();
+const dKey=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+const dayNo=Math.round((new Date(today.getFullYear(),today.getMonth(),today.getDate())-new Date(2026,10,24))/864e5)+1;
+/* ---------- level prep ---------- */
+function prepLevel(L){
+  const xs=L.cells.map(c=>c.x),ys=L.cells.map(c=>c.y);
+  const mx=Math.min(...xs),my=Math.min(...ys);
+  L.cells=L.cells.map(c=>({x:c.x-mx,y:c.y-my}));
+  L.w=Math.max(...xs)-mx;L.h=Math.max(...ys)-my;
+  const th=L.grid?1.5:1.05;
+  L.pairs=[];L.nb=L.cells.map(()=>[]);
+  for(let i=0;i<L.cells.length;i++)for(let j=i+1;j<L.cells.length;j++){
+    const d=Math.hypot(L.cells[i].x-L.cells[j].x,L.cells[i].y-L.cells[j].y);
+    if(d<th){L.pairs.push({i,j,d});L.nb[i].push(j);L.nb[j].push(i);}
+  }
+  if(L.cells.length!==L.S*L.P) console.warn(L.name,'has',L.cells.length,'cells, need',L.S*L.P);
+  return L;
+}
+function isConnected(L){const seen=new Set([0]),st=[0];while(st.length){const i=st.pop();for(const j of L.nb[i])if(!seen.has(j)){seen.add(j);st.push(j);}}return seen.size===L.cells.length;}
+
+/* ---------- physics ---------- */
+function evaluate(L,asg){
+  const {S,P}=L,N=L.cells.length;
+  const groups=Array.from({length:S},()=>[]);
+  asg.forEach((g,i)=>{if(g>=0)groups[g].push(i);});
+  let m=0;while(m<S&&groups[m].length===P)m++;
+  const links=[];
+  for(const pr of L.pairs){
+    const gi=asg[pr.i],gj=asg[pr.j];if(gi<0||gj<0)continue;
+    let plates=[];
+    if(gi===gj)plates=[gi,gi+1];else if(Math.abs(gi-gj)===1)plates=[Math.max(gi,gj)];
+    for(const p of plates)links.push({i:pr.i,j:pr.j,p,face:p%2,R:RL,bus:p===0||p===S,I:null,W:null});
+  }
+  // components & series contact
+  const comps=groups.map(()=>0),touch=groups.map(()=>true);
+  const seen=new Array(N).fill(false);
+  for(let g=0;g<S;g++)for(const i of groups[g]){if(seen[i])continue;comps[g]++;const st=[i];seen[i]=true;while(st.length){const a=st.pop();for(const b of L.nb[a])if(!seen[b]&&asg[b]===g){seen[b]=true;st.push(b);}}}
+  for(let g=1;g<S;g++){if(!groups[g].length||!groups[g-1].length)continue;touch[g]=L.pairs.some(pr=>{const a=asg[pr.i],b=asg[pr.j];return (a===g&&b===g-1)||(a===g-1&&b===g);});}
+  const res={groups,m,links,comps,touch,cellI:new Array(N).fill(null),complete:m===S};
+  if(m===0)return res;
+  // nodes
+  const idx=new Map();let U=0;
+  const node=(i,p)=>{if(p===0)return -1;if(p===m)return -2;const k=i*2+(p===asg[i]?0:1);if(!idx.has(k))idx.set(k,U++);return idx.get(k);};
+  const els=[];
+  for(let g=0;g<m;g++)for(const i of groups[g])els.push({a:node(i,g),b:node(i,g+1),c:1/RC,cell:i});
+  for(const l of links){
+    if(asg[l.i]>=m||asg[l.j]>=m||l.p>m)continue;
+    if(l.p===0||l.p===m){l.tbus=true;continue;}
+    l.a=node(l.i,l.p);l.b=node(l.j,l.p);els.push({a:l.a,b:l.b,c:1/l.R,link:l});
+  }
+  const G=Array.from({length:U},()=>new Float64Array(U)),B=new Float64Array(U);
+  for(const e of els){
+    const {a,b,c}=e;
+    if(a>=0)G[a][a]+=c;if(b>=0)G[b][b]+=c;
+    if(a>=0&&b>=0){G[a][b]-=c;G[b][a]-=c;}
+    if(a>=0&&b===-2)B[a]+=c;if(b>=0&&a===-2)B[b]+=c;
+  }
+  for(let k=0;k<U;k++)G[k][k]+=1e-9;
+  const x=gauss(G,B,U);
+  const V=n=>n===-1?0:n===-2?1:x[n];
+  let It=0;const raw=new Array(N).fill(0);
+  for(const e of els){const i=(V(e.a)-V(e.b))*e.c;if(e.cell!==undefined){raw[e.cell]=Math.abs(i);}else e.link.raw=Math.abs(i);}
+  for(const i of groups[0])It+=raw[i];
+  const Rp=1/It,Ri=m*RC/P,k=ICELL*P/It;
+  res.Rpack=Rp;res.Rideal=Ri;res.open=Rp>40*Ri;
+  let loss=0,hot=null;
+  for(let g=0;g<m;g++)for(const i of groups[g])res.cellI[i]=raw[i]*k;
+  for(const l of links)if(l.raw!==undefined){l.I=l.raw*k;l.W=l.I*l.I*l.R/1000;loss+=l.W;if(!hot||l.W>hot.W)hot=l;}
+  res.loss=loss;res.hot=hot;
+  res.gstat=groups.map((gr,g)=>{
+    if(g>=m)return null;const I=gr.map(i=>res.cellI[i]);
+    const mx=Math.max(...I),mn=Math.min(...I),mean=I.reduce((a,b)=>a+b,0)/I.length;
+    return {I,mx,mn,mean,spread:(mx-mn)/mean};
+  });
+  const sp=res.gstat.slice(0,m).map(s=>s.spread);
+  res.spreadMean=sp.reduce((a,b)=>a+b,0)/sp.length;res.spreadMax=Math.max(...sp);
+  res.overhead=Rp/Ri-1;
+  res.load=Math.max(...res.gstat.slice(0,m).map(s=>s.mx/s.mean)); // hardest-working cell vs its group average
+  const done=comps.filter((c,g)=>groups[g].length);
+  res.extra=comps.reduce((a,c)=>a+Math.max(0,c-1),0);
+  res.splitF=1+SPLIT_COST*res.extra/S;
+  if(res.complete){
+    // effective resistance (mΩ, lower is better): pack resistance, scaled by the worst cell's extra heat (∝ I²) and by splits
+    res.total=res.open?Infinity:Rp*res.load*res.load*res.splitF;
+  }
+  return res;
+}
+function gauss(A,b,n){
+  const M=A.map((r,i)=>{const a=Array.from(r);a.push(b[i]);return a;});
+  for(let c=0;c<n;c++){
+    let p=c;for(let r=c+1;r<n;r++)if(Math.abs(M[r][c])>Math.abs(M[p][c]))p=r;
+    [M[c],M[p]]=[M[p],M[c]];const pv=M[c][c];if(Math.abs(pv)<1e-18)continue;
+    for(let r=c+1;r<n;r++){const f=M[r][c]/pv;if(!f)continue;for(let k=c;k<=n;k++)M[r][k]-=f*M[c][k];}
+  }
+  const x=new Float64Array(n);
+  for(let r=n-1;r>=0;r--){let s=M[r][n];for(let k=r+1;k<n;k++)s-=M[r][k]*x[k];x[r]=Math.abs(M[r][r])<1e-18?0:s/M[r][r];}
+  return x;
+}
+
+/* ---------- bot (par) ---------- */
+function botSolve(L,iters=400){
+  const N=L.cells.length,{S,P}=L;let best=null;
+  const tryOrder=ord=>{const a=new Array(N);ord.forEach((c,k)=>a[c]=Math.floor(k/P));const r=evaluate(L,a);if(r.total!==undefined&&isFinite(r.total)&&(!best||r.total<best.res.total))best={asg:a,res:r};};
+  for(let ang=0;ang<180;ang+=15){
+    const t=ang*Math.PI/180,c=Math.cos(t),s=Math.sin(t);
+    const ord=[...Array(N).keys()].sort((i,j)=>{const A=L.cells[i],B=L.cells[j];return (A.x*c+A.y*s)-(B.x*c+B.y*s)||(-A.x*s+A.y*c)-(-B.x*s+B.y*c);});
+    tryOrder(ord);
+  }
+  const bfsStarts=N<=40?[...Array(N).keys()]:[...Array(N).keys()].sort((i,j)=>L.nb[i].length-L.nb[j].length).slice(0,16);
+  for(const st of bfsStarts){
+    const d=new Array(N).fill(-1);d[st]=0;const q=[st];
+    for(let h=0;h<q.length;h++)for(const j of L.nb[q[h]])if(d[j]<0){d[j]=d[q[h]]+1;q.push(j);}
+    const o=L.cells[st];
+    tryOrder([...Array(N).keys()].sort((i,j)=>d[i]-d[j]||Math.atan2(L.cells[i].y-o.y,L.cells[i].x-o.x)-Math.atan2(L.cells[j].y-o.y,L.cells[j].x-o.x)));
+  }
+  // region growing: peel contiguous groups, keep the remainder connected
+  const remConnected=(a)=>{let s0=-1,cnt=0;for(let i=0;i<N;i++)if(a[i]<0){cnt++;if(s0<0)s0=i;}if(!cnt)return true;const seen=new Set([s0]),st=[s0];while(st.length){const x=st.pop();for(const y of L.nb[x])if(a[y]<0&&!seen.has(y)){seen.add(y);st.push(y);}}return seen.size===cnt;};
+  const grow=(start,R)=>{
+    const a=new Array(N).fill(-1);let prev=[start];
+    for(let g=0;g<S;g++){
+      const mine=[];
+      for(let k=0;k<P;k++){
+        const cand=new Set();
+        const src=mine.length?mine:prev;
+        for(const x of src)for(const y of L.nb[x])if(a[y]<0)cand.add(y);
+        if(g===0&&k===0)cand.add(start);
+        if(!cand.size){for(let i=0;i<N;i++)if(a[i]<0)cand.add(i);}
+        let bc=-1,bs=-1e9;
+        for(const c of cand){
+          a[c]=g;const ok=remConnected(a);a[c]=-1;
+          let free=0,own=0,pv=0;for(const y of L.nb[c]){if(a[y]<0)free++;else if(a[y]===g)own++;else if(a[y]===g-1)pv++;}
+          const sc=(ok?100:0)-free*3+own*2+pv*1.5+R()*2.5;
+          if(sc>bs){bs=sc;bc=c;}
+        }
+        a[bc]=g;mine.push(bc);
+      }
+      prev=mine;
+    }
+    return a;
+  };
+  const R0=rng32(hashStr(L.id+'g'));
+  const starts=[...Array(N).keys()].sort((i,j)=>L.nb[i].length-L.nb[j].length).slice(0,Math.min(N,14));
+  for(const st of starts)for(let rep=0;rep<3;rep++){const a=grow(st,R0);const r=evaluate(L,a);if(r.total!==undefined&&isFinite(r.total)&&(!best||r.total<best.res.total))best={asg:a,res:r};}
+  if(!best)return null;
+  const R=rng32(hashStr(L.id));
+  for(let it=0;it<iters;it++){
+    const pr=L.pairs[Math.floor(R()*L.pairs.length)];
+    const a=best.asg.slice();if(a[pr.i]===a[pr.j])continue;
+    [a[pr.i],a[pr.j]]=[a[pr.j],a[pr.i]];
+    const r=evaluate(L,a);if(r.total<best.res.total)best={asg:a,res:r};
+  }
+  return best;
+}
+
+/* ---------- state ---------- */
+const store={get(k,d){try{const v=localStorage.getItem('spotweld:'+k);return v==null?d:JSON.parse(v);}catch(e){return d;}},set(k,v){try{localStorage.setItem('spotweld:'+k,JSON.stringify(v));}catch(e){}}};
+const LEVELS=DEMOS.map(prepLevel);
+let L,asg,active,hist=[],showVals=false,eraseMode=false,stroke=null,res,par=null,showBot=false;
+
+function loadLevel(k){
+  L=LEVELS[k];store.set('last2',k);
+  asg=store.get('asg:'+L.id,null);
+  if(!asg||asg.length!==L.cells.length)asg=new Array(L.cells.length).fill(-1);
+  hist=[];showBot=false;active=lowestIncomplete();
+  par=store.get('par4:'+L.id,null);
+  renderLevels();render();
+  if(par==null)setTimeout(()=>{const b=botSolve(L);par=b?{score:b.res.total,asg:b.asg}:{score:null,asg:null};store.set('par4:'+L.id,par);render();},30);
+}
+function counts(){const c=new Array(L.S).fill(0);asg.forEach(g=>{if(g>=0)c[g]++;});return c;}
+function lowestIncomplete(){const c=counts();for(let g=0;g<L.S;g++)if(c[g]<L.P)return g;return L.S-1;}
+function nextIncomplete(a){const c=counts();for(let k=1;k<=L.S;k++){const g=(a+k)%L.S;if(c[g]<L.P)return g;}return a;}
+
+/* ---------- render ---------- */
+function heatColor(t){
+  const st=[[0,[141,155,171]],[.3,[233,196,106]],[.55,[244,162,97]],[.8,[231,111,81]],[1,[255,45,74]]];
+  t=clamp(t);for(let k=1;k<st.length;k++)if(t<=st[k][0]){const [a,ca]=st[k-1],[b,cb]=st[k],f=(t-a)/(b-a);return `rgb(${ca.map((v,i)=>Math.round(v+(cb[i]-v)*f)).join(',')})`;}
+  return 'rgb(255,45,74)';
+}
+// ★ finish · ★★ within 5% of par · ★★★ strictly beat par (by more than 0.005 mΩ)
+const TWO_STAR=1.05;
+function starsFor(v,pr,opt){if(v==null||!isFinite(v))return 0;if(pr==null)return 1;if(opt?v<=pr+0.005:v<pr-0.005)return 3;if(v<=pr*TWO_STAR)return 2;return 1;}
+const starStr=n=>'★'.repeat(n)+'☆'.repeat(3-n);
+const fmt=(v,d=1)=>v==null||!isFinite(v)?'—':v.toFixed(d);
+function render(){
+  const view=showBot&&par&&par.asg?par.asg:asg;
+  res=evaluate(L,view);
+  if(!showBot){store.set('asg:'+L.id,asg);}
+  renderBoard(view);renderSide();
+}
+let strips=[[],[]];
+function renderBoard(view){
+  renderFace(view,1,$('boardT'));renderFace(view,0,$('boardB'));
+}
+function renderFace(view,face,svg){
+  const pad=0.75,{S}=L,R=0.46;
+  // bottom face seen from above keeps the same left/right so cells line up
+  const cells=L.cells;
+  svg.setAttribute('viewBox',`${-pad} ${-pad} ${L.w+2*pad} ${L.h+2*pad}`);
+  const out=[``];
+  cells.forEach((c,i)=>{
+    const g=view[i];
+    if(g>=0){const col=PAL[g%PAL.length];out.push(`<circle cx="${c.x}" cy="${c.y}" r="${R}" fill="${col}" fill-opacity="${g===active&&!showBot?0.4:0.22}" stroke="${col}" stroke-width="0.04"/>`);}
+    else out.push(`<circle cx="${c.x}" cy="${c.y}" r="${R}" fill="#222936" stroke="#343e50" stroke-width="0.03"/>`);
+  });
+  const fl=res.links.filter(l=>l.face===face);strips[face]=fl;
+  const maxW=Math.max(1e-9,...res.links.map(l=>l.W||0));
+  fl.forEach((st,k)=>{
+    const A=cells[st.i],B=cells[st.j],dx=B.x-A.x,dy=B.y-A.y,d=Math.hypot(dx,dy),ux=dx/d,uy=dy/d,o=0.28;
+    const x1=A.x+ux*o,y1=A.y+uy*o,x2=B.x-ux*o,y2=B.y-uy*o;
+    const bus=st.bus||st.tbus;
+    const t=st.W!=null?clamp(st.W/HEATMAX):0,col=bus?'#5c6778':st.W!=null?heatColor(t):'#8d9bab';
+    out.push(`<line class="lk" data-l="${face}:${k}" x1="${bus?A.x:x1}" y1="${bus?A.y:y1}" x2="${bus?B.x:x2}" y2="${bus?B.y:y2}" stroke="${col}" stroke-width="${bus?0.3:0.18}" stroke-linecap="round"/>`);
+  });
+  cells.forEach((c,i)=>{
+    const g=view[i];
+    if(g>=0){
+      const col=PAL[g%PAL.length];
+      if(g===active&&!showBot)out.push(`<circle class="activering" cx="${c.x}" cy="${c.y}" r="${R+0.03}" fill="none" stroke="${col}" stroke-width="0.05"/>`);
+      out.push(`<text class="gt" x="${c.x}" y="${c.y+0.09}" font-size="0.25" fill="#fff" text-anchor="middle" style="paint-order:stroke" stroke="#0c0f14" stroke-width="0.06">S${g+1}</text>`);
+    }
+    out.push(`<circle class="cellhit" data-c="${i}" cx="${c.x}" cy="${c.y}" r="${R}" fill="transparent"/>`);
+    out.push(`<circle class="hov" cx="${c.x}" cy="${c.y}" r="${R+0.01}" fill="#fff" fill-opacity=".07" stroke="#fff" stroke-opacity=".5" stroke-width="0.025"/>`);
+  });
+  const term=(g,label,plate)=>{
+    if(plate%2!==face)return;
+    const gr=res.groups[g];if(!gr.length)return;
+    const tc=gr.reduce((a,i)=>cells[i].y<cells[a].y-1e-6?i:a,gr[0]),cx=cells[tc].x,cy=cells[tc].y-0.02;
+    const c=label==='+'?'#ff8a9a':'#8eeaff';
+    out.push(`<rect x="${cx-0.36}" y="${cy-0.62}" width="0.72" height="0.22" rx="0.06" fill="#0c0f14" stroke="${c}" stroke-width="0.025"/><text class="lt" x="${cx}" y="${cy-0.47}" font-size="0.12" stroke-width="0" fill="${c}" text-anchor="middle">PACK ${label}</text>`);
+  };
+  term(0,'−',0);term(S-1,'+',S);
+  svg.innerHTML=out.join('');
+}
+function setMeter(id,v,txt,num){const el=$(id);el.style.width=(v==null?0:clamp(v)*100)+'%';el.style.background=v>.8?'#4ee39a':v>.5?'#ffcf4a':'#ff5d73';$(id+'v').innerHTML=txt;$(id+'n').textContent=num;}
+function renderSide(){
+  const {S,P}=L,r=res;
+  $('goalWhat').innerHTML=`Build <b>${S}S${P}P</b>: ${S} groups in series × ${P} cells each<small>${S*P} cells</small>`+(L.blurb?`<small class="blurb">${L.blurb}</small>`:'');
+  const el=$('goalStep');el.className='step';
+  const need=P-r.groups[active].length;
+  const firstBad=r.groups.findIndex((gr,g)=>gr.length&&!(g===active&&gr.length<P)&&!r.touch[g]);
+  if(showBot)el.innerHTML='Showing the bot\'s layout. Click the board to return to yours.';
+  else if(r.complete&&r.open){el.className='step bad';el.textContent='Open circuit: a group isn\'t touching the next one.';}
+  else if(r.complete){el.className='step good';const pr=par&&par.score;const n=starsFor(r.total,pr,L.optimal);
+    el.textContent=pr==null?'Pack done.':n===3?(L.optimal?'★★★ Best possible layout.':`★★★ You beat par (${fmt(pr,2)} mΩ).`):n===2?`★★ Close. ${L.optimal?'Reach':'Beat'} ${fmt(pr,2)} mΩ for ★★★.`:`★ Done. ${fmt(pr*TWO_STAR,2)} mΩ for ★★, ${L.optimal?'':'under '}${fmt(pr,2)} mΩ for ★★★.`;}
+  else if(firstBad>=0){el.className='step bad';el.textContent=`S${firstBad+1} isn't touching S${firstBad}, so no current can reach it. Right-drag to erase and fix it.`;}
+  else el.innerHTML=`Pick <b>${need}</b> cell${need===1?'':'s'} for <b>S${active+1}</b>`+(active>0?`, touching S${active}`:', the PACK − group');
+  const sc=['<span class="term neg">−</span>'];
+  for(let g=0;g<S;g++){
+    const gr=r.groups[g],col=PAL[g%PAL.length],bad=gr.length&&!(g===active&&gr.length<P)&&!r.touch[g];
+    let dots='';for(let k=0;k<P;k++)dots+=`<i style="${k<gr.length?`background:${col};border-color:${col}`:''}"></i>`;
+    sc.push('<span class="wire"></span>',`<div class="grp${g===active&&!showBot?' on':''}${bad?' bad':''}" data-g="${g}">${dots}<span>S${g+1}</span></div>`);
+  }
+  sc.push('<span class="wire"></span>','<span class="term pos">+</span>');
+  $('schem').innerHTML=sc.join('');
+  // score
+  const best=store.get('best4:'+L.id,null);
+  if(r.complete&&!r.open&&!showBot&&(best==null||r.total<best)){store.set('best4:'+L.id,r.total);renderLevels();}
+  const b2=store.get('best4:'+L.id,null);
+  const bs=$('bigScore');
+  if(r.complete&&!r.open){bs.className='n';bs.innerHTML=`${fmt(r.total,2)}<small> mΩ</small>`;}else{bs.className='n dim';bs.textContent='--';}
+  $('parBox').textContent=`mΩ, lower is better · par ${par&&par.score!=null?fmt(par.score,2):'…'} · best ${fmt(b2,2)}`;
+  {const n=r.complete&&!r.open&&!showBot?starsFor(r.total,par&&par.score,L.optimal):starsFor(b2,par&&par.score,L.optimal);$('stars').innerHTML=`<b>${'★'.repeat(n)}</b>${'☆'.repeat(3-n)}`;}
+  $('shareBtn').hidden=!(r.complete&&!r.open);
+  const bd=$('bd');bd.hidden=!(r.complete&&!r.open);
+  if(!bd.hidden){
+    const row=(op,v,label,tag)=>`<span class="op">${op}</span><span class="v">${v}</span><span>${label}</span><span class="t${tag==='real'?' real':''}">${tag==='real'?'circuit':'game rule'}</span>`;
+    bd.innerHTML=`<div class="h">Score breakdown</div>`+
+      row('',`${fmt(r.Rideal,2)} mΩ`,`cells alone (${S} × ${RC} mΩ ÷ ${P})`,'real')+
+      row('+',`${fmt(r.Rpack-r.Rideal,2)} mΩ`,'added by strips','real')+
+      row('=',`${fmt(r.Rpack,2)} mΩ`,'pack resistance','real')+
+      row('×',`${fmt(r.load,3)}²`,`busiest cell carries ${fmt((r.load-1)*100,1)}% over its group's average`,'game')+
+      row('×',`${fmt(r.splitF,3)}`,r.extra?`${r.extra} extra split piece${r.extra>1?'s':''}`:'no split groups','game')+
+      `<span class="op tot">=</span><span class="v tot"><b>${fmt(r.total,2)} mΩ</b></span><span class="tot">score</span><span class="tot"></span>`;
+  }
+  $('botBtn').textContent=showBot?'Hide par':'Show par';
+  $('botBtn').disabled=!(par&&par.asg);
+}
+function renderLevels(){
+  const sel=$('levels'),cur=LEVELS.indexOf(L),o=[];
+  const tag=id=>{const b=store.get('best4:'+id,null);if(b==null)return '';const pp=store.get('par4:'+id,null);const d=DEMOS.find(x=>x.id===id);return ` ${starStr(starsFor(b,pp&&pp.score,d&&d.optimal))}`;};
+  DEMOS.forEach((d,k)=>o.push(`<option value="${k}">${d.name} · ${d.S}S${d.P}P${tag(d.id)}</option>`));
+  sel.innerHTML=o.join('');sel.value=String(cur);
+}
+
+/* ---------- input ---------- */
+let curSvg=null;
+function svgPt(e){const sv=curSvg||e.currentTarget;const p=sv.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(sv.getScreenCTM().inverse());}
+function cellAt(e){const p=svgPt(e);let bi=-1,bd=0.5;L.cells.forEach((c,i)=>{const d=Math.hypot(c.x-p.x,c.y-p.y);if(d<bd){bd=d;bi=i;}});return bi;}
+function apply(e,first){
+  const i=cellAt(e);if(i<0||i===stroke.last)return;stroke.last=i;
+  if(stroke.mode==='erase'){if(asg[i]>=0){asg[i]=-1;stroke.changed=true;render();}return;}
+  if(asg[i]>=0){if(first){active=asg[i];render();}return;}
+  const c=counts();
+  if(c[active]>=L.P)active=nextIncomplete(active);
+  if(counts()[active]>=L.P)return;
+  asg[i]=active;stroke.changed=true;
+  if(counts()[active]>=L.P)active=nextIncomplete(active);
+  render();
+}
+const end=()=>{if(!stroke)return;if(stroke.changed){hist.push(stroke.before);if(hist.length>200)hist.shift();if(stroke.mode==='erase')active=lowestIncomplete();}stroke=null;curSvg=null;render();};
+for(const svg of [$('boardT'),$('boardB')]){
+  svg.addEventListener('pointerdown',e=>{
+    e.preventDefault();hideTip();
+    if(showBot){showBot=false;render();return;}
+    const mode=(e.button===2||eraseMode)?'erase':e.button===0?'add':null;if(!mode)return;
+    curSvg=svg;stroke={mode,changed:false,before:asg.slice(),last:-1};
+    try{svg.setPointerCapture(e.pointerId);}catch(_){}
+    apply(e,true);
+  });
+  svg.addEventListener('pointermove',e=>{if(stroke)apply(e,false);else tip(e);});
+  svg.addEventListener('pointerup',end);svg.addEventListener('pointercancel',end);
+  svg.addEventListener('pointerleave',hideTip);
+  svg.addEventListener('contextmenu',e=>e.preventDefault());
+}
+
+const tipEl=$('tip');
+function hideTip(){tipEl.style.display='none';}
+function tip(e){
+  const t=e.target;let html='';
+  if(t.classList&&t.classList.contains('lk')){
+    const [f,k]=t.dataset.l.split(':').map(Number),l=strips[f][k],v=showBot&&par?par.asg:asg,a=v[l.i],b=v[l.j];
+    html=`<span class="h">${a!==b?'series strip S'+(Math.min(a,b)+1)+'→S'+(Math.max(a,b)+1):'parallel strip in S'+(a+1)}</span><br>`+(l.bus||l.tbus?'pack terminal plate':'1 mΩ');
+  }else if(t.classList&&t.classList.contains('cellhit')){
+    const i=+t.dataset.c,g=(showBot&&par?par.asg:asg)[i];
+    html=g<0?'<span class="h">empty cell</span>':`<span class="h">cell in group S${g+1}</span><br>10 mΩ`;
+  }
+  if(!html)return hideTip();
+  tipEl.innerHTML=html;tipEl.style.display='block';
+  tipEl.style.left=Math.min(e.clientX+14,innerWidth-tipEl.offsetWidth-8)+'px';tipEl.style.top=(e.clientY+14)+'px';
+}
+
+$('levels').addEventListener('change',e=>loadLevel(+e.target.value));
+$('schem').addEventListener('click',e=>{const g=e.target.closest('.grp');if(g){active=+g.dataset.g;showBot=false;render();}});
+$('eraseBtn').onclick=()=>{eraseMode=!eraseMode;$('eraseBtn').classList.toggle('on',eraseMode);};
+const undo=()=>{if(!hist.length)return;asg=hist.pop();showBot=false;active=lowestIncomplete();render();};
+$('undoBtn').onclick=undo;
+$('clearBtn').onclick=()=>{if(!asg.some(g=>g>=0))return;hist.push(asg.slice());asg.fill(-1);active=0;showBot=false;render();};
+$('botBtn').onclick=()=>{if(!par||!par.asg)return;showBot=!showBot;render();};
+addEventListener('keydown',e=>{
+  if(e.target.tagName==='SELECT')return;
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();undo();return;}
+  if(e.key==='e'||e.key==='E')$('eraseBtn').click();
+});
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('show'),1800);}
+$('shareBtn').onclick=async()=>{
+  const r=evaluate(L,asg);
+  if(!r.complete||r.open){toast('Finish the pack first');return;}
+  const txt=`⚡ Spotweld · ${L.name} · ${L.S}S${L.P}P ${starStr(starsFor(r.total,par&&par.score,L.optimal))}\n${fmt(r.total,2)} mΩ effective${par&&par.score!=null?` (par ${fmt(par.score,2)})`:''}\nstrips +${fmt(r.Rpack-r.Rideal,2)} mΩ · worst cell +${fmt((r.load-1)*100,1)}% · ${r.extra} split pieces\n${location.href.split('#')[0]}`;
+  try{await navigator.clipboard.writeText(txt);toast('Result copied to clipboard');}catch(_){prompt('Copy your result:',txt);}
+};
+
+let start=store.get('last2',0);if(!(start>=0&&start<LEVELS.length))start=0;
+loadLevel(start);
+window.__spot={evaluate,botSolve,LEVELS,prepLevel,fromGrid,fromDW,setSplit:v=>{SPLIT_COST=v;},get L(){return L;},get res(){return res;}};
+})();
+</script>
+</body>
+</html>
