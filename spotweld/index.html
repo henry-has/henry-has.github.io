@@ -163,6 +163,7 @@ button.txt.on{color:var(--crit);background:transparent}
 .loss .rows .v{font-variant-numeric:tabular-nums;color:var(--ink);text-align:right}
 .loss .rows .sw{width:8px;height:8px;display:inline-block}
 .loss .rows .tip{color:var(--ink-3);font-size:12px}
+.loss .calc{font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums;line-height:1.5}
 .loss .h{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
 </style>
 </head>
@@ -529,7 +530,7 @@ function renderSide(){
     const C=['var(--line)','#e9a23b','#e5484d','#8e6cf0'];
     const parts=[[r.Rideal,'cells','fixed by the S×P'],[strips,'strips','add strips between groups'],[uneven,'uneven cells',`busiest cell +${fmt((r.load-1)*100,1)}%`],[split,'split groups',r.extra?`${r.extra} extra pieces`:'none']];
     const big=Math.max(strips,uneven,split);
-    bd.innerHTML=`<div class="h">Score breakdown</div><div class="bar">${parts.map((p,k)=>`<i style="width:${p[0]/r.total*100}%;background:${C[k]}"></i>`).join('')}</div><div class="rows">${parts.map((p,k)=>`<span class="v">${k?'+':''}${fmt(p[0],2)}</span><span${k&&p[0]===big&&big>0.01?' style="color:var(--ink);font-weight:600"':''}><span class="sw" style="background:${C[k]}"></span> ${p[1]}</span><span></span>`).join('')}<span class="v" style="border-top:1px solid var(--line);padding-top:3px">${fmt(r.total,2)}</span><span style="border-top:1px solid var(--line);padding-top:3px">mΩ</span><span></span></div>`;
+    bd.innerHTML=`<div class="h">Score breakdown</div><div class="bar">${parts.map((p,k)=>`<i style="width:${p[0]/r.total*100}%;background:${C[k]}"></i>`).join('')}</div><div class="rows">${parts.map((p,k)=>`<span class="v">${k?'+':''}${fmt(p[0],2)}</span><span${k&&p[0]===big&&big>0.01?' style="color:var(--ink);font-weight:600"':''}><span class="sw" style="background:${C[k]}"></span> ${p[1]}</span><span></span>`).join('')}<span class="v" style="border-top:1px solid var(--line);padding-top:3px">${fmt(r.total,2)}</span><span style="border-top:1px solid var(--line);padding-top:3px">mΩ</span><span></span></div><div class="calc">${fmt(r.Rpack,2)} pack × ${fmt(r.load,3)}² busiest cell × ${fmt(r.splitF,3)} splits = ${fmt(r.total,2)}<br>splits = 1 + 10% × ${r.extra} extra piece${r.extra===1?'':'s'} ÷ ${S} groups</div>`;
   }else bd.innerHTML='';
   $('botBtn').textContent=showBot?'Hide par':'Show par';
 }
