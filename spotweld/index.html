@@ -58,6 +58,13 @@ select{font:inherit;font-size:14px;color:var(--ink);background:var(--card);borde
 .bd{width:100%;height:auto;max-height:min(560px,60vh);touch-action:none;user-select:none;-webkit-user-select:none;cursor:crosshair;display:block}
 .tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 16px 14px;border-top:1px solid var(--line);font-size:12px;color:var(--ink3)}
 .tools .sp{flex:1}
+.bd2{padding:14px 16px;display:grid;grid-template-columns:auto auto 1fr auto;gap:8px 14px;align-items:baseline;font-size:13px;color:var(--ink2)}
+.bd2 .op{font-family:var(--mono);color:var(--ink3);text-align:right}
+.bd2 .v{font-family:var(--mono);color:var(--ink);white-space:nowrap;text-align:right}
+.bd2 .t{font-size:10px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em;padding:1px 6px;border-radius:5px;border:1px solid var(--line2);color:var(--ink3);white-space:nowrap}
+.bd2 .t.real{color:var(--good);border-color:var(--good)}
+.bd2 .tot{border-top:1px solid var(--line);padding-top:8px}
+.bd2 .h{grid-column:1/-1;font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em}
 .btn{background:var(--card2);border:1px solid var(--line);border-radius:9px;padding:6px 11px;cursor:pointer;font-size:12px;color:var(--ink2)}
 .btn:hover{color:var(--ink);border-color:var(--line2)}
 .btn:disabled{opacity:.4;cursor:not-allowed}
@@ -108,6 +115,7 @@ select{font:inherit;font-size:14px;color:var(--ink);background:var(--card);borde
       <button class="btn primary" id="shareBtn" hidden>Share</button>
     </div>
   </section>
+  <section class="card bd2" id="bd" hidden></section>
 
 
 
@@ -449,6 +457,17 @@ function renderSide(){
   $('parBox').textContent=`mΩ, lower is better · par ${par&&par.score!=null?fmt(par.score,2):'…'} · best ${fmt(b2,2)}`;
   {const n=r.complete&&!r.open&&!showBot?starsFor(r.total,par&&par.score,L.optimal):starsFor(b2,par&&par.score,L.optimal);$('stars').innerHTML=`<b>${'★'.repeat(n)}</b>${'☆'.repeat(3-n)}`;}
   $('shareBtn').hidden=!(r.complete&&!r.open);
+  const bd=$('bd');bd.hidden=!(r.complete&&!r.open);
+  if(!bd.hidden){
+    const row=(op,v,label,tag)=>`<span class="op">${op}</span><span class="v">${v}</span><span>${label}</span><span class="t${tag==='real'?' real':''}">${tag==='real'?'circuit':'game rule'}</span>`;
+    bd.innerHTML=`<div class="h">Score breakdown</div>`+
+      row('',`${fmt(r.Rideal,2)} mΩ`,`cells alone (${S} × ${RC} mΩ ÷ ${P})`,'real')+
+      row('+',`${fmt(r.Rpack-r.Rideal,2)} mΩ`,'added by strips','real')+
+      row('=',`${fmt(r.Rpack,2)} mΩ`,'pack resistance','real')+
+      row('×',`${fmt(r.load,3)}²`,`busiest cell carries ${fmt((r.load-1)*100,1)}% over its group's average`,'game')+
+      row('×',`${fmt(r.splitF,3)}`,r.extra?`${r.extra} extra split piece${r.extra>1?'s':''}`:'no split groups','game')+
+      `<span class="op tot">=</span><span class="v tot"><b>${fmt(r.total,2)} mΩ</b></span><span class="tot">score</span><span class="tot"></span>`;
+  }
   $('botBtn').textContent=showBot?'Hide par':'Show par';
   $('botBtn').disabled=!(par&&par.asg);
 }
