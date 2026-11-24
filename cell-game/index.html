@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pack Daily</title>
+<style>
+:root{--bg:#faf8f3;--card:#fff;--ink:#1d1d1f;--mute:#6b6b70;--line:#e3dfd4;--cell:#d9d5c8;--accent:#1d1d1f;--red:#ef2b2b;--amber:#f59e0b;--ok:#2f9e6b;--blue:#3b82f6}
+@media (prefers-color-scheme:dark){:root{--bg:#141416;--card:#1e1e22;--ink:#f2f0ea;--mute:#9a9aa2;--line:#33333a;--cell:#3a3a42;--accent:#f2f0ea}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-user-select:none;user-select:none}
+header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--line)}
+h1{font:800 22px/1 Georgia,serif;margin:0;letter-spacing:-.5px}
+h1 small{font:600 12px system-ui;color:var(--mute);margin-left:8px;letter-spacing:0}
+button{font:inherit;font-weight:600;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:7px 12px;border-radius:999px;cursor:pointer}
+button.primary{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+button.on{background:var(--ink);color:var(--bg)}
+button:disabled{opacity:.4;cursor:default}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 16px}
+.bar .sp{flex:1}
+main{max-width:1100px;margin:0 auto;padding:0 16px 40px}
+.task{font-weight:700;font-size:17px}
+.status{color:var(--mute);min-height:22px}
+.boards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:8px 0}
+@media(max-width:760px){.boards{grid-template-columns:1fr}}
+.board{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:8px}
+.board h3{margin:2px 6px 4px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+svg{width:100%;height:auto;display:block;touch-action:none;cursor:crosshair}
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:760px){.panels{grid-template-columns:1fr}}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px}
+.panel h3{margin:0 0 8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:flex;align-items:center;gap:8px;padding:5px 10px 5px 5px;border-radius:999px;border:2px solid transparent;background:var(--bg);cursor:pointer;font-weight:700}
+.chip.active{border-color:var(--ink)}
+.chip b{width:26px;height:26px;border-radius:50%;color:#fff;display:grid;place-items:center;font-size:13px}
+.chip span{font-variant-numeric:tabular-nums}
+.chip.full span{color:var(--ok)}
+.links{display:grid;gap:6px}
+.link{display:grid;grid-template-columns:54px 1fr 70px 52px;align-items:center;gap:8px;padding:5px 8px;border-radius:8px;background:var(--bg);font-size:13px;font-variant-numeric:tabular-nums;border:1px solid transparent}
+.link .bars{display:flex;gap:2px;flex-wrap:wrap}
+.link .bars i{width:7px;height:12px;border-radius:2px;background:var(--ok)}
+.link.n0{border-color:var(--red);color:var(--red)} .link.n0 .bars i{background:var(--red);opacity:.3}
+.link.n1{border-color:var(--red);animation:pulse 1.1s infinite} .link.n1 .bars i{background:var(--red)}
+.link.n2{border-color:var(--amber)} .link.n2 .bars i{background:var(--amber)}
+.link small{color:var(--mute)}
+@keyframes pulse{50%{box-shadow:0 0 12px var(--red)}}
+.score{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.big{font:800 34px Georgia,serif}
+.stars{font-size:24px;letter-spacing:2px;color:#e8a800}
+.legend{color:var(--mute);font-size:12px;margin-top:8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:-1px;margin:0 3px 0 8px;border:3px solid}
+/* svg bits */
+.strip{stroke:#d5d8de;stroke-width:.1;stroke-linecap:round}
+.strip-o{stroke:#3a3e48;stroke-width:.16;stroke-linecap:round}
+.glow1{stroke:var(--red);stroke-width:.5;stroke-linecap:round;opacity:.55;filter:blur(3px);animation:gl 1s infinite}
+.glow2{stroke:var(--amber);stroke-width:.45;stroke-linecap:round;opacity:.45;filter:blur(3px)}
+@keyframes gl{50%{opacity:.15}}
+.cn{font:700 .5px system-ui;text-anchor:middle;dominant-baseline:central;fill:#fff;pointer-events:none}
+.pol{font:700 .26px system-ui;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+/* modal */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;place-items:center;padding:16px;z-index:5}
+.modal.show{display:grid}
+.sheet{background:var(--card);border-radius:18px;max-width:560px;max-height:92vh;overflow:auto;padding:22px}
+.sheet h2{font:800 26px Georgia,serif;margin:0 0 4px}
+.sheet ol{padding-left:20px;margin:12px 0}
+.sheet li{margin:7px 0}
+kbd{background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:0 5px;font-size:13px}
+.red{color:var(--red);font-weight:700}.amb{color:var(--amber);font-weight:700}
+</style>
+</head>
+<body>
+<header>
+  <h1>Pack Daily<small id="date"></small></h1>
+  <div><button id="help">? Rules</button></div>
+</header>
+<main>
+  <div class="bar">
+    <div><span class="task" id="task"></span><div class="status" id="status"></div></div>
+    <div class="sp"></div>
+    <button data-lvl="0">Level 1</button><button data-lvl="1">Level 2</button>
+    <button id="erase" title="Same as right-click (for touch)">Erase mode</button>
+    <button id="clear">Clear</button>
+  </div>
+
+  <div class="boards">
+    <div class="board"><h3>Side A · top</h3><svg id="svgA"></svg></div>
+    <div class="board"><h3>Side B · bottom (flipped over)</h3><svg id="svgB"></svg></div>
+  </div>
+
+  <div class="panels">
+    <div class="panel"><h3>Groups (series order) · cells in each</h3><div class="chips" id="chips"></div>
+      <div class="legend">Click a chip to continue that group.</div></div>
+    <div class="panel"><h3>Link resistance between groups</h3><div class="links" id="links"></div></div>
+  </div>
+  <div class="panel" style="margin-top:12px">
+    <h3>Current sharing</h3>
+    <div class="score"><div class="big" id="score">—</div><div class="stars" id="stars"></div><div id="verdict" style="flex:1;min-width:200px"></div>
+      <button class="primary" id="next" style="display:none">Next level →</button></div>
+    <div class="legend">Cell ring: <i style="border-color:var(--red)"></i>carries too much <i style="border-color:var(--blue)"></i>carries too little <i style="border-color:transparent;border-style:dashed;outline:1px dashed var(--mute)"></i>no current</div>
+  </div>
+</main>
+
+<div class="modal show" id="modal"><div class="sheet">
+  <h2>Pack Daily</h2>
+  <div style="color:var(--mute)">Lay out a cylindrical-cell battery pack so current shares evenly.</div>
+  <ol>
+    <li><b>Goal:</b> split the cells into <b>S groups of P cells</b> (e.g. 7s3p = 7 groups of 3). Cells inside a group are in <b>parallel</b>; groups are wired in <b>series</b> in number order, 1 → 2 → 3 …</li>
+    <li><b>Paint a group:</b> <kbd>left-click</kbd> or drag over cells. When a group is full you automatically move on to the next one. Start a drag on a cell that's already in a group (or click its chip) to <b>extend</b> that group.</li>
+    <li><b>Erase:</b> <kbd>right-click</kbd> or drag over cells (touch: use <i>Erase mode</i>). Groups don't have to be touching, but touching cells in the same group share a plate, and a lonely cell carries little current.</li>
+    <li><b>Interconnects:</b> wherever a cell of group <i>n</i> touches a cell of group <i>n+1</i>, a nickel strip joins them. Odd links (1–2, 3–4…) sit on <b>Side A</b>, even links (2–3, 4–5…) on <b>Side B</b>, so alternating groups are flipped. More strips = lower link resistance.</li>
+    <li><b>Glow:</b> <span class="red">red</span> = only one strip (bottleneck), <span class="amb">amber</span> = two, dashed = none, so no current can flow at all. A cell with no strips carries nothing.</li>
+    <li><b>Score:</b> we simulate the resistor network. Aim for every cell to carry the same current and every link to have similar resistance. ★★★ ≥ 95%.</li>
+  </ol>
+  <button class="primary" id="go">Start</button>
+</div></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const R_CELL=20, R_STRIP=1; // mΩ
+const S3=Math.sqrt(3)/2;
+
+/* ---------- levels ---------- */
+function level1(){ // 7 rows x 3 cols, hex packed, like a small LVB
+  const c=[]; for(let r=0;r<7;r++)for(let i=0;i<3;i++)c.push([i+(r%2?.5:0),r*S3]);
+  return c;
+}
+function level2(){ // hex donut, 42 cells
+  const c=[]; for(let r=-6;r<=6;r++)for(let i=-6;i<=6;i++){
+    const x=i+(r&1?.5:0), y=r*S3, d=Math.hypot(x,y);
+    if(d>=1.9&&d<=3.75)c.push([x,y]);
+  } return c;
+}
+const LEVELS=[
+  {name:'Level 1',S:7,P:3,cells:level1(),hint:'A simple block, like a small LVB.'},
+  {name:'Level 2',S:7,P:6,cells:level2(),hint:'A donut. Wedges, rings, spirals… your call.'}
+];
+
+/* ---------- state ---------- */
+let L, cells, adj, grp, active, eraseMode=false, hover=-1, minX,maxX,minY,maxY, sim=null, lvlIdx=0;
+const color=g=>`hsl(${(g*360/L.S+8)%360} 62% 46%)`;
+const cnt=g=>grp.reduce((a,x)=>a+(x===g),0);
+const sideOf=k=>k%2===0?'A':'B'; // link k (0-index: group k -> k+1) lives on this side
+
+function load(i){
+  lvlIdx=i; L=LEVELS[i]; cells=L.cells.map(([x,y])=>({x,y}));
+  adj=[]; for(let a=0;a<cells.length;a++)for(let b=a+1;b<cells.length;b++)
+    if(Math.hypot(cells[a].x-cells[b].x,cells[a].y-cells[b].y)<1.05)adj.push([a,b]);
+  grp=cells.map(()=>-1); active=0; sim=null;
+  minX=Math.min(...cells.map(c=>c.x))-.7;maxX=Math.max(...cells.map(c=>c.x))+.7;
+  minY=Math.min(...cells.map(c=>c.y))-1.2;maxY=Math.max(...cells.map(c=>c.y))+1.2;
+  for(const s of [$('svgA'),$('svgB')])s.setAttribute('viewBox',`${minX} ${minY} ${maxX-minX} ${maxY-minY}`);
+  document.querySelectorAll('[data-lvl]').forEach(b=>b.classList.toggle('on',+b.dataset.lvl===i));
+  $('task').textContent=`${L.name}: ${L.S}s${L.P}p — ${L.S*L.P} cells`;
+  $('next').style.display='none';
+  update();
+}
+function nextActive(from){
+  for(let i=1;i<=L.S;i++){const g=(from+i)%L.S;if(cnt(g)<L.P)return g;}
+  return from;
+}
+function paint(i){
+  if(grp[i]!==-1)return;
+  if(cnt(active)>=L.P)active=nextActive(active);
+  if(cnt(active)>=L.P)return;
+  grp[i]=active;
+  if(cnt(active)>=L.P)active=nextActive(active);
+  update();
+}
+function erase(i){
+  if(grp[i]===-1)return;
+  active=grp[i]; grp[i]=-1; update();
+}
+
+/* ---------- links + simulation ---------- */
+function links(){
+  const n=Array(L.S-1).fill(0), pairs=[];
+  for(const [a,b] of adj){
+    const ga=grp[a],gb=grp[b]; if(ga<0||gb<0||Math.abs(ga-gb)!==1)continue;
+    const k=Math.min(ga,gb); n[k]++; pairs.push(ga<gb?[a,b,k]:[b,a,k]);
+  }
+  return {n,pairs};
+}
+function solve(pairs){
+  const N=cells.length, G=2*N, T=2*N+1; // node ids: plus(c)=2c, minus(c)=2c+1; G=ground,T=terminal
+  const map=id=>{
+    if(id<2*N){const c=id>>1;
+      if(id&1&&grp[c]===0)return G;
+      if(!(id&1)&&grp[c]===L.S-1)return T;}
+    return id;
+  };
+  const M=2*N+2, A=Array.from({length:M},()=>new Float64Array(M+1));
+  const res=(a,b,r)=>{a=map(a);b=map(b);if(a===b)return;const g=1/r;
+    A[a][a]+=g;A[b][b]+=g;A[a][b]-=g;A[b][a]-=g;};
+  for(let c=0;c<N;c++)res(2*c,2*c+1,R_CELL);
+  for(const [a,b] of pairs)res(2*a,2*b+1,R_STRIP);
+  for(const [a,b] of adj)if(grp[a]===grp[b]){res(2*a,2*b,R_STRIP);res(2*a+1,2*b+1,R_STRIP);} // same-group neighbours share a plate
+  for(let i=0;i<M;i++)A[i][i]+=1e-9;
+  A[T][M]=1; // 1 A injected
+  // ground: replace row G
+  A[G].fill(0);A[G][G]=1;
+  for(let i=0;i<M;i++){ // gauss
+    let p=i;for(let r=i+1;r<M;r++)if(Math.abs(A[r][i])>Math.abs(A[p][i]))p=r;
+    [A[i],A[p]]=[A[p],A[i]];
+    const d=A[i][i]; if(Math.abs(d)<1e-15)continue;
+    for(let r=0;r<M;r++){if(r===i)continue;const f=A[r][i]/d;if(!f)continue;
+      for(let c=i;c<=M;c++)A[r][c]-=f*A[i][c];}
+  }
+  const V=id=>{const m=map(id);return A[m][M]/A[m][m];};
+  return cells.map((_,c)=>Math.abs(V(2*c)-V(2*c+1))/R_CELL);
+}
+function evaluate(){
+  const {n,pairs}=links();
+  const full=grp.every(g=>g>=0);
+  let I=null,score=null;
+  if(full){
+    if(n.some(x=>x===0)){score=0;I=cells.map(()=>0);}
+    else{
+      I=solve(pairs);
+      const ideal=1/L.P;
+      const dev=I.map(i=>Math.abs(i-ideal)/ideal);
+      score=Math.max(0,100*(1-dev.reduce((a,b)=>a+b,0)/dev.length*1.5));
+    }
+  }
+  return {n,pairs,I,score,full};
+}
+
+/* ---------- render ---------- */
+function drawSide(svg,side){
+  const flip=side==='B', X=x=>flip?(minX+maxX-x):x;
+  let h='',tx='';
+  // strips
+  const sp=sim.pairs.filter(([a,b,k])=>sideOf(k)===side);
+  for(const [a,b,k] of sp){
+    const n=sim.n[k], g=n<=1?'glow1':n===2?'glow2':'';
+    const l=`x1="${X(cells[a].x)}" y1="${cells[a].y}" x2="${X(cells[b].x)}" y2="${cells[b].y}"`;
+    if(g)h+=`<line class="${g}" ${l}/>`;
+  }
+  // cells
+  cells.forEach((c,i)=>{
+    const g=grp[i], x=X(c.x), y=c.y;
+    let ring='';
+    if(sim.I&&sim.full){
+      const r=sim.I[i]*L.P;
+      if(r<.05)ring=`<circle cx="${x}" cy="${y}" r=".5" fill="none" stroke="var(--red)" stroke-width=".07" stroke-dasharray=".12 .1"/>`;
+      else if(r>1.08)ring=`<circle cx="${x}" cy="${y}" r=".5" fill="none" stroke="var(--red)" stroke-width=".09" opacity="${Math.min(1,(r-1)*2.5)}"/>`;
+      else if(r<.92)ring=`<circle cx="${x}" cy="${y}" r=".5" fill="none" stroke="var(--blue)" stroke-width=".09" opacity="${Math.min(1,(1-r)*2.5)}"/>`;
+    }
+    const isAct=g===active||(g===-1&&false);
+    h+=`<circle cx="${x}" cy="${y}" r=".44" fill="${g<0?'var(--cell)':color(g)}" ${i===hover?'stroke="var(--ink)" stroke-width=".07"':''}/>${ring}`;
+    if(g>=0){
+      const plusHere=(g%2===0)===(side==='A');
+      tx+=`<text class="cn" x="${x}" y="${y-.04}">${g+1}</text>`;
+      tx+=`<text class="pol" x="${x}" y="${y+.3}" fill="#fff" opacity=".9">${plusHere?'+':'−'}</text>`;
+    }
+  });
+  // strips on top of cells
+  for(const [a,b,k] of sp){
+    const l=`x1="${X(cells[a].x)}" y1="${cells[a].y}" x2="${X(cells[b].x)}" y2="${cells[b].y}"`;
+    h+=`<line class="strip-o" ${l}/><line class="strip" ${l}/>`;
+  }
+  // pack terminals
+  const term=(g,txt,plus)=>{ // draw label at group centroid on its terminal side
+    const sidePlus=sideOf(g)==='A'?'A':'B', sideMinus=sidePlus==='A'?'B':'A';
+    if((plus?sidePlus:sideMinus)!==side)return;
+    const m=cells.map((c,i)=>i).filter(i=>grp[i]===g); if(!m.length)return;
+    for(const i of m)h+=`<circle cx="${X(cells[i].x)}" cy="${cells[i].y}" r=".5" fill="none" stroke="${plus?'#e11d48':'#2563eb'}" stroke-width=".06" stroke-dasharray=".1 .08"/>`;
+    const cx=m.reduce((a,i)=>a+X(cells[i].x),0)/m.length, cy=m.reduce((a,i)=>a+cells[i].y,0)/m.length;
+    h+=`<text x="${cx}" y="${cy>(minY+maxY)/2?Math.max(...m.map(i=>cells[i].y))+.85:Math.min(...m.map(i=>cells[i].y))-.7}" font-size=".34" font-weight="700" text-anchor="middle" stroke="var(--card)" stroke-width=".12" paint-order="stroke" fill="${plus?'#e11d48':'#2563eb'}">PACK ${txt}</text>`;
+  };
+  if(sim.full||true){term(0,'−',false);term(L.S-1,'+',true);}
+  svg.innerHTML=h+tx;
+}
+function update(){
+  sim=evaluate();
+  drawSide($('svgA'),'A');drawSide($('svgB'),'B');
+  // chips
+  $('chips').innerHTML=Array.from({length:L.S},(_,g)=>{
+    const c=cnt(g);
+    return `<div class="chip ${g===active?'active':''} ${c===L.P?'full':''}" data-g="${g}"><b style="background:${color(g)}">${g+1}</b><span>${c}/${L.P}</span></div>`;
+  }).join('');
+  // links
+  $('links').innerHTML=sim.n.map((n,k)=>{
+    const r=n?(R_STRIP/n).toFixed(2)+' mΩ':'open';
+    const bars=n?'<i></i>'.repeat(Math.min(n,12)):'<i></i><i></i><i></i>';
+    return `<div class="link n${Math.min(n,3)}"><b>${k+1}–${k+2}</b><div class="bars">${bars}</div><span>${n} strip${n===1?'':'s'}</span><small>${r} · ${sideOf(k)}</small></div>`;
+  }).join('');
+  // status
+  const placed=grp.filter(g=>g>=0).length;
+  $('status').textContent=eraseMode?'Erase mode: drag over cells to remove.':
+    sim.full?'All cells placed. Tweak groups (right-click to erase) to improve sharing.':
+    `Placing group ${active+1} (${cnt(active)}/${L.P}) · ${placed}/${cells.length} cells placed`;
+  // score
+  if(sim.full){
+    const s=sim.score; $('score').textContent=s.toFixed(0)+'%';
+    const st=s>=95?3:s>=85?2:s>=60?1:0;
+    $('stars').textContent='★'.repeat(st)+'☆'.repeat(3-st);
+    const min=Math.min(...sim.n), minK=sim.n.indexOf(min);
+    $('verdict').textContent=min===0?`Link ${minK+1}–${minK+2} has no strips: the pack is open-circuit.`:
+      min<=2?`Weakest link: ${minK+1}–${minK+2} with ${min} strip${min>1?'s':''}. Add more touching cells between those groups.`:
+      s>=95?'Beautifully even.':'Some cells work harder than others. Look at the rings.';
+    $('next').style.display=lvlIdx<LEVELS.length-1?'':'none';
+  }else{$('score').textContent='—';$('stars').textContent='';$('verdict').textContent='Place every cell to see the simulation.';$('next').style.display='none';}
+}
+
+/* ---------- input ---------- */
+let mode=null;
+function hit(svg,e,side){
+  const r=svg.getBoundingClientRect(), vb=svg.viewBox.baseVal;
+  let x=vb.x+(e.clientX-r.left)/r.width*vb.width, y=vb.y+(e.clientY-r.top)/r.height*vb.height;
+  if(side==='B')x=minX+maxX-x;
+  let best=-1,bd=.48;
+  cells.forEach((c,i)=>{const d=Math.hypot(c.x-x,c.y-y);if(d<bd){bd=d;best=i;}});
+  return best;
+}
+function act(i){ if(i<0)return; mode==='erase'?erase(i):paint(i); }
+for(const [id,side] of [['svgA','A'],['svgB','B']]){
+  const svg=$(id);
+  svg.addEventListener('contextmenu',e=>e.preventDefault());
+  svg.addEventListener('pointerdown',e=>{
+    svg.setPointerCapture(e.pointerId);
+    mode=(e.button===2||eraseMode)?'erase':'paint';
+    const i=hit(svg,e,side);
+    if(mode==='paint'&&i>=0&&grp[i]>=0){active=grp[i];update();} // extend existing group
+    else act(i);
+  });
+  svg.addEventListener('pointermove',e=>{
+    const i=hit(svg,e,side);
+    if(i!==hover){hover=i;if(!mode)update();}
+    if(mode&&i>=0)act(i);
+  });
+  svg.addEventListener('pointerup',()=>mode=null);
+  svg.addEventListener('pointerleave',()=>{if(!mode){hover=-1;update();}});
+}
+$('chips').addEventListener('click',e=>{const c=e.target.closest('.chip');if(c){active=+c.dataset.g;update();}});
+$('clear').onclick=()=>{grp=cells.map(()=>-1);active=0;update();};
+$('erase').onclick=()=>{eraseMode=!eraseMode;$('erase').classList.toggle('on',eraseMode);update();};
+$('next').onclick=()=>load(lvlIdx+1);
+document.querySelectorAll('[data-lvl]').forEach(b=>b.onclick=()=>load(+b.dataset.lvl));
+$('help').onclick=()=>$('modal').classList.add('show');
+$('go').onclick=()=>$('modal').classList.remove('show');
+$('date').textContent=new Date().toLocaleDateString(undefined,{month:'short',day:'numeric'})+' · draft';
+load(0);
+</script>
+</body>
+</html>
