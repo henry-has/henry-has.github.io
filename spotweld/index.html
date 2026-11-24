@@ -4,122 +4,134 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Spotweld</title>
-<meta name="description" content="Battery interconnect puzzle: wire cylindrical cells into an SxP pack with low, even resistance.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<meta name="description" content="Spotweld, a battery packaging game: wire cylindrical cells into an SxP pack with low, even interconnect resistance.">
 <style>
+/* Same plain layout as RS50 Pack Thermal Sim: header, readouts, board + control panel. */
 :root{
-  --bg:#0c0f14; --bg2:#121721; --card:#161c27; --card2:#1c2331; --line:#263042; --line2:#334055;
-  --ink:#e8edf5; --ink2:#a9b4c6; --ink3:#6c7a91; --accent:#5ee1ff; --accent2:#ffcf4a; --bad:#ff5d73; --good:#4ee39a;
-  --mono:"JetBrains Mono",ui-monospace,monospace;
+  --bg:#ffffff; --line:#d0d0d0; --ink:#111111; --ink-2:#444444; --ink-3:#777777;
+  --accent:#1a5fb4; --accent-ink:#ffffff; --stage:#f2f2f2; --crit:#c62828; --good:#1b8a5a; --star:#c98500;
+  --cell:#e2e2e2; --cell-line:#bdbdbd; --strip:#9a9a9a; --bus:#7a7a7a;
 }
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#161616; --line:#3a3a3a; --ink:#eeeeee; --ink-2:#bbbbbb; --ink-3:#888888;
+  --accent:#6aa5ef; --accent-ink:#000000; --stage:#0e0e0e; --crit:#ef6b6b; --good:#4cc38a; --star:#e0a52a;
+  --cell:#262626; --cell-line:#444444; --strip:#8d8d8d; --bus:#5c5c5c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#161616; --line:#3a3a3a; --ink:#eeeeee; --ink-2:#bbbbbb; --ink-3:#888888;
+  --accent:#6aa5ef; --accent-ink:#000000; --stage:#0e0e0e; --crit:#ef6b6b; --good:#4cc38a; --star:#e0a52a;
+  --cell:#262626; --cell-line:#444444; --strip:#8d8d8d; --bus:#5c5c5c; color-scheme:dark}
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 "Space Grotesk",system-ui,sans-serif}
-body{background:var(--bg);min-height:100vh}
-button{font:inherit;color:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 [hidden]{display:none!important}
-.wrap{max-width:1100px;margin:0 auto;padding:16px 16px 40px;display:flex;flex-direction:column;gap:12px}
-header{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.logo{display:flex;align-items:center;gap:9px;margin-right:auto}
-.logo svg{width:28px;height:28px}
-.logo h1{margin:0;font-size:19px;letter-spacing:.14em;font-weight:700}
-select{font:inherit;font-size:14px;color:var(--ink);background:var(--card);border:1px solid var(--line2);border-radius:10px;padding:7px 10px;cursor:pointer}
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px}
-.goal{display:flex;align-items:center;justify-content:space-between;gap:12px 20px;flex-wrap:wrap;padding:14px 16px 0}
-.goal .what{font-size:16px}
-.goal .what b{color:var(--accent)}
-.goal .what small{display:block;font-family:var(--mono);font-size:11px;color:var(--ink3);margin-top:2px}
-.scorebox{text-align:right;font-variant-numeric:tabular-nums}
-.scorebox .n{font-size:30px;font-weight:700;line-height:1}
-.scorebox .n small{font-size:14px;color:var(--ink3);font-weight:500}
-.scorebox .n.dim{color:var(--line2)}
-.stars{font-size:18px;letter-spacing:2px;color:var(--line2);margin-bottom:2px}
-.stars b{color:var(--accent2);font-weight:400}
-.scorebox .p{font-family:var(--mono);font-size:11px;color:var(--ink3);margin-top:3px}
-.schem{display:flex;align-items:center;flex-wrap:wrap;row-gap:8px;padding:12px 16px 0}
-.schem .term{font-family:var(--mono);font-size:10px;font-weight:600;padding:2px 5px;border-radius:6px;border:1px solid}
-.schem .neg{color:#8eeaff;border-color:#5ee1ff66}
-.schem .pos{color:#ff8a9a;border-color:#ff5d7366}
-.schem .wire{width:8px;height:2px;background:var(--line2)}
-.schem .grp{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 4px 2px;border:1px solid var(--line);border-radius:7px;cursor:pointer;background:var(--bg)}
-.schem .grp.on{border-color:var(--ink2)}
-.schem .grp.bad{border-color:var(--bad)}
-.schem .grp i{width:8px;height:8px;border-radius:50%;border:1px solid var(--line2)}
-.schem .grp span{font-family:var(--mono);font-size:9px;color:var(--ink3)}
-.step{padding:10px 16px 0;font-size:14px;color:var(--ink2);min-height:30px}
+.wrap{max-width:1300px;margin:0 auto;padding:12px 16px 24px;display:grid;gap:12px}
+h1{font-size:18px;margin:0}
+header{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.sub{margin:0;color:var(--ink-2);font-size:12px}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+button{font:inherit;font-size:13px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:3px;padding:4px 8px;cursor:pointer}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+button:disabled{opacity:.45;cursor:not-allowed}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.on{background:var(--crit);color:#fff;border-color:var(--crit)}
+.row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));border:1px solid var(--line)}
+.ro{padding:6px 8px;border-right:1px solid var(--line);min-width:0}
+.ro .k{font-size:11px;color:var(--ink-3)}
+.ro .v{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:16px;white-space:nowrap}
+.ro .v small{font-size:11px;color:var(--ink-3);margin-left:1px}
+.ro .d{font-size:11px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stars{color:var(--line);letter-spacing:1px}
+.stars b{color:var(--star);font-weight:400}
+.top{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:12px}
+@media (max-width:900px){.top{grid-template-columns:minmax(0,1fr)}}
+.stage{background:var(--stage);border:1px solid var(--line);padding:8px;display:grid;gap:6px;align-content:start}
+.step{font-size:12px;color:var(--ink-2);min-height:17px}
 .step b{color:var(--ink)}
-.step.bad{color:var(--bad)}
+.step.bad{color:var(--crit)}
 .step.good{color:var(--good)}
-.stage{padding:8px 10px}
 .boards{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 @media (max-width:700px){.boards{grid-template-columns:1fr}}
-.face{display:flex;flex-direction:column;gap:4px;min-width:0}
-.face .lbl{font-family:var(--mono);font-size:11px;color:var(--ink3);letter-spacing:.08em;text-transform:uppercase;text-align:center}
-.bd{width:100%;height:auto;max-height:min(560px,60vh);touch-action:none;user-select:none;-webkit-user-select:none;cursor:crosshair;display:block}
-.tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 16px 14px;border-top:1px solid var(--line);font-size:12px;color:var(--ink3)}
-.tools .sp{flex:1}
-.bd2{padding:14px 16px;display:grid;grid-template-columns:auto auto 1fr auto;gap:8px 14px;align-items:baseline;font-size:13px;color:var(--ink2)}
-.bd2 .op{font-family:var(--mono);color:var(--ink3);text-align:right}
-.bd2 .v{font-family:var(--mono);color:var(--ink);white-space:nowrap;text-align:right}
-.bd2 .t{font-size:10px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em;padding:1px 6px;border-radius:5px;border:1px solid var(--line2);color:var(--ink3);white-space:nowrap}
-.bd2 .t.real{color:var(--good);border-color:var(--good)}
-.bd2 .tot{border-top:1px solid var(--line);padding-top:8px}
-.bd2 .h{grid-column:1/-1;font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em}
-.btn{background:var(--card2);border:1px solid var(--line);border-radius:9px;padding:6px 11px;cursor:pointer;font-size:12px;color:var(--ink2)}
-.btn:hover{color:var(--ink);border-color:var(--line2)}
-.btn:disabled{opacity:.4;cursor:not-allowed}
-.btn.on{color:var(--accent);border-color:var(--accent)}
-.btn.erase.on{color:var(--bad);border-color:var(--bad)}
-.btn.primary{background:var(--accent);border-color:var(--accent);color:#0c0f14}
-.blurb{color:var(--accent2)}
-#tip{position:fixed;pointer-events:none;background:#0b0e13ee;border:1px solid var(--line2);border-radius:8px;padding:6px 9px;font-family:var(--mono);font-size:11px;color:var(--ink);z-index:10;display:none;white-space:nowrap}
-#tip .h{color:var(--ink3)}
-.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);opacity:0;background:var(--card2);border:1px solid var(--line2);padding:8px 14px;border-radius:10px;transition:.25s;font-size:13px;z-index:20;pointer-events:none}
-.toast.show{opacity:1;transform:translateX(-50%)}
+.face{display:grid;gap:2px;min-width:0}
+.face .lbl{font-size:11px;color:var(--ink-3);text-align:center}
+.bd{width:100%;height:auto;max-height:min(560px,62vh);touch-action:none;user-select:none;-webkit-user-select:none;cursor:crosshair;display:block}
+.hint{font-size:11px;color:var(--ink-3)}
+.panel{border:1px solid var(--line);padding:8px 10px;display:grid;gap:10px;align-content:start}
+.grp{display:grid;gap:5px}
+.lab{font-weight:600;font-size:12px}
+.seg{display:flex;flex-wrap:wrap;gap:0}
+.seg button{border-radius:0;margin-right:-1px;margin-bottom:-1px;font-size:12px;padding:3px 7px}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);position:relative}
+.seg button .st{color:var(--star);margin-left:3px;font-size:10px}
+.seg button[aria-pressed="true"] .st{color:inherit}
+.note{color:var(--ink-3);font-size:11px}
+.schem{display:flex;align-items:stretch;gap:2px}
+.schem .term{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10px;padding:0 3px;border:1px solid var(--line);display:flex;align-items:center}
+.schem .wire{display:none}
+.schem .grp{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;padding:3px 3px 1px;border:1px solid var(--line);cursor:pointer;background:var(--bg)}
+.schem .grp.on{border-color:var(--accent)}
+.schem .grp.bad{border-color:var(--crit)}
+.schem .grp i{width:6px;height:6px;border-radius:50%;border:1px solid var(--line)}
+.schem .grp span{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:8px;color:var(--ink-3)}
+.bd2{display:grid;grid-template-columns:auto auto 1fr;gap:3px 8px;align-items:baseline;font-size:12px;color:var(--ink-2)}
+.bd2 .op{font-family:ui-monospace,Menlo,Consolas,monospace;color:var(--ink-3);text-align:right}
+.bd2 .v{font-family:ui-monospace,Menlo,Consolas,monospace;color:var(--ink);white-space:nowrap;text-align:right}
+.bd2 .t{display:none}
+.bd2 .g{color:var(--ink-3)}
+.bd2 .tot{border-top:1px solid var(--line);padding-top:4px}
+.bd2 .h{display:none}
+#tip{position:fixed;pointer-events:none;background:var(--bg);border:1px solid var(--line);padding:4px 6px;font-size:12px;color:var(--ink);z-index:10;display:none;white-space:nowrap}
+#tip .h{font-weight:600}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);opacity:0;background:var(--bg);border:1px solid var(--line);padding:6px 10px;transition:opacity .2s;font-size:12px;z-index:20;pointer-events:none}
+.toast.show{opacity:1}
+footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);padding-top:8px}
 /* svg */
-.cell{transition:opacity .15s}
 .cellhit:hover + .hov{opacity:1}
-.hov{opacity:0;pointer-events:none;transition:opacity .1s}
-@keyframes pulse{0%,100%{stroke-opacity:.95}50%{stroke-opacity:.35}}
+.hov{opacity:0;pointer-events:none}
+@keyframes pulse{0%,100%{stroke-opacity:1}50%{stroke-opacity:.35}}
 .activering{animation:pulse 1.4s ease-in-out infinite}
-@keyframes pop{0%{transform:scale(.6)}100%{transform:scale(1)}}
-.lt{font-family:var(--mono);paint-order:stroke;stroke:#0c0f14;stroke-linejoin:round;pointer-events:none}
-.gt{font-family:"Space Grotesk",sans-serif;font-weight:700;pointer-events:none}
+@media (prefers-reduced-motion:reduce){.activering{animation:none}}
+.lt{font-family:ui-monospace,Menlo,Consolas,monospace;pointer-events:none}
+.gt{font-weight:700;pointer-events:none}
 </style>
 </head>
 <body><img src="https://hits.sh/henry-has.github.io/spotweld.svg" alt="" width="1" height="1" referrerpolicy="no-referrer" style="position:absolute;opacity:0;pointer-events:none">
 <div class="wrap">
   <header>
-    <div class="logo">
-      <svg viewBox="0 0 34 34"><circle cx="10" cy="11" r="7" fill="none" stroke="#5ee1ff" stroke-width="2.4"/><circle cx="24" cy="11" r="7" fill="none" stroke="#5ee1ff" stroke-width="2.4"/><circle cx="17" cy="23" r="7" fill="none" stroke="#5ee1ff" stroke-width="2.4"/><path d="M10 11L24 11L17 23Z" fill="none" stroke="#ffcf4a" stroke-width="3" stroke-linejoin="round"/></svg>
-      <h1>SPOTWELD</h1>
+    <div>
+      <h1>Spotweld</h1>
+      <p class="sub" id="goalWhat">Battery packaging game</p>
     </div>
-    <select id="levels" aria-label="Level"></select>
+    <div class="row">
+      <button class="btn" id="undoBtn" type="button">Undo</button>
+      <button class="btn" id="clearBtn" type="button">Clear</button>
+      <button class="btn" id="eraseBtn" type="button" title="Erase mode for touch screens">Erase</button>
+      <button class="btn" id="botBtn" type="button">Show par</button>
+      <button class="btn primary" id="shareBtn" type="button" hidden>Share</button>
+    </div>
   </header>
 
-  <section class="card">
-    <div class="goal">
-      <div class="what" id="goalWhat"></div>
-      <div class="scorebox"><div class="stars" id="stars"></div><div class="n" id="bigScore"></div><div class="p" id="parBox"></div></div>
+  <div class="readout">
+    <div class="ro"><div class="k">Score</div><div class="v" id="bigScore">–</div><div class="d stars" id="stars"></div></div>
+    <div class="ro"><div class="k">Par</div><div class="v" id="roPar">–</div><div class="d" id="roParD">beat it for ★★★</div></div>
+    <div class="ro"><div class="k">Best</div><div class="v" id="roBest">–</div><div class="d">this browser</div></div>
+    <div class="ro"><div class="k">Pack resistance</div><div class="v" id="roR">–</div><div class="d" id="roRD">–</div></div>
+    <div class="ro"><div class="k">Busiest cell</div><div class="v" id="roLoad">–</div><div class="d">over its group's average</div></div>
+    <div class="ro"><div class="k">Split pieces</div><div class="v" id="roSplit">–</div><div class="d" id="roSplitD">–</div></div>
+  </div>
+
+  <div class="top">
+    <div class="stage">
+      <div class="step" id="goalStep"></div>
+      <div class="boards"><div class="face"><div class="lbl">Top face</div><svg class="bd" id="boardT"></svg></div><div class="face"><div class="lbl">Bottom face (seen from above)</div><svg class="bd" id="boardB"></svg></div></div>
+      <div class="hint">Left-drag to add cells to the highlighted group · right-drag to erase · hotter strips carry more current</div>
     </div>
-    <div class="schem" id="schem" title="Each box is one parallel group; groups are wired in series"></div>
-    <div class="step" id="goalStep"></div>
-    <div class="stage boards"><div class="face"><div class="lbl">Top face</div><svg class="bd" id="boardT"></svg></div><div class="face"><div class="lbl">Bottom face (seen from above)</div><svg class="bd" id="boardB"></svg></div></div>
-    <div class="tools">
-      <span>Left-drag to add · right-drag to erase</span>
-      <span class="sp"></span>
-      <button class="btn erase" id="eraseBtn" title="Erase mode for touch">Erase</button>
-      <button class="btn" id="undoBtn">Undo</button>
-      <button class="btn" id="clearBtn">Clear</button>
-      <button class="btn" id="botBtn">Show par</button>
-      <button class="btn primary" id="shareBtn" hidden>Share</button>
+    <div class="panel">
+      <div class="grp"><div class="lab">Level</div><div class="seg" id="levels"></div></div>
+      <div class="grp"><div class="lab">Series chain</div><div class="schem" id="schem"></div><div class="note">Each box is a parallel group. Click one to work on it.</div></div>
+      <div class="grp"><div class="lab">Score breakdown</div><div class="bd2" id="bd"></div></div>
     </div>
-  </section>
-  <section class="card bd2" id="bd" hidden></section>
-
-
-
-
+  </div>
+  <footer>Spotweld · battery packaging game · strips 1 mΩ, cells 10 mΩ</footer>
 </div>
 <div id="tip"></div>
 <div class="toast" id="toast"></div>
@@ -360,7 +372,7 @@ function renderFace(view,face,svg){
   cells.forEach((c,i)=>{
     const g=view[i];
     if(g>=0){const col=PAL[g%PAL.length];out.push(`<circle cx="${c.x}" cy="${c.y}" r="${R}" fill="${col}" fill-opacity="${g===active&&!showBot?0.4:0.22}" stroke="${col}" stroke-width="0.04"/>`);}
-    else out.push(`<circle cx="${c.x}" cy="${c.y}" r="${R}" fill="#222936" stroke="#343e50" stroke-width="0.03"/>`);
+    else out.push(`<circle cx="${c.x}" cy="${c.y}" r="${R}" fill="var(--cell)" stroke="var(--cell-line)" stroke-width="0.03"/>`);
   });
   const fl=res.links.filter(l=>l.face===face);strips[face]=fl;
   const maxW=Math.max(1e-9,...res.links.map(l=>l.W||0));
@@ -368,7 +380,7 @@ function renderFace(view,face,svg){
     const A=cells[st.i],B=cells[st.j],dx=B.x-A.x,dy=B.y-A.y,d=Math.hypot(dx,dy),ux=dx/d,uy=dy/d,o=0.28;
     const x1=A.x+ux*o,y1=A.y+uy*o,x2=B.x-ux*o,y2=B.y-uy*o;
     const bus=st.bus||st.tbus;
-    const t=st.W!=null?clamp(st.W/HEATMAX):0,col=bus?'#5c6778':st.W!=null?heatColor(t):'#8d9bab';
+    const t=st.W!=null?clamp(st.W/HEATMAX):0,col=bus?'var(--bus)':st.W!=null?heatColor(t):'var(--strip)';
     out.push(`<line class="lk" data-l="${face}:${k}" x1="${bus?A.x:x1}" y1="${bus?A.y:y1}" x2="${bus?B.x:x2}" y2="${bus?B.y:y2}" stroke="${col}" stroke-width="${bus?0.3:0.18}" stroke-linecap="round"/>`);
   });
   cells.forEach((c,i)=>{
@@ -385,16 +397,15 @@ function renderFace(view,face,svg){
     if(plate%2!==face)return;
     const gr=res.groups[g];if(!gr.length)return;
     const tc=gr.reduce((a,i)=>cells[i].y<cells[a].y-1e-6?i:a,gr[0]),cx=cells[tc].x,cy=cells[tc].y-0.02;
-    const c=label==='+'?'#ff8a9a':'#8eeaff';
-    out.push(`<rect x="${cx-0.36}" y="${cy-0.62}" width="0.72" height="0.22" rx="0.06" fill="#0c0f14" stroke="${c}" stroke-width="0.025"/><text class="lt" x="${cx}" y="${cy-0.47}" font-size="0.12" stroke-width="0" fill="${c}" text-anchor="middle">PACK ${label}</text>`);
+    const c=label==='+'?'var(--crit)':'var(--accent)';
+    out.push(`<rect x="${cx-0.36}" y="${cy-0.62}" width="0.72" height="0.22" rx="0.03" fill="var(--bg)" stroke="${c}" stroke-width="0.025"/><text class="lt" x="${cx}" y="${cy-0.47}" font-size="0.12" stroke-width="0" fill="${c}" text-anchor="middle">PACK ${label}</text>`);
   };
   term(0,'−',0);term(S-1,'+',S);
   svg.innerHTML=out.join('');
 }
-function setMeter(id,v,txt,num){const el=$(id);el.style.width=(v==null?0:clamp(v)*100)+'%';el.style.background=v>.8?'#4ee39a':v>.5?'#ffcf4a':'#ff5d73';$(id+'v').innerHTML=txt;$(id+'n').textContent=num;}
 function renderSide(){
   const {S,P}=L,r=res;
-  $('goalWhat').innerHTML=`Build <b>${S}S${P}P</b>: ${S} groups in series × ${P} cells each<small>${S*P} cells</small>`+(L.blurb?`<small class="blurb">${L.blurb}</small>`:'');
+  $('goalWhat').textContent=`Battery packaging game · ${L.name} · ${S}S${P}P: ${S} groups in series × ${P} cells each · ${S*P} cells`+(L.blurb?' · '+L.blurb:'');
   const el=$('goalStep');el.className='step';
   const need=P-r.groups[active].length;
   const firstBad=r.groups.findIndex((gr,g)=>gr.length&&!(g===active&&gr.length<P)&&!r.touch[g]);
@@ -417,29 +428,33 @@ function renderSide(){
   if(r.complete&&!r.open&&!showBot&&(best==null||r.total<best)){store.set('best4:'+L.id,r.total);renderLevels();}
   const b2=store.get('best4:'+L.id,null);
   const bs=$('bigScore');
-  if(r.complete&&!r.open){bs.className='n';bs.innerHTML=`${fmt(r.total,2)}<small> mΩ</small>`;}else{bs.className='n dim';bs.textContent='--';}
-  $('parBox').textContent=`mΩ, lower is better · par ${par&&par.score!=null?fmt(par.score,2):'…'} · best ${fmt(b2,2)}`;
+  const done=r.complete&&!r.open,mo=v=>v==null||!isFinite(v)?'–':`${fmt(v,2)}<small>mΩ</small>`;
+  bs.innerHTML=done?mo(r.total):'–';
+  $('roPar').innerHTML=mo(par&&par.score);$('roParD').textContent=L.optimal?'match it for ★★★':'beat it for ★★★';
+  $('roBest').innerHTML=mo(b2);
+  $('roR').innerHTML=done?mo(r.Rpack):'–';$('roRD').textContent=done?`cells alone ${fmt(r.Rideal,2)} mΩ`:'finish the pack';
+  $('roLoad').innerHTML=done?`+${fmt((r.load-1)*100,1)}<small>%</small>`:'–';
+  $('roSplit').innerHTML=done?String(r.extra):'–';$('roSplitD').textContent=done?(r.extra?`${S-r.comps.filter(x=>x===1).length} of ${S} groups split`:'every group in one piece'):'–';
   {const n=r.complete&&!r.open&&!showBot?starsFor(r.total,par&&par.score,L.optimal):starsFor(b2,par&&par.score,L.optimal);$('stars').innerHTML=`<b>${'★'.repeat(n)}</b>${'☆'.repeat(3-n)}`;}
   $('shareBtn').hidden=!(r.complete&&!r.open);
-  const bd=$('bd');bd.hidden=!(r.complete&&!r.open);
-  if(!bd.hidden){
-    const row=(op,v,label,tag)=>`<span class="op">${op}</span><span class="v">${v}</span><span>${label}</span><span class="t${tag==='real'?' real':''}">${tag==='real'?'circuit':'game rule'}</span>`;
-    bd.innerHTML=`<div class="h">Score breakdown</div>`+
-      row('',`${fmt(r.Rideal,2)} mΩ`,`cells alone (${S} × ${RC} mΩ ÷ ${P})`,'real')+
-      row('+',`${fmt(r.Rpack-r.Rideal,2)} mΩ`,'added by strips','real')+
-      row('=',`${fmt(r.Rpack,2)} mΩ`,'pack resistance','real')+
-      row('×',`${fmt(r.load,3)}²`,`busiest cell carries ${fmt((r.load-1)*100,1)}% over its group's average`,'game')+
-      row('×',`${fmt(r.splitF,3)}`,r.extra?`${r.extra} extra split piece${r.extra>1?'s':''}`:'no split groups','game')+
-      `<span class="op tot">=</span><span class="v tot"><b>${fmt(r.total,2)} mΩ</b></span><span class="tot">score</span><span class="tot"></span>`;
-  }
+  const bd=$('bd');
+  if(r.complete&&!r.open){
+    const row=(op,v,label,tag)=>`<span class="op">${op}</span><span class="v">${v}</span><span>${label} <span class="g">(${tag==='real'?'circuit':'game rule'})</span></span>`;
+    bd.innerHTML=
+      row('',`${fmt(r.Rideal,2)}`,`cells alone`,'real')+
+      row('+',`${fmt(r.Rpack-r.Rideal,2)}`,'strips','real')+
+      row('=',`${fmt(r.Rpack,2)}`,'pack mΩ','real')+
+      row('×',`${fmt(r.load,3)}²`,'busiest cell','game')+
+      row('×',`${fmt(r.splitF,3)}`,'split groups','game')+
+      `<span class="op tot">=</span><span class="v tot"><b>${fmt(r.total,2)}</b></span><span class="tot">score, mΩ</span>`;
+  }else bd.innerHTML='<span></span><span></span><span class="g">Finish the pack to see it.</span>';
   $('botBtn').textContent=showBot?'Hide par':'Show par';
   $('botBtn').disabled=!(par&&par.asg);
 }
 function renderLevels(){
-  const sel=$('levels'),cur=LEVELS.indexOf(L),o=[];
-  const tag=id=>{const b=store.get('best4:'+id,null);if(b==null)return '';const pp=store.get('par4:'+id,null);const d=DEMOS.find(x=>x.id===id);return ` ${starStr(starsFor(b,pp&&pp.score,d&&d.optimal))}`;};
-  DEMOS.forEach((d,k)=>o.push(`<option value="${k}">${d.name} · ${d.S}S${d.P}P${tag(d.id)}</option>`));
-  sel.innerHTML=o.join('');sel.value=String(cur);
+  const cur=LEVELS.indexOf(L);
+  $('levels').innerHTML=DEMOS.map((d,k)=>{const b=store.get('best4:'+d.id,null),pp=store.get('par4:'+d.id,null),n=b==null?0:starsFor(b,pp&&pp.score,d.optimal);
+    return `<button type="button" data-k="${k}" aria-pressed="${k===cur}">${d.name} ${d.S}S${d.P}P${n?`<span class="st">${'★'.repeat(n)}</span>`:''}</button>`;}).join('');
 }
 
 /* ---------- input ---------- */
@@ -489,7 +504,7 @@ function tip(e){
   tipEl.style.left=Math.min(e.clientX+14,innerWidth-tipEl.offsetWidth-8)+'px';tipEl.style.top=(e.clientY+14)+'px';
 }
 
-$('levels').addEventListener('change',e=>loadLevel(+e.target.value));
+$('levels').addEventListener('click',e=>{const b=e.target.closest('button');if(b)loadLevel(+b.dataset.k);});
 $('schem').addEventListener('click',e=>{const g=e.target.closest('.grp');if(g){active=+g.dataset.g;showBot=false;render();}});
 $('eraseBtn').onclick=()=>{eraseMode=!eraseMode;$('eraseBtn').classList.toggle('on',eraseMode);};
 const undo=()=>{if(!hist.length)return;asg=hist.pop();showBot=false;active=lowestIncomplete();render();};
@@ -497,8 +512,7 @@ $('undoBtn').onclick=undo;
 $('clearBtn').onclick=()=>{if(!asg.some(g=>g>=0))return;hist.push(asg.slice());asg.fill(-1);active=0;showBot=false;render();};
 $('botBtn').onclick=()=>{if(!par||!par.asg)return;showBot=!showBot;render();};
 addEventListener('keydown',e=>{
-  if(e.target.tagName==='SELECT')return;
-  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();undo();return;}
+    if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();undo();return;}
   if(e.key==='e'||e.key==='E')$('eraseBtn').click();
 });
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('show'),1800);}
