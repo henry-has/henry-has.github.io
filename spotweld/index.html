@@ -119,13 +119,12 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
 .wrap{max-width:1040px;gap:14px;padding-top:22px}
 header{align-items:baseline}
 h1{font-size:20px;font-weight:600}
-.lvlpick{gap:0}
-.lvlpick .lab2{font-size:12px;color:var(--ink-3);margin-right:8px}
-select{border:1px solid var(--ink-3);border-radius:0;background:var(--bg);color:var(--ink);font-size:15px;font-weight:600;padding:6px 10px;cursor:pointer;margin:0 -1px}
-select:hover{border-color:var(--ink)}
-.arw{border:1px solid var(--ink-3);border-radius:0;background:var(--bg);color:var(--ink);font-size:18px;line-height:1;padding:6px 10px}
-.arw:hover:not(:disabled){border-color:var(--ink)}
-.lvlpick #help{margin-left:8px}
+.tabs{display:flex;gap:2px 22px;overflow-x:auto;border-bottom:1px solid var(--line);margin-top:-4px;scrollbar-width:none}
+.tabs button{border:0;border-bottom:2px solid transparent;border-radius:0;background:transparent;color:var(--ink-3);font-size:14px;padding:8px 0 9px;white-space:nowrap;margin-bottom:-1px}
+.tabs button:hover{color:var(--ink)}
+.tabs button[aria-current="true"]{color:var(--ink);border-bottom-color:var(--ink);font-weight:600}
+.tabs .cfg{font-size:11px;color:var(--ink-3);margin-left:5px;font-weight:400}
+.tabs .st{color:var(--star);font-size:11px;margin-left:4px}
 button.txt{border:0;background:transparent;color:var(--ink-3);font-size:13px;padding:4px 6px}
 button.txt:hover{color:var(--ink)}
 button.txt.pri{color:var(--accent);font-weight:600}
@@ -171,8 +170,9 @@ button.txt.on{color:var(--crit);background:transparent}
 <div class="wrap">
   <header>
     <h1>Spotweld</h1>
-    <div class="row lvlpick"><span class="lab2">Level</span><button id="prevLv" type="button" class="arw" aria-label="Previous level">‹</button><select id="levels" aria-label="Level"></select><button id="nextLv" type="button" class="arw" aria-label="Next level">›</button><button id="help" type="button" class="txt">?</button></div>
+    <button id="help" type="button" class="txt">How to play</button>
   </header>
+  <nav class="tabs" id="levels" aria-label="Levels"></nav>
 
   <section class="top2">
     <div class="goal2">
@@ -540,9 +540,8 @@ function renderSide(){
 function renderLevels(){
   const cur=LEVELS.indexOf(L);
   $('levels').innerHTML=DEMOS.map((d,k)=>{const b=store.get('best4:'+d.id,null),pp=store.get('par4:'+d.id,null),n=b==null?0:starsFor(b,pp&&pp.score,d.optimal);
-    return `<option value="${k}">${k+1}. ${d.name} · ${d.S}S${d.P}P${n?' '+'★'.repeat(n):''}</option>`;}).join('');
-  $('levels').value=String(cur);
-  $('prevLv').disabled=cur<=0;$('nextLv').disabled=cur>=LEVELS.length-1;
+    return `<button type="button" data-k="${k}" aria-current="${k===cur}">${d.name}<span class="cfg">${d.S}S${d.P}P</span>${n?`<span class="st">${'★'.repeat(n)}</span>`:''}</button>`;}).join('');
+  const on=$('levels').querySelector('[aria-current="true"]');if(on)on.scrollIntoView({block:'nearest',inline:'nearest'});
 }
 
 /* ---------- input ---------- */
@@ -592,14 +591,12 @@ function tip(e){
   tipEl.style.left=Math.min(e.clientX+14,innerWidth-tipEl.offsetWidth-8)+'px';tipEl.style.top=(e.clientY+14)+'px';
 }
 
-$('levels').addEventListener('change',e=>loadLevel(+e.target.value));
+$('levels').addEventListener('click',e=>{const b=e.target.closest('button');if(b)loadLevel(+b.dataset.k);});
 $('schem').addEventListener('mouseover',e=>{const r=e.target.closest('.k[data-q]');const q=r?+r.dataset.q:0;if(q!==hlJ){hlJ=q;renderBoard(showBot&&par&&par.asg?par.asg:asg);}});
 $('schem').addEventListener('mouseleave',()=>{if(hlJ){hlJ=0;renderBoard(showBot&&par&&par.asg?par.asg:asg);}});
 $('schem').addEventListener('click',e=>{const g=e.target.closest('button.g');if(g){active=+g.dataset.g;showBot=false;render();}});
 $('eraseBtn').onclick=()=>{eraseMode=!eraseMode;$('eraseBtn').classList.toggle('on',eraseMode);};
 $('nextBtn').onclick=()=>loadLevel(LEVELS.indexOf(L)+1);
-$('prevLv').onclick=()=>{const k=LEVELS.indexOf(L);if(k>0)loadLevel(k-1);};
-$('nextLv').onclick=()=>{const k=LEVELS.indexOf(L);if(k<LEVELS.length-1)loadLevel(k+1);};
 $('help').onclick=()=>$('modal').classList.add('show');
 $('go').onclick=()=>{$('modal').classList.remove('show');store.set('seenRules',1);};
 $('modal').addEventListener('click',e=>{if(e.target.id==='modal')$('go').click();});
