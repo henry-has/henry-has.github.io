@@ -34,18 +34,30 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .btn.on{background:var(--crit);color:#fff;border-color:var(--crit)}
 .row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));border:1px solid var(--line)}
-.ro{padding:6px 8px;border-right:1px solid var(--line);min-width:0}
-.ro .k{font-size:11px;color:var(--ink-3)}
-.ro .v{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:16px;white-space:nowrap}
-.ro .v small{font-size:11px;color:var(--ink-3);margin-left:1px}
-.ro .d{font-size:11px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .stars{color:var(--line);letter-spacing:1px}
 .stars b{color:var(--star);font-weight:400}
-.top{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:12px}
-@media (max-width:900px){.top{grid-template-columns:minmax(0,1fr)}}
-.stage{background:var(--stage);border:1px solid var(--line);padding:8px;display:grid;gap:6px;align-content:start}
-.step{font-size:12px;color:var(--ink-2);min-height:17px}
+h2{font-size:13px;margin:0 0 6px}
+select{font:inherit;font-size:13px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:3px;padding:4px 6px}
+.lvl{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--ink-2)}
+.main{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:12px;align-items:start}
+@media (max-width:900px){.main{grid-template-columns:minmax(0,1fr)}}
+.work{border:1px solid var(--line);display:grid}
+.goal{display:flex;justify-content:space-between;align-items:flex-start;gap:8px 16px;flex-wrap:wrap;padding:8px 10px;border-bottom:1px solid var(--line)}
+.goal .what{font-size:13px}
+.goal .what b{font-weight:600}
+.score{text-align:right}
+.score .v{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:20px;line-height:1.1}
+.score .v small{font-size:11px;color:var(--ink-3)}
+.score .d{font-size:11px;color:var(--ink-3);font-family:ui-monospace,Menlo,Consolas,monospace}
+.chainbar{display:flex;align-items:stretch;gap:6px;padding:8px 10px;background:var(--stage);border-bottom:1px solid var(--line)}
+.chainbar .term{display:flex;align-items:center;font-size:11px;color:var(--ink-3);white-space:nowrap}
+.chainbar .chain{flex:1;min-width:0}
+.boards{background:var(--stage);padding:6px 8px}
+.tools{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:8px 10px;border-top:1px solid var(--line)}
+.tools .sp{flex:1}
+.card{border:1px solid var(--line);padding:8px 10px}
+.card .note{margin:6px 0 0}
+.step{font-size:12px;color:var(--ink-2);min-height:17px;margin-top:2px}
 .step b{color:var(--ink)}
 .step.bad{color:var(--crit)}
 .step.good{color:var(--good)}
@@ -55,18 +67,11 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .face .lbl{font-size:11px;color:var(--ink-3);text-align:center}
 .bd{width:100%;height:auto;max-height:min(560px,62vh);touch-action:none;user-select:none;-webkit-user-select:none;cursor:crosshair;display:block}
 .hint{font-size:11px;color:var(--ink-3)}
-.panel{border:1px solid var(--line);padding:8px 10px;display:grid;gap:10px;align-content:start}
-.grp{display:grid;gap:5px}
-.lab{font-weight:600;font-size:12px}
-.seg{display:flex;flex-wrap:wrap;gap:0}
-.seg button{border-radius:0;margin-right:-1px;margin-bottom:-1px;font-size:12px;padding:3px 7px}
-.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);position:relative}
-.seg button .st{color:var(--star);margin-left:3px;font-size:10px}
-.seg button[aria-pressed="true"] .st{color:inherit}
 .note{color:var(--ink-3);font-size:11px}
 .side{display:grid;gap:12px;align-content:start}
-.chain{display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr))}
-.chain button{border-radius:0;margin:0 -1px -1px 0;padding:6px 2px 5px;display:flex;flex-direction:column;align-items:center;gap:4px;min-height:48px;font-size:13px;font-weight:600;position:relative}
+.chain{display:grid;grid-template-columns:repeat(var(--n,8),minmax(0,1fr))}
+@media (max-width:760px){.chain{grid-template-columns:repeat(auto-fill,minmax(44px,1fr))}}
+.chain button{background:var(--bg);border-radius:0;margin:0 -1px -1px 0;padding:6px 2px 5px;display:flex;flex-direction:column;align-items:center;gap:4px;min-height:48px;font-size:13px;font-weight:600;position:relative}
 .chain button .d{display:flex;flex-wrap:wrap;justify-content:center;gap:2px;max-width:34px}
 .chain button i{width:6px;height:6px;border-radius:50%;border:1px solid var(--line)}
 .chain button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);z-index:1}
@@ -109,44 +114,47 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
   <header>
     <div>
       <h1>Spotweld</h1>
-      <p class="sub" id="goalWhat">Battery packaging game</p>
+      <p class="sub">Battery packaging game</p>
     </div>
     <div class="row">
-      <button class="btn" id="undoBtn" type="button">Undo</button>
-      <button class="btn" id="clearBtn" type="button">Clear</button>
-      <button class="btn" id="eraseBtn" type="button" title="Erase mode for touch screens">Erase</button>
-      <button class="btn" id="botBtn" type="button">Show par</button>
-      <button class="btn primary" id="shareBtn" type="button" hidden>Share</button>
+      <label class="lvl"><span>Level</span><select id="levels" aria-label="Level"></select></label>
     </div>
   </header>
 
-  <div class="readout">
-    <div class="ro"><div class="k">Score</div><div class="v" id="bigScore">–</div><div class="d stars" id="stars"></div></div>
-    <div class="ro"><div class="k">Par</div><div class="v" id="roPar">–</div><div class="d" id="roParD">beat it for ★★★</div></div>
-    <div class="ro"><div class="k">Best</div><div class="v" id="roBest">–</div><div class="d">this browser</div></div>
-    <div class="ro"><div class="k">Pack resistance</div><div class="v" id="roR">–</div><div class="d" id="roRD">–</div></div>
-    <div class="ro"><div class="k">Busiest cell</div><div class="v" id="roLoad">–</div><div class="d">over its group's average</div></div>
-    <div class="ro"><div class="k">Split pieces</div><div class="v" id="roSplit">–</div><div class="d" id="roSplitD">–</div></div>
-  </div>
-
-  <div class="top">
-    <div class="stage">
-      <div class="step" id="goalStep"></div>
+  <div class="main">
+    <section class="work">
+      <div class="goal">
+        <div><div class="what" id="goalWhat"></div><div class="step" id="goalStep"></div></div>
+        <div class="score"><div class="stars" id="stars"></div><div class="v" id="bigScore">–</div><div class="d"><span id="roParD">par</span> <span id="roPar">–</span> · best <span id="roBest">–</span></div></div>
+      </div>
+      <div class="chainbar">
+        <span class="term">PACK −</span>
+        <div class="chain" id="schem"></div>
+        <span class="term">PACK +</span>
+      </div>
       <div class="boards"><div class="face"><div class="lbl">Top face</div><svg class="bd" id="boardT"></svg></div><div class="face"><div class="lbl">Bottom face (seen from above)</div><svg class="bd" id="boardB"></svg></div></div>
-      <div class="hint">Left-drag to add cells to the highlighted group · right-drag to erase · hotter strips carry more current</div>
-    </div>
-    <div class="side">
-      <div class="panel">
-        <div class="grp"><div class="lab">Level</div><div class="seg" id="levels"></div></div>
-        <div class="grp"><div class="lab">Series chain <span class="note">PACK − → PACK +</span></div><div class="chain" id="schem"></div><div class="note">Click a group to work on it.</div></div>
+      <div class="tools">
+        <span class="hint">Left-drag adds cells to the highlighted group · right-drag erases</span>
+        <span class="sp"></span>
+        <button class="btn" id="undoBtn" type="button">Undo</button>
+        <button class="btn" id="clearBtn" type="button">Clear</button>
+        <button class="btn" id="eraseBtn" type="button" title="Erase mode for touch screens">Erase</button>
+        <button class="btn" id="botBtn" type="button">Show par</button>
+        <button class="btn primary" id="shareBtn" type="button" hidden>Share</button>
       </div>
-      <div class="panel">
-        <div class="grp"><div class="lab">Links between groups</div><div class="jl" id="junc"></div><div class="note">Strip resistance between each pair of groups, counting how evenly the strips share current. Red is the weakest link. Hover a row to see its strips.</div></div>
-      </div>
-      <div class="panel">
-        <div class="grp"><div class="lab">Score breakdown</div><div class="bd2" id="bd"></div></div>
-      </div>
-    </div>
+    </section>
+    <aside class="side">
+      <section class="card">
+        <h2>Links between groups</h2>
+        <div class="jl" id="junc"></div>
+        <p class="note">Strip resistance between each pair of groups, counting how evenly its strips share current. Red is the weakest link. Hover a row to see its strips.</p>
+      </section>
+      <section class="card">
+        <h2>Score breakdown</h2>
+        <div class="bd2" id="bd"></div>
+        <p class="note" id="roRD"></p>
+      </section>
+    </aside>
   </div>
   <footer>Spotweld · battery packaging game · strips 1 mΩ, cells 10 mΩ</footer>
 </div>
@@ -402,12 +410,12 @@ function renderFace(view,face,svg){
   const fl=res.links.filter(l=>l.face===face);strips[face]=fl;
   const maxW=Math.max(1e-9,...res.links.map(l=>l.W||0));
   fl.forEach((st,k)=>{
-    const A=cells[st.i],B=cells[st.j],dx=B.x-A.x,dy=B.y-A.y,d=Math.hypot(dx,dy),ux=dx/d,uy=dy/d,o=0.28;
+    const A=cells[st.i],B=cells[st.j],dx=B.x-A.x,dy=B.y-A.y,d=Math.hypot(dx,dy),ux=dx/d,uy=dy/d,o=0.3;
     const x1=A.x+ux*o,y1=A.y+uy*o,x2=B.x-ux*o,y2=B.y-uy*o;
     const bus=st.bus||st.tbus;
-    const t=st.W!=null?clamp(st.W/HEATMAX):0,col=bus?'var(--bus)':st.W!=null?heatColor(t):'var(--strip)';
-    if(hlJ&&st.p===hlJ&&view[st.i]!==view[st.j])out.push(`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--accent)" stroke-width="0.34" stroke-linecap="round" opacity=".8"/>`);
-    out.push(`<line class="lk" data-l="${face}:${k}" x1="${bus?A.x:x1}" y1="${bus?A.y:y1}" x2="${bus?B.x:x2}" y2="${bus?B.y:y2}" stroke="${col}" stroke-width="${bus?0.3:0.18}" stroke-linecap="round"/>`);
+    const t=st.W!=null?clamp(st.W/HEATMAX):0,col=bus?'var(--bus)':heatColor(t);
+    if(hlJ&&st.p===hlJ&&view[st.i]!==view[st.j])out.push(`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--accent)" stroke-width="0.3" stroke-linecap="round" opacity=".7"/>`);
+    out.push(`<line class="lk" data-l="${face}:${k}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="0.16" stroke-linecap="round"${bus?' stroke-dasharray="0.06 0.06"':''}/>`);
   });
   cells.forEach((c,i)=>{
     const g=view[i];
@@ -431,7 +439,7 @@ function renderFace(view,face,svg){
 }
 function renderSide(){
   const {S,P}=L,r=res;
-  $('goalWhat').textContent=`Battery packaging game · ${L.name} · ${S}S${P}P: ${S} groups in series × ${P} cells each · ${S*P} cells`+(L.blurb?' · '+L.blurb:'');
+  $('goalWhat').innerHTML=`Build <b>${S}S${P}P</b>: ${S} groups in series, ${P} cells in parallel each · ${S*P} cells`;
   const el=$('goalStep');el.className='step';
   const need=P-r.groups[active].length;
   const firstBad=r.groups.findIndex((gr,g)=>gr.length&&!(g===active&&gr.length<P)&&!r.touch[g]);
@@ -448,6 +456,7 @@ function renderSide(){
     sc.push(`<button type="button" class="${g===active&&!showBot?'on':''}${bad?' bad':''}" data-g="${g}" title="Group S${g+1}: ${gr.length}/${P} cells">S${g+1}<span class="d">${dots}</span></button>`);
   }
   $('schem').innerHTML=sc.join('');
+  $('schem').style.setProperty('--n',S);
   // links between groups
   {
     const J=r.junc||[],fin=J.filter(j=>isFinite(j.R));
@@ -468,11 +477,9 @@ function renderSide(){
   const bs=$('bigScore');
   const done=r.complete&&!r.open,mo=v=>v==null||!isFinite(v)?'–':`${fmt(v,2)}<small>mΩ</small>`;
   bs.innerHTML=done?mo(r.total):'–';
-  $('roPar').innerHTML=mo(par&&par.score);$('roParD').textContent=L.optimal?'match it for ★★★':'beat it for ★★★';
-  $('roBest').innerHTML=mo(b2);
-  $('roR').innerHTML=done?mo(r.Rpack):'–';$('roRD').textContent=done?`cells alone ${fmt(r.Rideal,2)} mΩ`:'finish the pack';
-  $('roLoad').innerHTML=done?`+${fmt((r.load-1)*100,1)}<small>%</small>`:'–';
-  $('roSplit').innerHTML=done?String(r.extra):'–';$('roSplitD').textContent=done?(r.extra?`${S-r.comps.filter(x=>x===1).length} of ${S} groups split`:'every group in one piece'):'–';
+  $('roPar').textContent=par&&par.score!=null?fmt(par.score,2):'…';$('roParD').textContent='par';
+  $('roBest').textContent=b2==null?'–':fmt(b2,2);
+  $('roRD').textContent=done?(r.extra?`${S-r.comps.filter(x=>x===1).length} of ${S} groups split · busiest cell +${fmt((r.load-1)*100,1)}%`:`every group in one piece · busiest cell +${fmt((r.load-1)*100,1)}%`):'';
   {const n=r.complete&&!r.open&&!showBot?starsFor(r.total,par&&par.score,L.optimal):starsFor(b2,par&&par.score,L.optimal);$('stars').innerHTML=`<b>${'★'.repeat(n)}</b>${'☆'.repeat(3-n)}`;}
   $('shareBtn').hidden=!(r.complete&&!r.open);
   const bd=$('bd');
@@ -492,7 +499,8 @@ function renderSide(){
 function renderLevels(){
   const cur=LEVELS.indexOf(L);
   $('levels').innerHTML=DEMOS.map((d,k)=>{const b=store.get('best4:'+d.id,null),pp=store.get('par4:'+d.id,null),n=b==null?0:starsFor(b,pp&&pp.score,d.optimal);
-    return `<button type="button" data-k="${k}" aria-pressed="${k===cur}">${d.name} ${d.S}S${d.P}P${n?`<span class="st">${'★'.repeat(n)}</span>`:''}</button>`;}).join('');
+    return `<option value="${k}">${d.name} · ${d.S}S${d.P}P${n?' '+'★'.repeat(n):''}</option>`;}).join('');
+  $('levels').value=String(cur);
 }
 
 /* ---------- input ---------- */
@@ -542,7 +550,7 @@ function tip(e){
   tipEl.style.left=Math.min(e.clientX+14,innerWidth-tipEl.offsetWidth-8)+'px';tipEl.style.top=(e.clientY+14)+'px';
 }
 
-$('levels').addEventListener('click',e=>{const b=e.target.closest('button');if(b)loadLevel(+b.dataset.k);});
+$('levels').addEventListener('change',e=>loadLevel(+e.target.value));
 $('junc').addEventListener('mouseover',e=>{const r=e.target.closest('.r[data-q]');const q=r?+r.dataset.q:0;if(q!==hlJ){hlJ=q;renderBoard(showBot&&par&&par.asg?par.asg:asg);}});
 $('junc').addEventListener('mouseleave',()=>{if(hlJ){hlJ=0;renderBoard(showBot&&par&&par.asg?par.asg:asg);}});
 $('schem').addEventListener('click',e=>{const g=e.target.closest('button');if(g){active=+g.dataset.g;showBot=false;render();}});
