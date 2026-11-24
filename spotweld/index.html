@@ -156,7 +156,7 @@ button.txt.on{color:var(--crit);background:transparent}
 .boards{background:transparent;padding:6px 0;gap:28px}
 .face .lbl{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
 .tools2{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;border-top:1px solid var(--line);padding-top:6px}
-.loss{display:grid;gap:8px;max-width:320px}
+.loss{display:grid;gap:8px;max-width:420px}
 .loss .bar{display:flex;height:10px;background:var(--stage)}
 .loss .bar i{display:block;height:100%}
 .loss .rows{display:grid;grid-template-columns:auto auto 1fr;gap:3px 12px;font-size:13px;color:var(--ink-2);align-items:baseline}
@@ -530,7 +530,7 @@ function renderSide(){
     const C=['var(--line)','#e9a23b','#e5484d','#8e6cf0'];
     const parts=[[r.Rideal,'cells','fixed by the S×P'],[strips,'strips','add strips between groups'],[uneven,'uneven cells',`busiest cell +${fmt((r.load-1)*100,1)}%`],[split,'split groups',r.extra?`${r.extra} extra pieces`:'none']];
     const big=Math.max(strips,uneven,split);
-    bd.innerHTML=`<div class="h">Score breakdown</div><div class="bar">${parts.map((p,k)=>`<i style="width:${p[0]/r.total*100}%;background:${C[k]}"></i>`).join('')}</div><div class="rows">${parts.map((p,k)=>`<span class="v">${k?'+':''}${fmt(p[0],2)}</span><span${k&&p[0]===big&&big>0.01?' style="color:var(--ink);font-weight:600"':''}><span class="sw" style="background:${C[k]}"></span> ${p[1]}</span><span></span>`).join('')}<span class="v" style="border-top:1px solid var(--line);padding-top:3px">${fmt(r.total,2)}</span><span style="border-top:1px solid var(--line);padding-top:3px">mΩ</span><span></span></div><div class="calc">${fmt(r.Rpack,2)} pack × ${fmt(r.load,3)}² busiest cell × ${fmt(r.splitF,3)} splits = ${fmt(r.total,2)}<br>splits = 1 + 10% × ${r.extra} extra piece${r.extra===1?'':'s'} ÷ ${S} groups</div>`;
+    bd.innerHTML=`<div class="h">Score breakdown</div><div class="bar">${parts.map((p,k)=>`<i style="width:${p[0]/r.total*100}%;background:${C[k]}"></i>`).join('')}</div><div class="rows">${parts.map((p,k)=>`<span class="v">${k?'+':''}${fmt(p[0],2)}</span><span${k&&p[0]===big&&big>0.01?' style="color:var(--ink);font-weight:600"':''}><span class="sw" style="background:${C[k]}"></span> ${p[1]}</span><span></span>`).join('')}<span class="v" style="border-top:1px solid var(--line);padding-top:3px">${fmt(r.total,2)}</span><span style="border-top:1px solid var(--line);padding-top:3px">mΩ</span><span></span></div><div class="calc">${fmt(r.Rpack,2)} pack × ${fmt(r.load,3)}² busiest cell × ${fmt(r.splitF,3)} splits = ${fmt(r.total,2)}<br>busiest cell = an S${r.gstat.findIndex(x=>x&&x.mx/x.mean===r.load)+1} cell at ${fmt(r.load,3)}× its group's average<br>splits = 1 + 10% × ${r.extra} extra piece${r.extra===1?'':'s'} ÷ ${S} groups</div>`;
   }else bd.innerHTML='';
   $('botBtn').textContent=showBot?'Hide par':'Show par';
 }
