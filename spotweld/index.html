@@ -132,6 +132,7 @@ button.txt.on{color:var(--crit);background:transparent}
 .top2{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
 .goal2 .what{font-size:15px;color:var(--ink-2)}
 .goal2 .what b{color:var(--ink)}
+.goal2 .tip{font-size:13px;color:var(--ink-3);margin-top:2px}
 .goal2 .step{font-size:17px;color:var(--ink);margin-top:2px;font-weight:500}
 .goal2 .step.good{color:var(--good)}
 .goal2 .step.bad{color:var(--crit)}
@@ -242,6 +243,8 @@ function hexagon(R,hole=-1){const c=[];for(let q=-R;q<=R;q++)for(let r=-R;r<=R;r
 const DEMOS=[
  {id:'first',name:'First Weld',S:4,P:2,grid:true,optimal:true,cells:fromGrid(['####','####'])},
  {id:'brick',name:'LVB',S:7,P:3,optimal:true,cells:fromDW(['o o o o o o o',' o o o o o o o','o o o o o o o'])},
+ {id:'uturn',name:'U-Turn',S:6,P:2,grid:true,cells:fromGrid(['#..#','#..#','#..#','#..#','####']),
+  blurb:'Tip: a group doesn\'t have to be one piece. Its cells can sit on different arms.'},
  {id:'wedgejr',name:'Wedge Jr',S:9,P:4,cells:fromRows([8,7,6,5,4,3,2,1])},
  {id:'wedge',name:'Wedge',S:14,P:6,cells:fromRows([13,12,12,10,9,7,6,5,4,3,2,1])},
  {id:'para3',name:'Parallelogram',S:15,P:4,cells:fromRows([10,10,10,10,10,10],r=>r/2)},
@@ -503,7 +506,7 @@ function busyCells(r){const qs=[];asg.forEach((g,i)=>{if(g>=0&&r.gstat[g])qs.pus
   const mx=Math.max(...qs.map(x=>x[1]));if(mx-1<0.0005)return [];return qs.filter(x=>x[1]>mx-0.0005).map(x=>x[0]);}
 function renderSide(){
   const {S,P}=L,r=res,placed=asg.filter(x=>x>=0).length,done=r.complete&&!r.open;
-  $('goalWhat').innerHTML=`<b>${S}S${P}P</b> · ${S} groups of ${P} · ${placed}/${S*P} cells placed`;
+  $('goalWhat').innerHTML=`<b>${S}S${P}P</b> · ${S} groups of ${P} · ${placed}/${S*P} cells placed`+(L.blurb?`<div class="tip">${L.blurb}</div>`:'');
   const el=$('goalStep');el.className='step';
   const need=P-r.groups[active].length;
   const firstBad=r.groups.findIndex((gr,g)=>gr.length&&!(g===active&&gr.length<P)&&!r.touch[g]);
