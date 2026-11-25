@@ -379,14 +379,14 @@ function evaluate(L,asg){
   return res;
 }
 function gauss(A,b,n){
-  const M=A.map((r,i)=>{const a=Array.from(r);a.push(b[i]);return a;});
-  for(let c=0;c<n;c++){
-    let p=c;for(let r=c+1;r<n;r++)if(Math.abs(M[r][c])>Math.abs(M[p][c]))p=r;
-    [M[c],M[p]]=[M[p],M[c]];const pv=M[c][c];if(Math.abs(pv)<1e-18)continue;
-    for(let r=c+1;r<n;r++){const f=M[r][c]/pv;if(!f)continue;for(let k=c;k<=n;k++)M[r][k]-=f*M[c][k];}
-  }
+  // the conductance matrix is symmetric positive definite and sparse: eliminate without pivoting and skip zeros
+  const M=A,B=Float64Array.from(b),lo=new Int32Array(n),hi=new Int32Array(n);
+  for(let r=0;r<n;r++){let a=r,z=r;const R=M[r];for(let k=0;k<n;k++)if(R[k]!==0){if(k<a)a=k;if(k>z)z=k;}lo[r]=a;hi[r]=z;}
+  for(let c=0;c<n;c++){const Rc=M[c],pv=Rc[c];if(Math.abs(pv)<1e-18)continue;const hc=hi[c];
+    for(let r=c+1;r<n;r++){if(lo[r]>c)continue;const Rr=M[r],f=Rr[c]/pv;if(f===0)continue;
+      for(let k=c;k<=hc;k++)Rr[k]-=f*Rc[k];B[r]-=f*B[c];if(hc>hi[r])hi[r]=hc;}}
   const x=new Float64Array(n);
-  for(let r=n-1;r>=0;r--){let s=M[r][n];for(let k=r+1;k<n;k++)s-=M[r][k]*x[k];x[r]=Math.abs(M[r][r])<1e-18?0:s/M[r][r];}
+  for(let r=n-1;r>=0;r--){const R=M[r];let s=B[r];for(let k=r+1;k<=hi[r];k++)s-=R[k]*x[k];x[r]=Math.abs(R[r])<1e-18?0:s/R[r];}
   return x;
 }
 
