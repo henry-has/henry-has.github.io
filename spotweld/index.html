@@ -169,14 +169,6 @@ button.txt.on{color:var(--crit);background:transparent}
 .loss .busy:hover{color:var(--crit);border-color:var(--crit)}
 .loss .busy0{font-size:12px;color:var(--ink-3)}
 .loss .rows .m{font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums}
-a.txt{font-size:13px;padding:4px 6px;text-decoration:none;cursor:pointer;color:var(--ink-3)}
-a.txt.pri{color:var(--accent);font-weight:600}
-.lb{max-width:420px}
-.lb .h{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-bottom:6px}
-.lb ol{margin:0;padding-left:22px;font-size:13px;color:var(--ink-2)}
-.lb li{padding:2px 0;cursor:pointer}
-.lb li:hover{color:var(--ink)}
-.lb li b{font-variant-numeric:tabular-nums;color:var(--ink);margin-right:8px;font-weight:600}
 .loss .h{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
 </style>
 </head>
@@ -206,11 +198,10 @@ a.txt.pri{color:var(--accent);font-weight:600}
 
   <div class="tools2">
     <div class="edit"><button class="txt" id="undoBtn" type="button">Undo</button><button class="txt" id="eraseBtn" type="button">Erase</button><button class="txt" id="clearBtn" type="button">Clear</button></div>
-    <div class="after"><a class="txt pri" id="submitBtn" hidden target="_blank" rel="noopener">Submit to leaderboard</a><button class="txt" id="botBtn" type="button">Show par</button><button class="txt pri" id="nextBtn" type="button" hidden>Next level →</button></div>
+    <div class="after"><button class="txt" id="botBtn" type="button">Show par</button><button class="txt pri" id="nextBtn" type="button" hidden>Next level →</button></div>
   </div>
 
   <section class="loss" id="bd"></section>
-  <section class="lb" id="lb" hidden><div class="h">Leaderboard</div><ol id="lbList"></ol></section>
   <div id="junc" hidden></div><p id="roRD" hidden></p>
   <footer hidden>Spotweld · battery packaging game · strips 1 mΩ, cells 10 mΩ</footer>
 </div>
@@ -219,7 +210,7 @@ a.txt.pri{color:var(--accent);font-weight:600}
   <ol>
     <li>Split the cells into <b>S groups of P cells</b>. 10S4P means 10 groups of 4. Cells in a group are in parallel; groups are in series, S1 → S2 → S3 …</li>
     <li><b>Left-click or drag</b> to add cells to the highlighted group. When it's full you move to the next. Click a group in the series chain to go back to it.</li>
-    <li><b>Right-click or drag</b> to erase (touch: Erase). Ctrl Z undoes.</li>
+    <li><b>Right-click or drag</b> to erase. On a phone, tap a cell of the highlighted group to remove it (drag to remove more). Ctrl Z undoes.</li>
     <li>Touching cells get a strip. Each group must touch the one before it. More strips between groups is better; hot strips glow.</li>
     <li>★ finish · ★★ within 5% of par · ★★★ beat par.</li>
   </ol>
@@ -239,7 +230,7 @@ const PREF=ICELL*ICELL*RL/1000; // W in one link carrying one cell's current
 const HEATMAX=PREF*2.25;
 let SPLIT_COST=0.1; // per extra island in a group
 const UNEVEN_W=0.5; // weight on the busiest cell's extra heat
-const HOT_I=1.2, HOT_W=10; // strips above 1.2× one cell's current are hot spots; their excess heat counts 10×
+const HOT_I=1.2; // strips above 1.2× one cell's current glow on the board
 const PAL=['#4cc9f0','#f72585','#a7e36f','#ffb703','#9d6bff','#06d6a0','#fb8500','#5b7cff','#ff6b8b','#7fe3f0','#d08cff','#ffd166','#3ddc84','#ff8fab'];
 const $=id=>document.getElementById(id);
 const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
@@ -357,9 +348,7 @@ function evaluate(L,asg){
   if(res.complete){
     // effective resistance (mΩ, lower is better): pack resistance, scaled by the worst cell's extra heat (∝ I²) and by splits
     res.uf=1+UNEVEN_W*(res.load*res.load-1);
-    const Wthr=(HOT_I*ICELL)**2*RL/1000;let hn=0,hx=0;for(const l of links)if(l.W!=null&&!l.bus&&!l.tbus&&l.W>Wthr){hn++;hx+=l.W-Wthr;}
-    res.hotN=hn;res.hotX=hx*1000/(ICELL*P)**2;res.hotPen=HOT_W*res.hotX;
-    res.total=res.open?Infinity:Rp*res.uf*res.splitF+res.hotPen;
+    res.total=res.open?Infinity:Rp*res.uf*res.splitF;
   }
   return res;
 }
@@ -440,9 +429,9 @@ function loadLevel(k){
   asg=store.get('asg:'+L.id,null);
   if(!asg||asg.length!==L.cells.length)asg=new Array(L.cells.length).fill(-1);
   hist=[];showBot=false;active=lowestIncomplete();
-  par=store.get('par7:'+L.id,null);
+  par=store.get('par8:'+L.id,null);
   renderLevels();render();
-  if(par==null)setTimeout(()=>{const b=botSolve(L);par=b?{score:b.res.total,asg:b.asg}:{score:null,asg:null};store.set('par7:'+L.id,par);render();},30);
+  if(par==null)setTimeout(()=>{const b=botSolve(L);par=b?{score:b.res.total,asg:b.asg}:{score:null,asg:null};store.set('par8:'+L.id,par);render();},30);
 }
 function counts(){const c=new Array(L.S).fill(0);asg.forEach(g=>{if(g>=0)c[g]++;});return c;}
 function lowestIncomplete(){const c=counts();for(let g=0;g<L.S;g++)if(c[g]<L.P)return g;return L.S-1;}
@@ -543,9 +532,9 @@ function renderSide(){
   $('schem').innerHTML=sc.join('');
   $('schem').style.gridTemplateColumns=`repeat(${S-1},minmax(0,1fr) var(--kw)) minmax(0,1fr)`;
   // score vs par
-  const best=store.get('best6:'+L.id,null);
-  if(done&&!showBot&&(best==null||r.total<best)){store.set('best6:'+L.id,r.total);renderLevels();}
-  const b2=store.get('best6:'+L.id,null),pr=par&&par.score;
+  const best=store.get('best7:'+L.id,null);
+  if(done&&!showBot&&(best==null||r.total<best)){store.set('best7:'+L.id,r.total);renderLevels();}
+  const b2=store.get('best7:'+L.id,null),pr=par&&par.score;
   $('bigScore').innerHTML=done?`${fmt(r.total,2)}<small> mΩ</small>`:`<small>par</small> ${pr!=null?fmt(pr,2):'…'}<small> mΩ</small>`;
   const n=done&&!showBot?starsFor(r.total,pr,L.optimal):starsFor(b2,pr,L.optimal);
   $('stars').innerHTML=`<b>${'★'.repeat(n)}</b>${'☆'.repeat(3-n)}`;
@@ -554,27 +543,21 @@ function renderSide(){
   // where the resistance goes
   const bd=$('bd');
   if(done){
-    const strips=r.Rpack-r.Rideal,uneven=r.Rpack*r.uf-r.Rpack,split=r.Rpack*r.uf*(r.splitF-1),hot=r.hotPen;
-    const C=['var(--line)','#e9a23b','#e5484d','#8e6cf0','#f43f5e'];
+    const strips=r.Rpack-r.Rideal,uneven=r.Rpack*r.uf-r.Rpack,split=r.Rpack*r.uf*(r.splitF-1);
+    const C=['var(--line)','#e9a23b','#e5484d','#8e6cf0'];
     const bc=busyCells(r);busyCell=bc;const bgs=[...new Set(bc.map(i=>asg[i]+1))];
     const Ip2=(ICELL*P)**2,ser=r.links.filter(l=>l.W!=null&&asg[l.i]!==asg[l.j]).reduce((a,l)=>a+l.W,0)*1000/Ip2,par_=r.links.filter(l=>l.W!=null&&asg[l.i]===asg[l.j]).reduce((a,l)=>a+l.W,0)*1000/Ip2;
     const Jn=(r.junc||[]).filter(j=>isFinite(j.R)),stripMath=`${Jn.length} links ${Jn.length>4?Jn.slice(0,3).map(j=>fmt(j.R,2)).join(' + ')+' + …':Jn.map(j=>fmt(j.R,2)).join(' + ')} = ${fmt(ser,2)}`+(r.Rpack-r.Rideal-ser>0.005?` + ${fmt(r.Rpack-r.Rideal-ser,2)} within groups`:'');
-    const math=[`${S} × ${RC} mΩ ÷ ${P}`,stripMath,`${fmt(r.Rpack,2)} × ½ × (${fmt(r.load,3)}² − 1)`,`${fmt(r.Rpack*r.uf,2)} × 10% × ${r.extra} extra ÷ ${S}`,r.hotN?`10 × excess heat in ${r.hotN} strip${r.hotN>1?'s':''} over 1.2× a cell's current`:'no strip over 1.2× a cell\'s current'];
-    const parts=[[r.Rideal,'cells','fixed by the S×P'],[strips,'strips','add strips between groups'],[uneven,'uneven cells',`busiest cell +${fmt((r.load-1)*100,1)}%`],[split,'split groups',r.extra?`${r.extra} extra pieces`:'none'],[hot,'hot spots','']];
-    const big=Math.max(strips,uneven,split,hot);
+    const math=[`${S} × ${RC} mΩ ÷ ${P}`,stripMath,`${fmt(r.Rpack,2)} × ½ × (${fmt(r.load,3)}² − 1)`,`${fmt(r.Rpack*r.uf,2)} × 10% × ${r.extra} extra ÷ ${S}`];
+    const parts=[[r.Rideal,'cells','fixed by the S×P'],[strips,'strips','add strips between groups'],[uneven,'uneven cells',`busiest cell +${fmt((r.load-1)*100,1)}%`],[split,'split groups',r.extra?`${r.extra} extra pieces`:'none']];
+    const big=Math.max(strips,uneven,split);
     bd.innerHTML=`<div class="h">Score breakdown</div><div class="bar">${parts.map((p,k)=>`<i style="width:${p[0]/r.total*100}%;background:${C[k]}"></i>`).join('')}</div><div class="rows">${parts.map((p,k)=>`<span class="v">${k?'+':''}${fmt(p[0],2)}</span><span${k&&p[0]===big&&big>0.01?' style="color:var(--ink);font-weight:600"':''}><span class="sw" style="background:${C[k]}"></span> ${p[1]}</span><span class="m">${math[k]}${k===2?(bc.length?` · <span class="busy" data-busy="1">${bc.length>1?bc.length+' busiest cells in '+bgs.map(g=>'S'+g).join(', '):'busiest is an S'+bgs[0]+' cell'}</span>`:' · cells share evenly'):''}</span>`).join('')}<span class="v" style="border-top:1px solid var(--line);padding-top:3px">${fmt(r.total,2)}</span><span style="border-top:1px solid var(--line);padding-top:3px">mΩ</span><span></span></div>`;
   }else bd.innerHTML='';
-  {const sb=$('submitBtn');sb.hidden=!done||showBot;if(done)sb.href=`https://github.com/henry-has/henry-has.github.io/issues/new?title=${encodeURIComponent(`spotweld: ${L.name} ${fmt(r.total,2)} mΩ`)}&body=${encodeURIComponent(`Submit this issue as is. A bot checks the layout and adds it to the leaderboard.\n\nlevel: ${L.id}\nlayout: ${asg.map(g=>g.toString(36)).join('')}`)}`;}
-  renderLB();
   $('botBtn').textContent=showBot?'Hide par':'Show par';
 }
-let LB=null;
-fetch('leaderboard.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{LB=j;if(L)renderLB();}).catch(()=>{});
-function renderLB(){const list=(LB&&LB[L.id])||[];$('lb').hidden=!list.length;
-  $('lbList').innerHTML=list.slice(0,10).map((e,k)=>`<li data-k="${k}" title="Load this layout"><b>${e.score.toFixed(2)}</b>${String(e.user).replace(/[^A-Za-z0-9-]/g,'')}</li>`).join('');}
 function renderLevels(){
   const cur=LEVELS.indexOf(L);
-  $('levels').innerHTML=DEMOS.map((d,k)=>{const b=store.get('best6:'+d.id,null),pp=store.get('par7:'+d.id,null),n=b==null?0:starsFor(b,pp&&pp.score,d.optimal);
+  $('levels').innerHTML=DEMOS.map((d,k)=>{const b=store.get('best7:'+d.id,null),pp=store.get('par8:'+d.id,null),n=b==null?0:starsFor(b,pp&&pp.score,d.optimal);
     return `<button type="button" data-k="${k}" aria-current="${k===cur}">${d.name}<span class="cfg">${d.S}S${d.P}P</span>${n?`<span class="st">${'★'.repeat(n)}</span>`:''}</button>`;}).join('');
   const on=$('levels').querySelector('[aria-current="true"]');if(on)on.scrollIntoView({block:'nearest',inline:'nearest'});
 }
@@ -586,7 +569,7 @@ function cellAt(e){const p=svgPt(e);let bi=-1,bd=0.5;L.cells.forEach((c,i)=>{con
 function apply(e,first){
   const i=cellAt(e);if(i<0||i===stroke.last)return;stroke.last=i;
   if(stroke.mode==='erase'){if(asg[i]>=0){asg[i]=-1;stroke.changed=true;render();}return;}
-  if(asg[i]>=0){if(first){active=asg[i];render();}return;}
+  if(asg[i]>=0){if(first){if(asg[i]===active||res.complete){stroke.mode='erase';asg[i]=-1;stroke.changed=true;render();}else{active=asg[i];render();}}return;}
   const c=counts();
   if(c[active]>=L.P)active=nextIncomplete(active);
   if(counts()[active]>=L.P)return;
@@ -633,7 +616,6 @@ $('schem').addEventListener('click',e=>{const g=e.target.closest('button.g');if(
 $('eraseBtn').onclick=()=>{eraseMode=!eraseMode;$('eraseBtn').classList.toggle('on',eraseMode);};
 $('bd').addEventListener('mouseover',e=>{const on=!!e.target.closest('[data-busy]');if(on!==showBusy){showBusy=on;renderBoard(showBot&&par&&par.asg?par.asg:asg);}});
 $('bd').addEventListener('mouseleave',()=>{if(showBusy){showBusy=false;renderBoard(showBot&&par&&par.asg?par.asg:asg);}});
-$('lbList').addEventListener('click',e=>{const li=e.target.closest('li');if(!li)return;const en=LB[L.id][+li.dataset.k],a=[...en.layout].map(c=>parseInt(c,36));if(a.length!==L.cells.length)return;hist.push(asg.slice());asg=a;showBot=false;active=lowestIncomplete();render();});
 $('nextBtn').onclick=()=>loadLevel(LEVELS.indexOf(L)+1);
 $('help').onclick=()=>$('modal').classList.add('show');
 $('go').onclick=()=>{$('modal').classList.remove('show');store.set('seenRules',1);};
