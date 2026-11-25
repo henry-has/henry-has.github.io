@@ -106,6 +106,11 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
 .sheet ol{padding-left:20px;margin:10px 0 14px;font-size:13px;color:var(--ink-2)}
 .sheet li{margin:6px 0}
 .sheet b{color:var(--ink)}
+.sheet .lead{margin:6px 0 0;font-size:13px;color:var(--ink-2)}
+.sheet .more{margin:0 0 14px;font-size:13px;color:var(--ink-2)}
+.sheet .more summary{cursor:pointer;color:var(--ink);font-weight:600}
+.sheet .more ul{padding-left:20px;margin:8px 0 0}
+.sheet .more li{margin:5px 0}
 button.txt.bdbtn{padding:0;text-align:left;letter-spacing:.08em;text-transform:uppercase;font-size:11px;justify-self:start}
 .sheet .sec{margin-top:12px}
 .sheet .sec h3{font-size:13px;margin:0 0 4px;display:flex;justify-content:space-between}
@@ -217,6 +222,7 @@ button.txt.on{color:var(--crit);background:transparent}
 <div class="modal" id="bdm"><div class="sheet" id="bdSheet"></div></div>
 <div class="modal" id="modal"><div class="sheet">
   <h2>Spotweld</h2>
+  <p class="lead">A battery packaging puzzle. Weld cylindrical cells into a pack so current flows through it easily and evenly. Lower mΩ is better.</p>
   <ol>
     <li>Split the cells into <b>S groups of P cells</b>. 10S4P means 10 groups of 4. Cells in a group are in parallel; groups are in series, S1 → S2 → S3 …</li>
     <li><b>Left-click or drag</b> to add cells to the highlighted group. When it's full you move to the next. Click a group in the series chain to go back to it.</li>
@@ -224,6 +230,14 @@ button.txt.on{color:var(--crit);background:transparent}
     <li>Touching cells get a strip. Each group must touch the one before it. More strips between groups is better; hot strips glow.</li>
     <li>★ finish · ★★ within 5% of par · ★★★ beat par.</li>
   </ol>
+  <details class="more"><summary>How batteries work</summary>
+    <ul>
+      <li><b>Series</b> (S) stacks groups end to end to add voltage. Every group carries the full pack current.</li>
+      <li><b>Parallel</b> (P) puts cells side by side in a group to share that current.</li>
+      <li>Current passes from one group to the next through nickel <b>strips</b> where cells touch. More strips between two groups means less resistance and less heat.</li>
+      <li>The cell that carries the most current runs hottest and wears out first, so you want every cell in a group doing an equal share.</li>
+    </ul>
+  </details>
   <button class="btn primary" id="go" type="button">Got it</button>
 </div></div>
 <div id="tip"></div>
@@ -254,8 +268,10 @@ function axial(q,r){return {x:q+r/2,y:r*SQ3/2};}
 function hexagon(R,hole=-1){const c=[];for(let q=-R;q<=R;q++)for(let r=-R;r<=R;r++){const d=Math.max(Math.abs(q),Math.abs(r),Math.abs(q+r));if(d<=R&&d>hole)c.push(axial(q,r));}return c;}
 
 const DEMOS=[
- {id:'first',name:'First Weld',S:4,P:2,grid:true,optimal:true,cells:fromGrid(['####','####'])},
- {id:'brick',name:'LVB',S:7,P:3,optimal:true,cells:fromDW(['o o o o o o o',' o o o o o o o','o o o o o o o'])},
+ {id:'first',name:'First Weld',S:4,P:2,grid:true,optimal:true,cells:fromGrid(['####','####']),
+  blurb:'Tip: make each group a straight line beside the last, so every cell touches the next group.'},
+ {id:'brick',name:'LVB',S:7,P:3,optimal:true,cells:fromDW(['o o o o o o o',' o o o o o o o','o o o o o o o']),
+  blurb:'Tip: straight columns give the most strips between neighbouring groups.'},
  {id:'uturn',name:'U-Turn',S:6,P:2,grid:true,cells:fromGrid(['#..#','#..#','#..#','#..#','####']),
   blurb:'Tip: a group doesn\'t have to be one piece. Its cells can sit on different arms, and splitting only costs a little.'},
  {id:'wedgejr',name:'Wedge Jr',S:9,P:4,cells:fromRows([8,7,6,5,4,3,2,1])},
