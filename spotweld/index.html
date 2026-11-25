@@ -230,7 +230,7 @@ const PREF=ICELL*ICELL*RL/1000; // W in one link carrying one cell's current
 const HEATMAX=PREF*2.25;
 let SPLIT_COST=0.1; // per extra island in a group
 const UNEVEN_W=0.5; // weight on the busiest cell's extra heat
-const HOT_I=1.2; // strips above 1.2× one cell's current glow on the board
+const HOT_I=1.02; // strips carrying more than one cell's current glow: yellow just over, red by 2×
 const PAL=['#4cc9f0','#f72585','#a7e36f','#ffb703','#9d6bff','#06d6a0','#fb8500','#5b7cff','#ff6b8b','#7fe3f0','#d08cff','#ffd166','#3ddc84','#ff8fab'];
 const $=id=>document.getElementById(id);
 const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
@@ -478,8 +478,8 @@ function renderFace(view,face,svg){
   fl.forEach((st,k)=>{const A=cells[st.i],B=cells[st.j],L2=`x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}"`;
     if(hlJ&&st.p===hlJ&&view[st.i]!==view[st.j])out.push(`<line ${L2} stroke="var(--accent)" stroke-width="${SW+0.12}" stroke-linecap="round" opacity=".8"/>`);
     out.push(`<line class="lk" data-l="${face}:${k}" ${L2} stroke="${NI}" stroke-width="${SW}" stroke-linecap="round"/>`);});
-  fl.forEach((st,k)=>{if(st.bus||st.tbus||st.W==null)return;const t=clamp((st.I/ICELL-HOT_I)/0.8);if(st.I/ICELL<=HOT_I)return;
-    const A=cells[st.i],B=cells[st.j],c=DK?heatDark(0.3+0.7*t):heatColor(0.4+0.6*t),id=`hg${face}_${k}`,op=(0.8+0.2*t).toFixed(2);
+  fl.forEach((st,k)=>{if(st.bus||st.tbus||st.W==null)return;if(st.I/ICELL<=HOT_I)return;const t=clamp((st.I/ICELL-1)/1);
+    const A=cells[st.i],B=cells[st.j],c=DK?heatDark(t):heatColor(0.3+0.7*t),id=`hg${face}_${k}`,op=(0.8+0.2*t).toFixed(2);
     defs.push(`<linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}"><stop offset=".25" stop-color="${c}" stop-opacity="0"/><stop offset=".42" stop-color="${c}" stop-opacity="${op}"/><stop offset=".58" stop-color="${c}" stop-opacity="${op}"/><stop offset=".75" stop-color="${c}" stop-opacity="0"/></linearGradient>`);
     out.push(`<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="url(#${id})" stroke-width="${SW}" pointer-events="none"/>`);});
   out.push(`<defs>${defs.join('')}</defs>`);
