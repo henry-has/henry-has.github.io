@@ -226,9 +226,9 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
       <h2>DCIR and heat generation</h2>
       <div class="legend"><span><i style="background:var(--s2)"></i><span id="rm-who">hottest cell</span></span></div>
       <div class="rmwrap">
-        <div><div class="sub">DCIR at 2C (10 A). Cells use the 0.5–10C maps at their own current.</div>
+        <div><div class="sub">DCIR at 2C</div>
         <div class="rmbox" id="rmapbox"><canvas id="rmap" aria-label="DCIR against temperature and SOC with the tracked cell's path"></canvas><div class="tip" id="rmtip" hidden></div></div></div>
-        <div><div class="sub">Heat per cell at <span id="hm-ref"></span>, incl. entropic.</div>
+        <div><div class="sub">Heat per cell at <span id="hm-ref"></span></div>
         <div class="rmbox" id="hmapbox"><canvas id="hmap" aria-label="Heat generation against temperature and SOC with the tracked cell's path"></canvas><div class="tip" id="hmtip" hidden></div></div></div>
         <div class="kv" id="rm-kv"></div>
       </div>
@@ -535,7 +535,7 @@ function rms10(arr,ci){if(!RB.cnt)return 0;let s=0;for(let i=0;i<RB.cnt;i++){con
 function setFan(on){
   if(on===fanOn)return;fanOn=on;
   if(!on){let s=0;for(let z=0;z<NET.nZones;z++)s+=NET.Tz[z];NET.Tenc=s/NET.nZones;}
-  AIR=airSide();updateHInfo();buildArrows();
+  AIR=airSide();buildArrows();
 }
 function fanControl(){
   setFan(P.fan==='on');
@@ -984,9 +984,9 @@ for(const k of Object.keys(fmt)){
   if(el&&P[k]!==undefined)el.value=P[k];
   const show=()=>{out.textContent=fmt[k](el.value);};show();
   el.addEventListener('input',()=>{P[k]=parseFloat(el.value);show();
-    if(k==='cfm'){AIR=airSide();updateHInfo();}
+    if(k==='cfm'){AIR=airSide();}
     if(k==='amb'){if(!(PACK==='p30b'&&LOGS[P.prof]&&LOGS[P.prof].amb!==undefined))USER_AMB=P.amb;if(logStart(LOGS[P.prof])===null)P.t0=P.amb;scheduleReset();}
-    if(k==='st'||k==='sl'){layoutCells();placeMeshes();buildArrows();AIR=airSide();updateHInfo();}
+    if(k==='st'||k==='sl'){layoutCells();placeMeshes();buildArrows();AIR=airSide();}
     if(k==='rscale')setHeatRef();
     if(k==='cv'){seedDCIR();}
     if(RESET_KEYS.has(k))scheduleReset();
@@ -1016,8 +1016,7 @@ function applyLogTemps(){if(USER_AMB===null)USER_AMB=P.amb;const lg=LOGS[P.prof]
   if(t0!==null){P.t0=t0;P.amb=lg.amb!==undefined?lg.amb:t0;}else if(PACK==='p30b'&&lg&&lg.amb!==undefined){P.amb=lg.amb;P.t0=lg.amb;}else{P.amb=USER_AMB;P.t0=USER_AMB;}
   const el=document.getElementById('p-amb');if(el){el.value=P.amb;document.getElementById('o-amb').textContent=fmt.amb(P.amb);}}
 seg('prof','prof','prof',()=>{applyLogTemps();profUI();fullReset();});
-seg('fan','fan','fan',()=>{legendUI();fanControl();updateHInfo();});
-function updateHInfo(){const a=AIR;if(!a||!document.getElementById('hinfo'))return;document.getElementById('hinfo').textContent=fanOn&&a.mdot>0?`${(+P.cfm).toFixed(1)} CFM per module · ${(a.v||0).toFixed(2)} m/s face · Re ${a.re.toFixed(0)} · h ≈ ${a.h.toFixed(0)} W/m²K`:`Fans off · free convection h ≈ ${a.h.toFixed(1)} W/m²K`;}
+seg('fan','fan','fan',()=>{legendUI();fanControl();});
 let resetTimer=null;function scheduleReset(){clearTimeout(resetTimer);resetTimer=setTimeout(fullReset,220);}
 
 let running=true;
@@ -1029,13 +1028,12 @@ const speedSel=document.getElementById('speed');
  pb.querySelectorAll('button').forEach(b=>{b.setAttribute('aria-pressed',b.dataset.pack===PACK?'true':'false');
   b.addEventListener('click',()=>{if(b.dataset.pack===PACK)return;const u=new URL(location.href);u.searchParams.set('pack',b.dataset.pack);location.href=u.toString();});});
  if(PACK==='p30b'){document.getElementById('prof-o531').hidden=false;document.getElementById('prof-o411').hidden=false;document.querySelectorAll('#prof button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.prof===P.prof?'true':'false'));}
- if(PACK==='p30b'){const dd=document.querySelector('#rmapbox').previousElementSibling;if(dd)dd.textContent='DCIR at 2C (6 A), About:Energy P30B. Cells use the 2C and 4C maps at their own current.';}
  if(PACK==='p30b'){document.getElementById('ttl').textContent='2025 Pack Thermal Sim';
   document.getElementById('subttl').textContent='130S5P Molicel P30B · 5 × 26S5P modules';}}
 
 function fullReset(){
   fanOn=P.fan==='on';RB.pos=0;RB.cnt=0;
-  buildProfile();seedDCIR();buildNetwork();AIR=airSide();updateHInfo();simT=0;resetHist();computeStats();logHist();updateRange();drawColorbar();updateTexture();drawCharts();drawCell();updateReadouts();buildArrows();
+  buildProfile();seedDCIR();buildNetwork();AIR=airSide();simT=0;resetHist();computeStats();logHist();updateRange();drawColorbar();updateTexture();drawCharts();drawCell();updateReadouts();buildArrows();
 }
 
 
@@ -1169,9 +1167,7 @@ function frame(now){
 }
 buildStatic();buildSurface();rmColors();setHeatRef();
 themeBg();resize();applyLogTemps();profUI();fullReset();
-window.__lhr={get HIST(){return HIST},get PROF(){return PROF},get simT(){return simT},P,get STATS(){return STATS},get NET(){return NET},fullReset,setRun:v=>{running=v;},runTo:T=>{while(simT<T&&simT<PROF.tEnd){step(DT);if(Math.floor(simT/2)!==Math.floor((simT-DT)/2)){computeStats();logHist();}}computeStats();logHist();}};
 requestAnimationFrame(frame);
-window.__sim={setSweeps:n=>{GS_SWEEPS=n},P,get HIST(){return HIST},get NET(){return NET},get STATS(){return STATS},step,fullReset,get simT(){return simT}};
 })();
 </script>
 

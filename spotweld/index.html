@@ -203,13 +203,12 @@ button.txt.on{color:var(--crit);background:transparent}
 <div class="modal" id="modal"><div class="sheet">
   <h2>Spotweld</h2>
   <ol>
-    <li>Split the cells into <b>S groups of P cells</b>. 10S4P means 10 groups of 4. Cells in a group are in parallel; groups are in series, S1 → S2 → S3 …</li>
-    <li><b>Left-click or drag</b> to add cells to the highlighted group. When it's full you move to the next. Click a group in the series chain to go back to it.</li>
-    <li><b>Right-click or drag</b> to erase. On a phone, tap a cell of the highlighted group to remove it (drag to remove more). Ctrl Z undoes.</li>
-    <li>Touching cells get a strip. Each group must touch the one before it. More strips between groups is better; hot strips glow.</li>
-    <li>★ finish · ★★ within 5% of par · ★★★ beat par.</li>
+    <li>Build the pack in groups. 10S4P is 10 groups of 4 cells.</li>
+    <li>Click or drag to place cells. Right-click or tap a placed cell to erase.</li>
+    <li>Each group has to touch the one before it. More contact is better.</li>
+    <li>Lower resistance wins. Beat par for three stars.</li>
   </ol>
-  <button class="btn primary" id="go" type="button">Got it</button>
+  <button class="btn primary" id="go" type="button">Play</button>
 </div></div>
 <div id="tip"></div>
 <div class="toast" id="toast"></div>
@@ -242,7 +241,7 @@ const DEMOS=[
  {id:'first',name:'First Weld',S:4,P:2,grid:true,optimal:true,cells:fromGrid(['####','####'])},
  {id:'brick',name:'LVB',S:7,P:3,optimal:true,cells:fromDW(['o o o o o o o',' o o o o o o o','o o o o o o o'])},
  {id:'uturn',name:'U-Turn',S:6,P:2,grid:true,cells:fromGrid(['#..#','#..#','#..#','#..#','####']),
-  blurb:'Tip: a group doesn\'t have to be one piece. Its cells can sit on different arms, and splitting only costs a little.'},
+  blurb:'Groups can be split across arms.'},
  {id:'wedgejr',name:'Wedge Jr',S:9,P:4,cells:fromRows([8,7,6,5,4,3,2,1])},
  {id:'wedge',name:'Wedge',S:14,P:6,cells:fromRows([13,12,12,10,9,7,6,5,4,3,2,1])},
  {id:'para3',name:'Parallelogram',S:15,P:4,cells:fromRows([10,10,10,10,10,10],r=>r/2)},
@@ -505,17 +504,17 @@ function busyCells(r){const qs=[];asg.forEach((g,i)=>{if(g>=0&&r.gstat[g])qs.pus
   const mx=Math.max(...qs.map(x=>x[1]));if(mx-1<0.0005)return [];return qs.filter(x=>x[1]>mx-0.0005).map(x=>x[0]);}
 function renderSide(){
   const {S,P}=L,r=res,placed=asg.filter(x=>x>=0).length,done=r.complete&&!r.open;
-  $('goalWhat').innerHTML=`<b>${S}S${P}P</b> · ${S} groups of ${P} · ${placed}/${S*P} cells placed`+(L.blurb?`<div class="tip">${L.blurb}</div>`:'');
+  $('goalWhat').innerHTML=`<b>${S}S${P}P</b> · ${placed}/${S*P} cells`+(L.blurb?`<div class="tip">${L.blurb}</div>`:'');
   const el=$('goalStep');el.className='step';
   const need=P-r.groups[active].length;
   const firstBad=r.groups.findIndex((gr,g)=>gr.length&&!(g===active&&gr.length<P)&&!r.touch[g]);
-  if(showBot)el.textContent='Bot\'s layout. Click the board to return.';
-  else if(r.complete&&r.open){el.className='step bad';el.textContent='Open circuit: a group isn\'t touching the next.';}
+  if(showBot)el.textContent='Par layout. Click the board to go back.';
+  else if(r.complete&&r.open){el.className='step bad';el.textContent='A group isn\'t touching the next.';}
   else if(firstBad>=0){el.className='step bad';el.textContent=`S${firstBad+1} isn't touching S${firstBad}`;}
   else if(done){const w=weakLinks(r);
     const pr=par&&par.score,n=starsFor(r.total,pr,L.optimal);el.className=n===3?'step good':'step';
-    el.textContent=n===3?(L.optimal?'Best possible layout.':'You beat par.'):(w.length>2?`${w.length} links tie for weakest at ${fmt(w[0].R,2)} mΩ (red in the chain).`:w.length?`Weakest link${w.length>1?'s are ':' is '}${w.map(j=>`S${j.q}→S${j.q+1}`).join(' and ')}. Re-weld around ${w.length>1?'them':'it'} to beat par.`:'All links are equal. Even out the cells to beat par.');}
-  else el.innerHTML=`Place ${need} more cell${need===1?'':'s'} in S${active+1}`+(active>0?`, touching S${active}`:', the PACK − group');
+    el.textContent=n===3?(L.optimal?'Best possible layout.':'You beat par.'):(w.length>2?`${w.length} links tie for weakest`:w.length?`Weakest: ${w.map(j=>`S${j.q}→S${j.q+1}`).join(', ')}`:'Links are even. Balance the cells.');}
+  else el.innerHTML=`Place ${need} more cell${need===1?'':'s'} in S${active+1}`+(active>0?`, touching S${active}`:'');
   // chain: groups with fill bars, links between them
   const J=r.junc||[],weak=weakLinks(r);
   const sc=[];
@@ -540,13 +539,10 @@ function renderSide(){
   if(done){
     const strips=r.Rpack-r.Rideal,uneven=r.Rpack*r.uf-r.Rpack,split=r.Rpack*r.uf*(r.splitF-1);
     const C=['var(--line)','#e9a23b','#e5484d','#8e6cf0'];
-    const bc=busyCells(r);busyCell=bc;const bgs=[...new Set(bc.map(i=>asg[i]+1))];
-    const Ip2=(ICELL*P)**2,ser=r.links.filter(l=>l.W!=null&&asg[l.i]!==asg[l.j]).reduce((a,l)=>a+l.W,0)*1000/Ip2,par_=r.links.filter(l=>l.W!=null&&asg[l.i]===asg[l.j]).reduce((a,l)=>a+l.W,0)*1000/Ip2;
-    const Jn=(r.junc||[]).filter(j=>isFinite(j.R)),stripMath=`${Jn.length} links ${Jn.length>4?Jn.slice(0,3).map(j=>fmt(j.R,2)).join(' + ')+' + …':Jn.map(j=>fmt(j.R,2)).join(' + ')} = ${fmt(ser,2)}`+(r.Rpack-r.Rideal-ser>0.005?` + ${fmt(r.Rpack-r.Rideal-ser,2)} within groups`:'');
-    const math=[`${S} × ${RC} mΩ ÷ ${P}`,stripMath,`${fmt(r.Rpack,2)} × ½ × (${fmt(r.load,3)}² − 1)`,`${fmt(r.Rpack*r.uf,2)} × 10% × ${r.extra} extra ÷ ${S}`];
-    const parts=[[r.Rideal,'cells','fixed by the S×P'],[strips,'strips','add strips between groups'],[uneven,'uneven cells',`busiest cell +${fmt((r.load-1)*100,1)}%`],[split,'split groups',r.extra?`${r.extra} extra pieces`:'none']];
+    const bc=busyCells(r);busyCell=bc;
+    const parts=[[r.Rideal,'cells'],[strips,'strips'],[uneven,'uneven cells'],[split,'split groups']];
     const big=Math.max(strips,uneven,split);
-    bd.innerHTML=`<div class="h">Score breakdown</div><div class="bar">${parts.map((p,k)=>`<i style="width:${p[0]/r.total*100}%;background:${C[k]}"></i>`).join('')}</div><div class="rows">${parts.map((p,k)=>`<span class="v">${k?'+':''}${fmt(p[0],2)}</span><span${k&&p[0]===big&&big>0.01?' style="color:var(--ink);font-weight:600"':''}><span class="sw" style="background:${C[k]}"></span> ${p[1]}</span><span class="m">${math[k]}${k===2?(bc.length?` · <span class="busy" data-busy="1">${bc.length>1?bc.length+' busiest cells in '+bgs.map(g=>'S'+g).join(', '):'busiest is an S'+bgs[0]+' cell'}</span>`:' · cells share evenly'):''}</span>`).join('')}<span class="v" style="border-top:1px solid var(--line);padding-top:3px">${fmt(r.total,2)}</span><span style="border-top:1px solid var(--line);padding-top:3px">mΩ</span><span></span></div>`;
+    bd.innerHTML=`<div class="h">Score breakdown</div><div class="bar">${parts.map((p,k)=>`<i style="width:${p[0]/r.total*100}%;background:${C[k]}"></i>`).join('')}</div><div class="rows">${parts.map((p,k)=>`<span class="v">${k?'+':''}${fmt(p[0],2)}</span><span${k&&p[0]===big&&big>0.01?' style="color:var(--ink);font-weight:600"':''}><span class="sw" style="background:${C[k]}"></span> ${p[1]}</span><span class="m">${k===2&&bc.length?`<span class="busy" data-busy="1">${bc.length>1?bc.length+' busiest cells':'busiest cell'}</span>`:''}</span>`).join('')}<span class="v" style="border-top:1px solid var(--line);padding-top:3px">${fmt(r.total,2)}</span><span style="border-top:1px solid var(--line);padding-top:3px">mΩ</span><span></span></div>`;
   }else bd.innerHTML='';
   $('botBtn').textContent=showBot?'Hide par':'Show par';
 }
