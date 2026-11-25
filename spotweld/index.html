@@ -4,9 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Spotweld</title>
-<meta name="description" content="Spotweld, a battery packaging game: wire cylindrical cells into an SxP pack with low, even interconnect resistance.">
+<meta name="description" content="A battery busbar packaging game.">
 <style>
-/* Same plain layout as RS50 Pack Thermal Sim: header, readouts, board + control panel. */
 :root{
   --bg:#ffffff; --line:#d0d0d0; --ink:#111111; --ink-2:#444444; --ink-3:#777777;
   --accent:#1a5fb4; --accent-ink:#ffffff; --stage:#f2f2f2; --crit:#c62828; --good:#1b8a5a; --star:#c98500;
@@ -98,7 +97,6 @@ select{font:inherit;font-size:13px;color:var(--ink);background:var(--bg);border:
 #tip .h{font-weight:600}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);opacity:0;background:var(--bg);border:1px solid var(--line);padding:6px 10px;transition:opacity .2s;font-size:12px;z-index:20;pointer-events:none}
 .toast.show{opacity:1}
-footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);padding-top:8px}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;place-items:center;padding:16px;z-index:30}
 .modal.show{display:grid}
 .sheet{background:var(--bg);border:1px solid var(--line);max-width:520px;max-height:92vh;overflow:auto;padding:16px 18px}
@@ -188,7 +186,6 @@ button.txt.on{color:var(--crit);background:transparent}
     <div class="score2">
       <div><span class="v" id="bigScore">–</span> <span class="stars" id="stars"></span></div>
       <div class="d" id="roParD"></div>
-      <span id="roPar" hidden></span><span id="roBest" hidden></span>
     </div>
   </section>
 
@@ -202,8 +199,6 @@ button.txt.on{color:var(--crit);background:transparent}
   </div>
 
   <section class="loss" id="bd"></section>
-  <div id="junc" hidden></div><p id="roRD" hidden></p>
-  <footer hidden>Spotweld · battery packaging game · strips 1 mΩ, cells 10 mΩ</footer>
 </div>
 <div class="modal" id="modal"><div class="sheet">
   <h2>Spotweld</h2>

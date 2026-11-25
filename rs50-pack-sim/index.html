@@ -3,13 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RS50 Pack Thermal Sim</title>
 <style>body{margin:0}[hidden]{display:none!important}</style>
 </head>
 <body><img src="https://hits.sh/henry-has.github.io/rs50-pack-sim.svg" alt="" width="1" height="1" referrerpolicy="no-referrer" style="position:absolute;opacity:0;pointer-events:none">
-<title>RS50 Pack Thermal Sim</title>
-<meta name="claude:viewport-fit-sides" content="cover">
 <style>
-/* Plain layout: header, readouts, 3D view + controls, charts, cell detail, check. */
 :root{
   --bg:#ffffff; --panel:#ffffff; --line:#d0d0d0; --ink:#111111; --ink-2:#444444; --ink-3:#777777;
   --accent:#1a5fb4; --accent-ink:#ffffff; --stage:#f2f2f2;
@@ -67,7 +65,6 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 .sl output{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px}
 .sl input{grid-column:1/-1;width:100%;margin:2px 0}
 .sl small,.note{grid-column:1/-1;color:var(--ink-3);font-size:11px}
-.src{font-style:normal;color:var(--ink-3);font-size:11px}
 details summary{cursor:pointer;font-size:12px}
 .lower{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:12px}
 @media (max-width:900px){.lower{grid-template-columns:minmax(0,1fr)}}
@@ -151,10 +148,9 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
           <button type="button" data-prof="endu" aria-pressed="false">Synthetic</button>
           <button type="button" data-prof="const" aria-pressed="false">Constant</button>
         </div>
-        <span class="note" id="lognote"></span>
       </div>
       <div class="grp">
-        <div class="sl"><label for="p-amb">Ambient <i class="src">cells start here</i></label><output id="o-amb"></output><input id="p-amb" type="range" min="15" max="45" step="0.5" value="35"></div>
+        <div class="sl"><label for="p-amb">Ambient</label><output id="o-amb"></output><input id="p-amb" type="range" min="15" max="45" step="0.5" value="35"></div>
       </div>
       <div class="grp">
         <div class="lab">Cooling</div>
@@ -171,7 +167,6 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
           <button type="button" data-lvl="2" aria-pressed="false">Axial</button>
           <button type="button" data-lvl="3" aria-pressed="true">Radial + axial</button>
         </div>
-        <span class="note" id="lvldesc"></span>
       </div>
 
       <details>
@@ -181,27 +176,25 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
           <div class="sl" id="rms-wrap"><label for="p-rms">Pack current (RMS)</label><output id="o-rms"></output><input id="p-rms" type="range" min="10" max="70" step="1" value="40"></div>
           <div class="sl" id="regen-wrap" hidden><label for="p-regen">Regen peak (% of drive peak)</label><output id="o-regen"></output><input id="p-regen" type="range" min="0" max="100" step="5" value="50"></div>
 
-          <div class="lab">Fans: tube-bank h, air heats row by row</div>
-          <div class="sl"><label for="p-cfm">Effective airflow per module <i class="src"></i></label><output id="o-cfm"></output><input id="p-cfm" type="range" min="0" max="60" step="0.1" value="4.8"></div>
+          <div class="lab">Fans</div>
+          <div class="sl"><label for="p-cfm">Airflow per module</label><output id="o-cfm"></output><input id="p-cfm" type="range" min="0" max="60" step="0.1" value="4.8"></div>
 
-          <div class="lab">Passive: sealed case, walls only</div>
-          <div class="sl"><label for="p-uawall">Case walls to ambient <i class="src"></i></label><output id="o-uawall"></output><input id="p-uawall" type="range" min="0" max="15" step="0.5" value="4"></div>
-          <span class="note" id="uaout"></span>
+          <div class="lab">Passive</div>
+          <div class="sl"><label for="p-uawall">Case walls to ambient</label><output id="o-uawall"></output><input id="p-uawall" type="range" min="0" max="15" step="0.5" value="4"></div>
 
           <div class="lab">Layout</div>
-          <div class="sl"><label for="p-st">Transverse pitch <i class="src"></i></label><output id="o-st"></output><input id="p-st" type="range" min="23" max="45" step="0.01" value="36.12"></div>
-          <div class="sl"><label for="p-sl">Longitudinal pitch <i class="src"></i></label><output id="o-sl"></output><input id="p-sl" type="range" min="11" max="30" step="0.1" value="15.5"></div>
+          <div class="sl"><label for="p-st">Transverse pitch</label><output id="o-st"></output><input id="p-st" type="range" min="23" max="45" step="0.01" value="36.12"></div>
+          <div class="sl"><label for="p-sl">Longitudinal pitch</label><output id="o-sl"></output><input id="p-sl" type="range" min="11" max="30" step="0.1" value="15.5"></div>
 
           <div class="lab">Cell</div>
-          <div class="sl"><label for="p-cv">Cell-to-cell R spread <i class="src">estimate</i></label><output id="o-cv"></output><input id="p-cv" type="range" min="0" max="6" step="0.5" value="2"></div>
-          <div class="sl"><label for="p-kr">k radial <i class="src"></i></label><output id="o-kr"></output><input id="p-kr" type="range" min="0.3" max="3" step="0.05" value="0.9"></div>
-          <div class="sl"><label for="p-kz">k axial <i class="src"></i></label><output id="o-kz"></output><input id="p-kz" type="range" min="5" max="45" step="1" value="28"></div>
-          <div class="sl"><label for="p-hneg">− foil-to-can contact <i class="src"></i></label><output id="o-hneg"></output><input id="p-hneg" type="range" min="1000" max="60000" step="1000" value="30000"></div>
-          <div class="sl"><label for="p-gpos">+ collector-to-cap <i class="src"></i></label><output id="o-gpos"></output><input id="p-gpos" type="range" min="0.05" max="3" step="0.05" value="0.6"></div>
-          <div class="sl"><label for="p-rscale">Heat factor <i class="src"></i></label><output id="o-rscale"></output><input id="p-rscale" type="range" min="0.8" max="1.8" step="0.05" value="1.3"></div>
-          <div class="sl"><label for="p-ccell">Heat capacity <i class="src"></i></label><output id="o-ccell"></output><input id="p-ccell" type="range" min="30" max="80" step="0.1" value="60.6"></div>
-          <label class="row" style="font-size:12px"><input type="checkbox" id="p-rev" checked> Entropic heat <i class="src">A:E heat maps</i></label>
-          <span class="note">Non-ohmic chemical heat: cools the cell on discharge above ~50 % SOC and heats it below. Regen flips it.</span>
+          <div class="sl"><label for="p-cv">Cell-to-cell R spread</label><output id="o-cv"></output><input id="p-cv" type="range" min="0" max="6" step="0.5" value="2"></div>
+          <div class="sl"><label for="p-kr">k radial</label><output id="o-kr"></output><input id="p-kr" type="range" min="0.3" max="3" step="0.05" value="0.9"></div>
+          <div class="sl"><label for="p-kz">k axial</label><output id="o-kz"></output><input id="p-kz" type="range" min="5" max="45" step="1" value="28"></div>
+          <div class="sl"><label for="p-hneg">− foil-to-can contact</label><output id="o-hneg"></output><input id="p-hneg" type="range" min="1000" max="60000" step="1000" value="30000"></div>
+          <div class="sl"><label for="p-gpos">+ collector-to-cap</label><output id="o-gpos"></output><input id="p-gpos" type="range" min="0.05" max="3" step="0.05" value="0.6"></div>
+          <div class="sl"><label for="p-rscale">Heat factor</label><output id="o-rscale"></output><input id="p-rscale" type="range" min="0.8" max="1.8" step="0.05" value="1.3"></div>
+          <div class="sl"><label for="p-ccell">Heat capacity</label><output id="o-ccell"></output><input id="p-ccell" type="range" min="30" max="80" step="0.1" value="60.6"></div>
+          <label class="row" style="font-size:12px"><input type="checkbox" id="p-rev" checked> Entropic heat</label>
 
         </div>
       </details>
@@ -259,21 +252,18 @@ const GEO=PACK==='p30b'?{R:9.2*MM,L:65*MM,tc:0.25*MM,rIn:1.0*MM,rJ:8.85*MM,zb:1.
 GEO.Lj=GEO.zt-GEO.zb;
 const LAY=PACK==='p30b'?{mods:5,groups:26,perRow:5,ST:42,SL:14,modGap:30,vertLast:true,faceH:53.2}:{mods:6,groups:22,perRow:3,ST:36.12,SL:15.5,modGap:30};
 const NCELL=LAY.mods*LAY.groups*LAY.perRow;
-let GS_SWEEPS=3;const R_WELD=0.3e-3; // per terminal: 4 spot welds × ~1.2 mΩ in parallel (estimate)
-const CAP_AH=PACK==='p30b'?3.0:5.0, KS=40, G_GASKET=0.03, G_NI=0.08, H_JC=1500, RG=8.314;
-const C_COLL=17, A_COLL=3.0e-3;
+let GS_SWEEPS=3;
+const CAP_AH=PACK==='p30b'?3.0:5.0, KS=40, G_GASKET=0.03, H_JC=1500, RG=8.314;
 const VR=8, VZ=28, TILES_X=32;
 const TEX_W=VR*TILES_X, TEX_H=VZ*Math.ceil(NCELL/TILES_X);
 const DT=0.25;
 
-// Pack-dependent inputs: default and where it comes from. Everything not listed is shared.
+// Pack-dependent input defaults. Everything not listed is shared.
 const PACKDEF={
-  rs50:{cfm:[4.8,'effective; 2 × 15 mm fans push-pull vs Kelvin’s CFD'],rscale:[1.3,'×1.3 pulse DCIR; A:E 40 A run and the P30B 4/11 fit'],uawall:[4,'estimate for the 2027 case'],
-        ccell:[60.6,'A:E RS50'],st:[36.12,'2027 design'],sl:[15.5,'2027 design'],hneg:[30000,'tabless cell, estimate'],gpos:[0.6,'estimate'],kz:[28,'Drake 2014'],kr:[0.9,'estimate']},
-  p30b:{cfm:[11,'effective; fit to 4/11 cooled modules (design 38, air leaked round the fans)'],rscale:[1.3,'×1.3 pulse DCIR; fit to 4/11 module 3 (fans dead)'],uawall:[4,'consistent with 4/11 module 3'],
-        ccell:[46,'47 g cell + share of holders and busbars (Notion)'],st:[42,'Orion design (Notion)'],sl:[14,'Orion design (Notion)'],hneg:[30000,'same as RS50; P30B tab not modelled'],gpos:[0.6,'estimate'],kz:[28,'Drake 2014'],kr:[0.9,'estimate']}};
+  rs50:{cfm:4.8,rscale:1.3,uawall:4,ccell:60.6,st:36.12,sl:15.5,hneg:30000,gpos:0.6,kz:28,kr:0.9},
+  p30b:{cfm:11,rscale:1.3,uawall:4,ccell:46,st:42,sl:14,hneg:30000,gpos:0.6,kz:28,kr:0.9}};
 const P={lvl:3,prof:PACK==='p30b'?'o531':'o612',rms:40,fan:'on',cfm:4.8,amb:35,t0:35,rscale:1,cv:2,kr:0.9,kz:28,hneg:30000,gpos:0.6,ccell:60.6,st:LAY.ST,sl:LAY.SL,rev:true,scale:'fixed',view:'cut',alt:'z',pscale:1,regen:50,uawall:4};
-for(const [k,v] of Object.entries(PACKDEF[PACK]))P[k]=v[0];
+Object.assign(P,PACKDEF[PACK]);
 let fanOn=true, fanTick=0;
 
 /* ---------------- helpers ---------------- */
@@ -291,7 +281,6 @@ function _dt(b,k,sh){const r=atob(b),u=new Uint8Array(r.length);let x=k>>>0;for(
   const f=Array.from(new Float32Array(u.buffer),v=>Math.round(v*1e4)/1e4);const build=(o,d)=>{if(d===sh.length-1)return f.slice(o,o+sh[d]);const st=sh.slice(d+1).reduce((a,c)=>a*c,1);return Array.from({length:sh[d]},(_,i)=>build(o+i*st,d+1));};return build(0,0);}
 const DUDT_X=_dt('uC1SNsdRCzKUAP5dv3meMCnZqJzIPMgVOudtiAMXnyOIuCuSVD13MWkgFoUpH3CCftUR+Ai4JyO7j37hpoQNbUdAs4aHZup682I+T/ACGVY=',3191193158,[20]);
 const DUDT=_dt('Rak5ZvfNQljrQxJXEvtS8j9OAa7ozCNSQWJ/SpK43kWhaTjBB47zqg51eobXpsk21DqsEy5ovWfgoajYmlKXpFLcOGEDtvnb4tvqnvBAKQY=',1852730803,[20]).map(v=>v*1e-3);
-const AE={h15:[],h30:[],end15:[0,0],end30:[0,0]}; // validation curves removed (unused)
 // About:Energy RS50 DCIR powermaps, mΩ: 30 s discharge pulses capped at 0.5C, 1C, 2C, 4C, 10C (median pulse currents below, A)
 const RM_SOC=_dt('Qa7BljUNttcNU1DwDXvUkudVY59sEhp3369eomu0q0JoAu/0Q00TRvpszJFdPJddC+1yt0Pd4qCglYRDEzLRZcoD82UaS5yh37mY4Q==',3947639951,[19]);
 const RM_T=_dt('j7HatCoN25sNBWybW48UVkAkMgHF6gLPLj+6GLHDtfCKf0uWEyzih63NxUU=',2654274369,[11]);
@@ -436,7 +425,6 @@ function buildNetwork(){
   const Cjel=Ctot-Ccan-Cneg-CposC-Ccap;
   const JL=[];for(let iz=0;iz<Nz;iz++)for(let ir=0;ir<Nr;ir++)JL.push(iz*Nr+ir);
   const L_CAN=Nr*Nz, L_NEG=L_CAN+Nz, L_POSC=L_NEG+1, L_CAP=L_NEG+2;
-  const nCollPerMod=LAY.groups+1;
   let n=0;
   const zoneOf=(m,row)=>m*LAY.groups+row;
   for(let ci=0;ci<NCELL;ci++){
@@ -464,17 +452,10 @@ function buildNetwork(){
     E(L_CAN,L_NEG,KS*2*Math.PI*GEO.R*GEO.tc/(dz/2+GEO.zb));
     E(L_CAN+Nz-1,L_CAP,G_GASKET);
     for(let iz=0;iz<Nz;iz++)area[map[L_CAN+iz]]+=2*Math.PI*GEO.R*dz;
-    area[map[L_NEG]]+=2*Math.PI*GEO.R*GEO.zb; // cell ends face the busbars, not the air stream
+    area[map[L_NEG]]+=2*Math.PI*GEO.R*GEO.zb; // cell ends sit out of the air stream
     area[map[L_CAP]]+=2*Math.PI*GEO.R*(GEO.L-GEO.zt);
     const seen=new Set(), jl=[];for(const l of JL){const id=map[l];if(!seen.has(id)){seen.add(id);jl.push(id);}}
     jellyLoc.push(jl);
-  }
-  const collBase=n;
-  for(let m=0;m<LAY.mods;m++)for(let k=0;k<nCollPerMod;k++){C.push(C_COLL);area.push(0);const rk=Math.min(k,LAY.groups-1),altM=P.alt!=='none'&&((LAY.mods-1-m)%2===1);zone.push(zoneOf(m,altM?LAY.groups-1-rk:rk));n++;}
-  for(let ci=0;ci<NCELL;ci++){
-    const c=cells[ci],map=cellMap[ci];
-    const cNeg=collBase+c.m*nCollPerMod+c.g, cPos=collBase+c.m*nCollPerMod+c.g+1;
-    edges.push(map[L_NEG],cNeg,G_NI);edges.push(map[L_CAP],cPos,G_NI);
   }
   // cell-to-cell through the bank: air-gap conduction (two parallel cylinders, halved for the cells around them) + radiation
   for(let ci=0;ci<NCELL;ci++){const c=cells[ci];
@@ -491,7 +472,6 @@ function buildNetwork(){
   const nbr=new Int32Array(deg[N]), gv=new Float64Array(deg[N]), fill=deg.slice(0,N);
   for(let e=0;e<edges.length;e+=3){const a=edges[e],b=edges[e+1],g=edges[e+2];nbr[fill[a]]=b;gv[fill[a]++]=g;nbr[fill[b]]=a;gv[fill[b]++]=g;}
   const T=new Float64Array(N).fill(P.t0);
-  for(let i=collBase;i<N;i++)T[i]=P.t0;
   // vis interpolation weights (local indices)
   const W=[];
   for(let j=0;j<VZ;j++)for(let cc=0;cc<VR;cc++){
@@ -501,7 +481,7 @@ function buildNetwork(){
   // per-node jelly volume fraction (for heat split)
   const vf=new Float64Array(N);
   for(let ci=0;ci<NCELL;ci++){const map=cellMap[ci];for(let iz=0;iz<Nz;iz++)for(let ir=0;ir<Nr;ir++)vf[map[iz*Nr+ir]]+=ringV[ir];}
-  NET={N,C:Float64Array.from(C),area:Float64Array.from(area),zone:Int32Array.from(zone),deg,nbr,gv,T,Q:new Float64Array(N),cellMap,jellyLoc,vf,Nr,Nz,dr,dz,L_CAN,L_NEG,L_POSC,L_CAP,W,collBase,
+  NET={N,C:Float64Array.from(C),area:Float64Array.from(area),zone:Int32Array.from(zone),deg,nbr,gv,T,Q:new Float64Array(N),cellMap,jellyLoc,vf,Nr,Nz,dr,dz,L_CAN,L_NEG,L_POSC,L_CAP,W,
     nZones:LAY.mods*LAY.groups,Tz:new Float64Array(LAY.mods*LAY.groups).fill(P.amb),Qz:new Float64Array(LAY.mods*LAY.groups),Tenc:P.amb,
     eTerm:0,eHeat:0,soc:new Float64Array(NCELL).fill(1),Qrev:new Float64Array(NCELL),gN:new Float64Array(N),Icell:new Float64Array(NCELL),Rcell:new Float64Array(NCELL),Qcell:new Float64Array(NCELL),
     lumped};
@@ -544,7 +524,7 @@ function exposure(ci){const c=cells[ci];let n=0;
     const dx=dg*LAY.SL,dy=(dk+((g%2)-(c.g%2))/2)*LAY.ST;if(Math.hypot(dx,dy)<=32)n++;}
   return Math.max(0,1-n/6);}
 function buildHOff(net){const hv=new Float64Array(net.N).fill(H_NAT+H_RAD);
-  for(let ci=0;ci<NCELL;ci++){const f=exposure(ci),hc=H_NAT*(F_GAP+(1-F_GAP)*f)+H_RAD*f;for(const id of new Set(Object.values(net.cellMap[ci])))if(id<net.collBase)hv[id]=hc;}
+  for(let ci=0;ci<NCELL;ci++){const f=exposure(ci),hc=H_NAT*(F_GAP+(1-F_GAP)*f)+H_RAD*f;for(const id of new Set(net.cellMap[ci]))hv[id]=hc;}
   return hv;}
 
 /* ---------------- step ---------------- */
@@ -575,7 +555,7 @@ function step(dt){
   }
   if(PROF.power&&t<PROF.tEnd){
     const Pw=PROF.Pw[Math.min(PROF.Pw.length-1,Math.floor(t/PROF.dt))];let Voc=0,Rt=0;
-    for(let ci=0;ci<NCELL;ci+=LAY.perRow){let s=0,G=0;for(let k=0;k<LAY.perRow;k++){s+=net.soc[ci+k];G+=1/(net.Rcell[ci+k]+2*R_WELD);}Voc+=interp(SOCX,OCV,s/LAY.perRow);Rt+=1/G;}
+    for(let ci=0;ci<NCELL;ci+=LAY.perRow){let s=0,G=0;for(let k=0;k<LAY.perRow;k++){s+=net.soc[ci+k];G+=1/net.Rcell[ci+k];}Voc+=interp(SOCX,OCV,s/LAY.perRow);Rt+=1/G;}
     Ipack=(Voc-Math.sqrt(Math.max(0,Voc*Voc-4*Rt*Pw)))/(2*Rt);
   }
   // BMS cutoff: no discharge once any cell reaches 3 % SOC
@@ -584,8 +564,8 @@ function step(dt){
   net.lastI=Ipack;
   // parallel group split
   for(let ci=0;ci<NCELL;ci+=LAY.perRow){
-    let G=0;for(let k=0;k<LAY.perRow;k++)G+=1/(net.Rcell[ci+k]+2*R_WELD);
-    for(let k=0;k<LAY.perRow;k++)net.Icell[ci+k]=Ipack*(1/(net.Rcell[ci+k]+2*R_WELD))/G;
+    let G=0;for(let k=0;k<LAY.perRow;k++)G+=1/net.Rcell[ci+k];
+    for(let k=0;k<LAY.perRow;k++)net.Icell[ci+k]=Ipack*(1/net.Rcell[ci+k])/G;
   }
   for(let ci=0;ci<NCELL;ci++){
     const I=net.Icell[ci], jl=net.jellyLoc[ci], R=net.Rcell[ci], map=net.cellMap[ci];
@@ -597,8 +577,7 @@ function step(dt){
       Q[id]+=q;qtot+=q;qrev+=qr;
     }
     net.Qrev[ci]=qrev;
-    const qw=I*I*R_WELD;Q[map[net.L_NEG]]+=qw;Q[map[net.L_CAP]]+=qw;
-    net.Qcell[ci]=qtot+2*qw;
+    net.Qcell[ci]=qtot;
     net.soc[ci]=Math.max(0,net.soc[ci]-I*dt/(3600*CAP_AH));
   }
   // implicit Gauss-Seidel sweep
@@ -635,7 +614,7 @@ function step(dt){
   // 10 s rolling window of per-cell R and heat
   {const k=RB.pos*NCELL;for(let ci=0;ci<NCELL;ci++){RB.R[k+ci]=net.Rcell[ci];RB.Q[k+ci]=net.Qcell[ci];RB.I[k+ci]=net.Icell[ci];RB.Qr[k+ci]=net.Qrev[ci];}
    RB.pos=(RB.pos+1)%RB.n;RB.cnt=Math.min(RB.n,RB.cnt+1);}
-  {let V=0,qs=0;for(let ci=0;ci<NCELL;ci+=LAY.perRow){let s=0;for(let k=0;k<LAY.perRow;k++)s+=net.soc[ci+k];V+=interp(SOCX,OCV,s/LAY.perRow)-net.Icell[ci]*(net.Rcell[ci]+2*R_WELD);}
+  {let V=0,qs=0;for(let ci=0;ci<NCELL;ci+=LAY.perRow){let s=0;for(let k=0;k<LAY.perRow;k++)s+=net.soc[ci+k];V+=interp(SOCX,OCV,s/LAY.perRow)-net.Icell[ci]*net.Rcell[ci];}
    for(let ci=0;ci<NCELL;ci++)qs+=net.Qcell[ci];net.eTerm+=V*Ipack*dt;net.eHeat+=qs*dt;net.vPack=V;}
   simT+=dt;
 }
@@ -799,8 +778,8 @@ function themeBg(){
   buildArrows();
 }
 const mq=window.matchMedia('(prefers-color-scheme: dark)');
-mq.addEventListener&&mq.addEventListener('change',()=>{themeBg();drawCharts();drawValidation();buildStatic();buildSurface();rmColors();});
-new MutationObserver(()=>{themeBg();drawCharts();drawValidation();buildStatic();buildSurface();rmColors();}).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+mq.addEventListener&&mq.addEventListener('change',()=>{themeBg();drawCharts();buildStatic();buildSurface();rmColors();});
+new MutationObserver(()=>{themeBg();drawCharts();buildStatic();buildSurface();rmColors();}).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
 
 function resize(){
   const w=stage.clientWidth,h=stage.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();
@@ -978,7 +957,6 @@ function updateReadouts(){
   let ocv=0;const soc=S.soc;ocv=interp(SOCX,OCV,soc)*LAY.mods*LAY.groups;
   const Rp=NET.Rcell[S.coreCi]*LAY.mods*LAY.groups/LAY.perRow;
   document.getElementById('r-pack').innerHTML=I.toFixed(0)+'<small>A</small> '+(ocv-I*Rp).toFixed(0)+'<small>V</small>';
-  {const e=document.getElementById('uaout');if(e)e.textContent=fanOn?'':'Out through the walls now: '+Math.max(0,NET.qRej||0).toFixed(0)+' W';}
   document.getElementById('r-packd').textContent='heat '+Math.max(0,S.qs/1000).toFixed(2)+' kW';
   {const kWh=3.6e6;document.getElementById('r-soe').innerHTML=(S.soe*100).toFixed(1)+'<small>%</small> '+(S.eRem/kWh).toFixed(2)+'<small>kWh</small>';
    document.getElementById('r-soed').textContent='of '+(S.eFull/kWh).toFixed(2)+' kWh · SOC '+(S.soc*100).toFixed(0)+' %';
@@ -1008,7 +986,7 @@ for(const k of Object.keys(fmt)){
   el.addEventListener('input',()=>{P[k]=parseFloat(el.value);show();
     if(k==='cfm'){AIR=airSide();updateHInfo();}
     if(k==='amb'){if(!(PACK==='p30b'&&LOGS[P.prof]&&LOGS[P.prof].amb!==undefined))USER_AMB=P.amb;if(logStart(LOGS[P.prof])===null)P.t0=P.amb;scheduleReset();}
-    if(k==='st'||k==='sl'){layoutCells();placeMeshes();buildArrows();AIR=airSide();updateHInfo();updateGap();}
+    if(k==='st'||k==='sl'){layoutCells();placeMeshes();buildArrows();AIR=airSide();updateHInfo();}
     if(k==='rscale')setHeatRef();
     if(k==='cv'){seedDCIR();}
     if(RESET_KEYS.has(k))scheduleReset();
@@ -1023,27 +1001,22 @@ function seg(id,key,attr,cb){
     let v=b.dataset[attr];if(key==='lvl')v=parseInt(v);P[key]=v;cb&&cb();
   }));
 }
-const LVL_DESC={1:'1 node per cell',2:'10 axial slices + can, caps per cell',3:'53 nodes per cell: 4 rings × 10 slices, can, − floor, + collector, cap'};
-function setLvlDesc(){document.getElementById('lvldesc').textContent=LVL_DESC[P.lvl];}
-seg('lvl','lvl','lvl',()=>{setLvlDesc();fullReset();});
+seg('lvl','lvl','lvl',fullReset);
 // same current solve as the sim (132 × OCV(SOC), DCIR powermap at 40 °C), SOC tracked; no thermal
 function logRms(lg){let soc=1,q=0,Iprev=0;const ns=LAY.mods*LAY.groups;
-  for(const v of lg.P){const Pw=v*10*P.pscale,Voc=ns*interp(SOCX,OCV,soc),Rt=ns*(P.rscale*1e-3*rMap(40,soc,Iprev/LAY.perRow)+2*R_WELD)/LAY.perRow;
+  for(const v of lg.P){const Pw=v*10*P.pscale,Voc=ns*interp(SOCX,OCV,soc),Rt=ns*(P.rscale*1e-3*rMap(40,soc,Iprev/LAY.perRow))/LAY.perRow;
     const I=(Voc-Math.sqrt(Math.max(0,Voc*Voc-4*Rt*Pw)))/(2*Rt);Iprev=I;q+=I*I;soc=Math.max(0,soc-I*0.5/(3600*CAP_AH*LAY.perRow));}
   return Math.sqrt(q/lg.P.length);}
-function profUI(){legendUI();if(typeof PLOTS!=='undefined')setHeatRef();const lg=LOGS[P.prof];document.getElementById('lognote').textContent=lg?lg.note+` · ${logRms(lg).toFixed(0)} A RMS here`:(P.prof==='endu'?'Synthetic lap at the RMS input · 1600 s + 180 s change':'Constant RMS current · 1600 s');document.getElementById('rms-wrap').hidden=!!lg;document.getElementById('regen-wrap').hidden=P.prof!=='endu';
+function profUI(){legendUI();if(typeof PLOTS!=='undefined')setHeatRef();const lg=LOGS[P.prof];document.getElementById('rms-wrap').hidden=!!lg;document.getElementById('regen-wrap').hidden=P.prof!=='endu';
 }
 // cycles with logged temps start where the log starts (ambient from the log if known, else the start temp); all others start at the user's ambient
 let USER_AMB=null;
 function logStart(lg){return lg&&lg.meas?(lg.t0!==undefined?lg.t0:lg.meas[1]):null;}
 function applyLogTemps(){if(USER_AMB===null)USER_AMB=P.amb;const lg=LOGS[P.prof],t0=logStart(lg);
   if(t0!==null){P.t0=t0;P.amb=lg.amb!==undefined?lg.amb:t0;}else if(PACK==='p30b'&&lg&&lg.amb!==undefined){P.amb=lg.amb;P.t0=lg.amb;}else{P.amb=USER_AMB;P.t0=USER_AMB;}
-  const el=document.getElementById('p-amb');if(el){el.value=P.amb;document.getElementById('o-amb').textContent=fmt.amb(P.amb);}
-  const tg=document.querySelector('label[for="p-amb"] .src');if(tg)tg.textContent=t0!==null?`cells start at logged ${t0.toFixed(1)} °C`:(PACK==='p30b'&&lg&&lg.amb!==undefined?'that day\'s weather; cells start here':'cells start here');}
+  const el=document.getElementById('p-amb');if(el){el.value=P.amb;document.getElementById('o-amb').textContent=fmt.amb(P.amb);}}
 seg('prof','prof','prof',()=>{applyLogTemps();profUI();fullReset();});
 seg('fan','fan','fan',()=>{legendUI();fanControl();updateHInfo();});
-function updateGap(){if(!document.getElementById('gapinfo'))return;const D=2*GEO.R/MM,diag=Math.hypot(P.sl,P.st/2)-D;
-  const el=document.getElementById('gapinfo');el.textContent=diag<0.2?`Cells overlap at this pitch (diagonal gap ${diag.toFixed(1)} mm)`:`Air gap between staggered neighbours ${diag.toFixed(1)} mm`;el.style.color=diag<0.2?'var(--crit)':'';}
 function updateHInfo(){const a=AIR;if(!a||!document.getElementById('hinfo'))return;document.getElementById('hinfo').textContent=fanOn&&a.mdot>0?`${(+P.cfm).toFixed(1)} CFM per module · ${(a.v||0).toFixed(2)} m/s face · Re ${a.re.toFixed(0)} · h ≈ ${a.h.toFixed(0)} W/m²K`:`Fans off · free convection h ≈ ${a.h.toFixed(1)} W/m²K`;}
 let resetTimer=null;function scheduleReset(){clearTimeout(resetTimer);resetTimer=setTimeout(fullReset,220);}
 
@@ -1056,51 +1029,15 @@ const speedSel=document.getElementById('speed');
  pb.querySelectorAll('button').forEach(b=>{b.setAttribute('aria-pressed',b.dataset.pack===PACK?'true':'false');
   b.addEventListener('click',()=>{if(b.dataset.pack===PACK)return;const u=new URL(location.href);u.searchParams.set('pack',b.dataset.pack);location.href=u.toString();});});
  if(PACK==='p30b'){document.getElementById('prof-o531').hidden=false;document.getElementById('prof-o411').hidden=false;document.querySelectorAll('#prof button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.prof===P.prof?'true':'false'));}
- for(const [k,v] of Object.entries(PACKDEF[PACK])){const t=document.querySelector(`label[for="p-${k}"] .src`);if(t)t.textContent=v[1];}
  if(PACK==='p30b'){const dd=document.querySelector('#rmapbox').previousElementSibling;if(dd)dd.textContent='DCIR at 2C (6 A), About:Energy P30B. Cells use the 2C and 4C maps at their own current.';}
- if(PACK==='p30b'){document.getElementById('ttl').textContent='2025 Pack Thermal Sim (P30B, rough)';
-  document.getElementById('subttl').textContent='130S5P Molicel P30B 18650 · 5 × 26S5P modules · last module upright · 42 × 14 mm pitch, 3 × 60 mm fans per module, About:Energy P30B DCIR; airflow and heat factor fitted to 4/11 thermistors';}}
+ if(PACK==='p30b'){document.getElementById('ttl').textContent='2025 Pack Thermal Sim';
+  document.getElementById('subttl').textContent='130S5P Molicel P30B · 5 × 26S5P modules';}}
 
 function fullReset(){
   fanOn=P.fan==='on';RB.pos=0;RB.cnt=0;
   buildProfile();seedDCIR();buildNetwork();AIR=airSide();updateHInfo();simT=0;resetHist();computeStats();logHist();updateRange();drawColorbar();updateTexture();drawCharts();drawCell();updateReadouts();buildArrows();
 }
 
-/* ---------------- About:Energy validation ---------------- */
-function runSingle(h){
-  return runSingleK(h,P.rscale);
-}
-function runSingleK(h,k){
-  const A=0.00543, C=P.ccell, I=40, dt=0.1;let T=25,soc=1,n=0;const out=[[0,25]];
-  while(n*dt<200&&T<60){const Tk=T+273.15;const R=k*1e-3*rMap(T,soc);
-    const q=I*I*R-(P.rev?I*Tk*interp(DUDT_X,DUDT,soc):0)+h*A*(37-T);T+=q*dt/C;soc-=I*dt/3600/CAP_AH;n++;if(n%20===0)out.push([n*dt,T]);}
-  out.push([n*dt,T]);return out;
-}
-function aeRms(k){
-  const errs=[];for(const [key,hh] of [['h15',15],['h30',30]]){const ae=AE[key],m=runSingleK(hh,k);
-    for(let i=0;i<ae.length;i++){if(ae[i]==null)continue;const j=m.findIndex(p=>p[0]>=i*10-1e-6);if(j>=0)errs.push(m[j][1]-ae[i]);else errs.push(60-ae[i]);}}
-  return Math.sqrt(errs.reduce((s,e)=>s+e*e,0)/errs.length);
-}
-let FITK=1;
-function fitScale(){let best=[1e9,1];for(let k=0.8;k<=1.8;k+=0.01){const e=aeRms(k);if(e<best[0])best=[e,k];}FITK=Math.round(best[1]*100)/100;
-  const b=document.getElementById('fitbtn');b.dataset.r=FITK;b.textContent='Fit to 40 A run ×'+FITK.toFixed(2);}
-function drawValidation(){
-  const cv=document.getElementById('vchart');if(!cv)return;const {ctx,w,h}=setupCanvas(cv);ctx.clearRect(0,0,w,h);
-  const padL=40,padR=12,padT=8,padB=22,pw=w-padL-padR,ph=h-padT-padB;const X=t=>padL+t/200*pw,Y=v=>padT+(1-(v-20)/45)*ph;
-  ctx.font='11px "JetBrains Mono", ui-monospace, monospace';ctx.fillStyle=css('--ink-3');ctx.strokeStyle=css('--line');ctx.lineWidth=1;ctx.textAlign='right';ctx.textBaseline='middle';
-  for(let v=20;v<=65;v+=10){const y=Math.round(Y(v))+0.5;ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(w-padR,y);ctx.stroke();ctx.fillText(v+'°',padL-6,y);}
-  ctx.textAlign='center';ctx.textBaseline='top';for(let t=0;t<=180;t+=30)ctx.fillText(t+' s',X(t),h-padB+6);
-  const errs=[];
-  for(const [key,hh,col] of [['h15',15,'--s1'],['h30',30,'--s2']]){
-    const ae=AE[key],end=AE[key==='h15'?'end15':'end30'];
-    ctx.strokeStyle=css(col);ctx.lineWidth=2;ctx.setLineDash([]);ctx.beginPath();
-    let first=true;for(let i=0;i<ae.length;i++){if(ae[i]==null)continue;const x=X(i*10),y=Y(ae[i]);first?ctx.moveTo(x,y):ctx.lineTo(x,y);first=false;}ctx.lineTo(X(end[0]),Y(end[1]));ctx.stroke();
-    const m=runSingle(hh);ctx.setLineDash([6,4]);ctx.beginPath();m.forEach(([t,T],i)=>{i?ctx.lineTo(X(t),Y(T)):ctx.moveTo(X(t),Y(T));});ctx.stroke();ctx.setLineDash([]);
-    for(let i=0;i<ae.length;i++){if(ae[i]==null)continue;const j=m.findIndex(p=>p[0]>=i*10-1e-6);if(j>=0)errs.push(m[j][1]-ae[i]);}
-  }
-  const rms=Math.sqrt(errs.reduce((s,e)=>s+e*e,0)/Math.max(1,errs.length));
-  document.getElementById('valerr').textContent='RMS error '+rms.toFixed(2)+' K';
-}
 
 /* ---------------- DCIR and heat-generation maps 3D ---------------- */
 // axes: x = SOC (95 % at x=0 → 5 % at x=100), z = temperature (10 °C at z=0 → 60 °C at z=100), y = value (0–yMax → 0–60)
@@ -1231,7 +1168,7 @@ function frame(now){
   requestAnimationFrame(frame);
 }
 buildStatic();buildSurface();rmColors();setHeatRef();
-setLvlDesc();themeBg();resize();applyLogTemps();profUI();fullReset();
+themeBg();resize();applyLogTemps();profUI();fullReset();
 window.__lhr={get HIST(){return HIST},get PROF(){return PROF},get simT(){return simT},P,get STATS(){return STATS},get NET(){return NET},fullReset,setRun:v=>{running=v;},runTo:T=>{while(simT<T&&simT<PROF.tEnd){step(DT);if(Math.floor(simT/2)!==Math.floor((simT-DT)/2)){computeStats();logHist();}}computeStats();logHist();}};
 requestAnimationFrame(frame);
 window.__sim={setSweeps:n=>{GS_SWEEPS=n},P,get HIST(){return HIST},get NET(){return NET},get STATS(){return STATS},step,fullReset,get simT(){return simT}};
