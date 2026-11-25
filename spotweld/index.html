@@ -106,6 +106,15 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
 .sheet ol{padding-left:20px;margin:10px 0 14px;font-size:13px;color:var(--ink-2)}
 .sheet li{margin:6px 0}
 .sheet b{color:var(--ink)}
+button.txt.bdbtn{padding:0;text-align:left;letter-spacing:.08em;text-transform:uppercase;font-size:11px;justify-self:start}
+.sheet .sec{margin-top:12px}
+.sheet .sec h3{font-size:13px;margin:0 0 4px;display:flex;justify-content:space-between}
+.sheet .sec h3 span{font-weight:400;font-variant-numeric:tabular-nums;color:var(--ink-2)}
+.sheet .sec p{margin:2px 0 6px;font-size:12.5px;color:var(--ink-2)}
+.sheet .tbl{display:grid;grid-template-columns:auto auto 1fr;gap:1px 12px;font-size:12px;font-variant-numeric:tabular-nums;color:var(--ink-2)}
+.sheet .tbl .r{text-align:right;color:var(--ink)}
+.sheet .tbl .w{color:var(--crit)}
+.sheet .eq{font-size:13px;font-variant-numeric:tabular-nums;margin:8px 0 2px;color:var(--ink)}
 /* svg */
 .cellhit:hover + .hov{opacity:1}
 .hov{opacity:0;pointer-events:none}
@@ -205,6 +214,7 @@ button.txt.on{color:var(--crit);background:transparent}
   <div id="junc" hidden></div><p id="roRD" hidden></p>
   <footer hidden>Spotweld · battery packaging game · strips 1 mΩ, cells 10 mΩ</footer>
 </div>
+<div class="modal" id="bdm"><div class="sheet" id="bdSheet"></div></div>
 <div class="modal" id="modal"><div class="sheet">
   <h2>Spotweld</h2>
   <ol>
@@ -548,10 +558,10 @@ function renderSide(){
     const bc=busyCells(r);busyCell=bc;const bgs=[...new Set(bc.map(i=>asg[i]+1))];
     const Ip2=(ICELL*P)**2,ser=r.links.filter(l=>l.W!=null&&asg[l.i]!==asg[l.j]).reduce((a,l)=>a+l.W,0)*1000/Ip2,par_=r.links.filter(l=>l.W!=null&&asg[l.i]===asg[l.j]).reduce((a,l)=>a+l.W,0)*1000/Ip2;
     const Jn=(r.junc||[]).filter(j=>isFinite(j.R)),stripMath=`${Jn.length} links ${Jn.length>4?Jn.slice(0,3).map(j=>fmt(j.R,2)).join(' + ')+' + …':Jn.map(j=>fmt(j.R,2)).join(' + ')} = ${fmt(ser,2)}`+(r.Rpack-r.Rideal-ser>0.005?` + ${fmt(r.Rpack-r.Rideal-ser,2)} within groups`:'');
-    const math=[`${S} × ${RC} mΩ ÷ ${P}`,stripMath,`${fmt(r.Rpack,2)} × ½ × (${fmt(r.load,3)}² − 1)`,`${fmt(r.Rpack*r.uf,2)} × 10% × ${r.extra} extra ÷ ${S}`];
+    const math=[`${S} series × ${RC} mΩ ÷ ${P} parallel`,stripMath,`${fmt(r.Rpack,2)} × ½ × (${fmt(r.load,3)}² − 1)`,`${fmt(r.Rpack*r.uf,2)} × 10% × ${r.extra} extra ÷ ${S} series groups`];
     const parts=[[r.Rideal,'cells','fixed by the S×P'],[strips,'strips','add strips between groups'],[uneven,'uneven cells',`busiest cell +${fmt((r.load-1)*100,1)}%`],[split,'split groups',r.extra?`${r.extra} extra pieces`:'none']];
     const big=Math.max(strips,uneven,split);
-    bd.innerHTML=`<div class="h">Score breakdown</div><div class="bar">${parts.map((p,k)=>`<i style="width:${p[0]/r.total*100}%;background:${C[k]}"></i>`).join('')}</div><div class="rows">${parts.map((p,k)=>`<span class="v">${k?'+':''}${fmt(p[0],2)}</span><span${k&&p[0]===big&&big>0.01?' style="color:var(--ink);font-weight:600"':''}><span class="sw" style="background:${C[k]}"></span> ${p[1]}</span><span class="m">${math[k]}${k===2?(bc.length?` · <span class="busy" data-busy="1">${bc.length>1?bc.length+' busiest cells in '+bgs.map(g=>'S'+g).join(', '):'busiest is an S'+bgs[0]+' cell'}</span>`:' · cells share evenly'):''}</span>`).join('')}<span class="v" style="border-top:1px solid var(--line);padding-top:3px">${fmt(r.total,2)}</span><span style="border-top:1px solid var(--line);padding-top:3px">mΩ</span><span></span></div>`;
+    bd.innerHTML=`<button type="button" class="txt h bdbtn" id="bdOpen">Score breakdown <span aria-hidden="true">›</span></button><div class="bar">${parts.map((p,k)=>`<i style="width:${p[0]/r.total*100}%;background:${C[k]}"></i>`).join('')}</div><div class="rows">${parts.map((p,k)=>`<span class="v">${k?'+':''}${fmt(p[0],2)}</span><span${k&&p[0]===big&&big>0.01?' style="color:var(--ink);font-weight:600"':''}><span class="sw" style="background:${C[k]}"></span> ${p[1]}</span><span class="m">${math[k]}${k===2?(bc.length?` · <span class="busy" data-busy="1">${bc.length>1?bc.length+' busiest cells in '+bgs.map(g=>'S'+g).join(', '):'busiest is an S'+bgs[0]+' cell'}</span>`:' · cells share evenly'):''}</span>`).join('')}<span class="v" style="border-top:1px solid var(--line);padding-top:3px">${fmt(r.total,2)}</span><span style="border-top:1px solid var(--line);padding-top:3px">mΩ</span><span></span></div>`;
   }else bd.innerHTML='';
   $('botBtn').textContent=showBot?'Hide par':'Show par';
 }
@@ -618,6 +628,23 @@ $('bd').addEventListener('mouseover',e=>{const on=!!e.target.closest('[data-busy
 $('bd').addEventListener('mouseleave',()=>{if(showBusy){showBusy=false;renderBoard(showBot&&par&&par.asg?par.asg:asg);}});
 $('nextBtn').onclick=()=>loadLevel(LEVELS.indexOf(L)+1);
 $('help').onclick=()=>$('modal').classList.add('show');
+function openBD(){const r=res,{S,P}=L;if(!(r.complete&&!r.open))return;
+  const J=(r.junc||[]).filter(j=>isFinite(j.R)),wk=weakLinks(r),Ip2=(ICELL*P)**2;
+  const within=r.Rpack-r.Rideal-r.links.filter(l=>l.W!=null&&asg[l.i]!==asg[l.j]).reduce((a,l)=>a+l.W,0)*1000/Ip2;
+  const gs=r.gstat.map((g,i)=>({i,q:g?g.mx/g.mean:1})).filter(x=>r.gstat[x.i]).sort((a,b)=>b.q-a.q);
+  const split=r.comps.map((c,i)=>({i,c})).filter(x=>x.c>1);
+  const sec=(t,v,body)=>`<div class="sec"><h3>${t}<span>${v}</span></h3>${body}</div>`;
+  $('bdSheet').innerHTML=`<h2>Score breakdown · ${L.name} ${S}S${P}P</h2>
+  <div class="eq">${fmt(r.Rpack,2)} pack × ${fmt(r.uf,3)} uneven × ${fmt(r.splitF,3)} splits = <b>${fmt(r.total,2)} mΩ</b></div>`+
+  sec('Cells',fmt(r.Rideal,2)+' mΩ',`<p>${S} series groups × ${RC} mΩ per cell ÷ ${P} cells in parallel. The floor if every strip were perfect.</p>`)+
+  sec('Strips','+'+fmt(r.Rpack-r.Rideal,2)+' mΩ',`<p>Each strip is ${RL} mΩ. Every link between groups carries the full pack current; more strips in a link share it.</p><div class="tbl">${J.map(j=>`<span>S${j.q}→S${j.q+1}</span><span class="r${wk.includes(j)?' w':''}">${fmt(j.R,2)} mΩ</span><span>${j.n} strip${j.n>1?'s':''}</span>`).join('')}<span>within groups</span><span class="r">${fmt(within,2)} mΩ</span><span>strips joining cells of the same group</span></div>`)+
+  sec('Uneven cells','+'+fmt(r.Rpack*(r.uf-1),2)+' mΩ',`<p>The busiest cell runs hottest and ages first. Its extra heat is (current ÷ group average)² − 1, counted at half weight: ${fmt(r.Rpack,2)} × ½ × (${fmt(r.load,3)}² − 1).</p><div class="tbl">${gs.slice(0,5).map(g=>`<span>S${g.i+1}</span><span class="r${g.q===r.load?' w':''}">+${fmt((g.q-1)*100,1)}%</span><span>busiest cell vs its group average</span>`).join('')}</div>`)+
+  sec('Split groups','+'+fmt(r.Rpack*r.uf*(r.splitF-1),2)+' mΩ',`<p>Each extra piece costs 10%, averaged over the ${S} series groups: 1 + 10% × ${r.extra} ÷ ${S} = ${fmt(r.splitF,3)}.</p>`+(split.length?`<div class="tbl">${split.map(x=>`<span>S${x.i+1}</span><span class="r">${x.c} pieces</span><span></span>`).join('')}</div>`:'<p>Every group is one piece.</p>'))+
+  `<div style="margin-top:14px"><button class="btn primary" type="button" id="bdClose">Close</button></div>`;
+  $('bdm').classList.add('show');}
+$('bd').addEventListener('click',e=>{if(e.target.closest('#bdOpen'))openBD();});
+$('bdm').addEventListener('click',e=>{if(e.target.id==='bdm'||e.target.id==='bdClose')$('bdm').classList.remove('show');});
+addEventListener('keydown',e=>{if(e.key==='Escape')$('bdm').classList.remove('show');});
 $('go').onclick=()=>{$('modal').classList.remove('show');store.set('seenRules',1);};
 $('modal').addEventListener('click',e=>{if(e.target.id==='modal')$('go').click();});
 const undo=()=>{if(!hist.length)return;asg=hist.pop();showBot=false;active=lowestIncomplete();render();};
