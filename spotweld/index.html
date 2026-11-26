@@ -111,6 +111,14 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
 .sheet .more summary{cursor:pointer;color:var(--ink);font-weight:600}
 .sheet .more ul{padding-left:20px;margin:8px 0 0}
 .sheet .more li{margin:5px 0}
+.lbhint{font-size:11px;color:var(--ink-3);margin-top:2px}
+.sheet input{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:3px;padding:4px 8px;min-width:0;width:11em;max-width:100%}
+.lbform{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:10px 0 0}
+.lbt{display:grid;grid-template-columns:2.4em minmax(0,1fr) auto;gap:2px 10px;margin:10px 0 0;font-size:13px;font-variant-numeric:tabular-nums;color:var(--ink-2)}
+.lbt span{padding:1px 0}
+.lbt .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lbt .me{color:var(--ink);font-weight:600}
+.lbmsg{font-size:13px;margin:8px 0 0;color:var(--ink-2)}
 button.txt.bdbtn{padding:0;text-align:left;letter-spacing:.08em;text-transform:uppercase;font-size:11px;justify-self:start}
 .sheet .sec{margin-top:12px}
 .sheet .sec h3{font-size:13px;margin:0 0 4px;display:flex;justify-content:space-between}
@@ -190,7 +198,7 @@ button.txt.on{color:var(--crit);background:transparent}
 <div class="wrap">
   <header>
     <h1>Spotweld</h1>
-    <button id="help" type="button" class="txt">How to play</button>
+    <span><button id="lbBtn" type="button" class="txt" hidden>Leaderboard</button><button id="help" type="button" class="txt">How to play</button></span>
   </header>
   <nav class="tabs" id="levels" aria-label="Levels"></nav>
 
@@ -202,6 +210,7 @@ button.txt.on{color:var(--crit);background:transparent}
     <div class="score2">
       <div><span class="v" id="bigScore">–</span> <span class="stars" id="stars"></span></div>
       <div class="d" id="roParD"></div>
+      <div class="lbhint" id="lbHint" hidden>Beat par to join the leaderboard</div>
       <span id="roPar" hidden></span><span id="roBest" hidden></span>
     </div>
   </section>
@@ -219,6 +228,7 @@ button.txt.on{color:var(--crit);background:transparent}
   <div id="junc" hidden></div><p id="roRD" hidden></p>
   <footer hidden>Spotweld · battery packaging game · strips 1 mΩ, cells 10 mΩ</footer>
 </div>
+<div class="modal" id="lbm"><div class="sheet" id="lbSheet"></div></div>
 <div class="modal" id="bdm"><div class="sheet" id="bdSheet"></div></div>
 <div class="modal" id="modal"><div class="sheet">
   <h2>Spotweld</h2>
@@ -257,6 +267,7 @@ const UNEVEN_W=0.5; // weight on the busiest cell's extra heat
 const HOT_I=1.02; // strips carrying more than one cell's current glow: yellow just over, red by 2×
 const PAL=['#4cc9f0','#f72585','#a7e36f','#ffb703','#9d6bff','#06d6a0','#fb8500','#5b7cff','#ff6b8b','#7fe3f0','#d08cff','#ffd166','#3ddc84','#ff8fab'];
 const $=id=>document.getElementById(id);
+const LB_URL='https://spotweld.henry-has.workers.dev'; // leaderboard Worker
 const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
 
 /* ---------- shapes ---------- */
@@ -454,7 +465,7 @@ function loadLevel(k){
   L=LEVELS[k];store.set('last2',k);
   asg=store.get('asg:'+L.id,null);
   if(!asg||asg.length!==L.cells.length)asg=new Array(L.cells.length).fill(-1);
-  hist=[];showBot=false;active=lowestIncomplete();
+  hist=[];showBot=false;active=lowestIncomplete();lbQuiet=true;
   par=store.get('par8:'+L.id,null);
   renderLevels();render();
   if(par==null)setTimeout(()=>{const b=botSolve(L);par=b?{score:b.res.total,asg:b.asg}:{score:null,asg:null};store.set('par8:'+L.id,par);render();},30);
@@ -580,6 +591,7 @@ function renderSide(){
     bd.innerHTML=`<button type="button" class="txt h bdbtn" id="bdOpen">Score breakdown <span aria-hidden="true">›</span></button><div class="bar">${parts.map((p,k)=>`<i style="width:${p[0]/r.total*100}%;background:${C[k]}"></i>`).join('')}</div><div class="rows">${parts.map((p,k)=>`<span class="v">${k?'+':''}${fmt(p[0],2)}</span><span${k&&p[0]===big&&big>0.01?' style="color:var(--ink);font-weight:600"':''}><span class="sw" style="background:${C[k]}"></span> ${p[1]}</span><span class="m">${math[k]}${k===2?(bc.length?` · <span class="busy" data-busy="1">${bc.length>1?bc.length+' busiest cells in '+bgs.map(g=>'S'+g).join(', '):'busiest is an S'+bgs[0]+' cell'}</span>`:' · cells share evenly'):''}</span>`).join('')}<span class="v" style="border-top:1px solid var(--line);padding-top:3px">${fmt(r.total,2)}</span><span style="border-top:1px solid var(--line);padding-top:3px">mΩ</span><span></span></div>`;
   }else bd.innerHTML='';
   $('botBtn').textContent=showBot?'Hide par':'Show par';
+  lbCheck(r,pr,done);
 }
 function renderLevels(){
   const cur=LEVELS.indexOf(L);
@@ -663,6 +675,61 @@ $('bdm').addEventListener('click',e=>{if(e.target.id==='bdm'||e.target.id==='bdC
 addEventListener('keydown',e=>{if(e.key==='Escape')$('bdm').classList.remove('show');});
 $('go').onclick=()=>{$('modal').classList.remove('show');store.set('seenRules',1);};
 $('modal').addEventListener('click',e=>{if(e.target.id==='modal')$('go').click();});
+/* ---------- leaderboard ---------- */
+let lbOK=null,lbQuiet=true,lbMe=store.get('lbname','');
+const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const layoutStr=()=>asg.map(g=>g.toString(36)).join('');
+const beatsPar=(t,pr)=>pr!=null&&t<pr-0.005;
+async function lbFetch(path,body){
+  const ac=new AbortController(),t=setTimeout(()=>ac.abort(),8000);
+  try{const r=await fetch(LB_URL+path,body?{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body),signal:ac.signal}:{signal:ac.signal});
+    const j=await r.json();if(!r.ok)throw new Error(j.error||'Request failed');return j;}
+  finally{clearTimeout(t);}
+}
+function lbShow(){$('lbBtn').hidden=!lbOK;$('lbHint').hidden=!(lbOK&&!lbBeat);}
+let lbBeat=false;
+function lbCheck(r,pr,done){
+  lbBeat=!!(done&&!showBot&&beatsPar(r.total,pr));
+  lbShow();
+  if(pr==null)return;
+  const quiet=lbQuiet;lbQuiet=false; // first render of a level (saved layout): never pop up
+  if(!lbBeat)return;
+  const seen=store.get('lbseen:'+L.id,null);
+  if(seen!=null&&r.total>=seen-0.005)return;
+  store.set('lbseen:'+L.id,r.total);
+  if(!quiet&&lbOK)openLB(true);
+}
+function lbRows(list,me){
+  me=(me||'').toLowerCase();
+  return list.length?`<div class="lbt">${list.map((e,i)=>{const m=me&&e.name.toLowerCase()===me?' me':'';return `<span class="${m.trim()}">${i+1}</span><span class="n${m}">${esc(e.name)}</span><span class="${m.trim()}">${fmt(e.score,2)} mΩ</span>`;}).join('')}</div>`:'<p class="lbmsg">No scores yet.</p>';
+}
+async function openLB(pop){
+  const id=L.id,sheet=$('lbSheet'),r=res,pr=par&&par.score,beat=!!(r&&r.complete&&!r.open&&!showBot&&beatsPar(r.total,pr)),lay=layoutStr(),score=r&&r.total;
+  const head=`<h2>Leaderboard · ${esc(L.name)} ${L.S}S${L.P}P</h2>`,close=`<div style="margin-top:14px"><button class="btn primary" type="button" id="lbClose">Close</button></div>`;
+  let list=[],msg='',form=beat;
+  const draw=()=>{
+    sheet.innerHTML=head+(beat?`<p class="lead"><b>You beat par!</b> ${fmt(score,2)} mΩ</p>`:`<p class="lead">Par is ${pr!=null?fmt(pr,2):'…'} mΩ. Beat par to join.</p>`)
+      +(form?`<div class="lbform"><input id="lbName" maxlength="24" placeholder="Your name" autocomplete="nickname" value="${esc(lbMe)}"><button class="btn primary" type="button" id="lbSubmit">Submit</button></div>`:'')
+      +(msg?`<p class="lbmsg" id="lbMsg">${msg}</p>`:'')+lbRows(list,lbMe)+close;
+    const sb=$('lbSubmit');if(sb)sb.onclick=submit;const ni=$('lbName');if(ni){ni.onkeydown=e=>{if(e.key==='Enter')submit();};if(pop)ni.focus();}
+  };
+  const submit=async()=>{
+    const name=$('lbName').value.trim();if(!name){$('lbName').focus();return;}
+    lbMe=name;store.set('lbname',name);$('lbSubmit').disabled=true;
+    try{const j=await lbFetch('/submit',{level:id,name,layout:lay});list=j.list;form=false;
+      msg=j.improved?`<b>You're #${j.rank} of ${j.total}</b>`:`Your best is still #${j.rank} of ${j.total} (${fmt(j.best,2)} mΩ).`;}
+    catch(e){msg=esc(e.name==='AbortError'?'The leaderboard did not answer.':e.message||'Could not submit.');}
+    draw();
+  };
+  $('lbm').classList.add('show');
+  sheet.innerHTML=head+'<p class="lbmsg">Loading…</p>';
+  try{const j=await lbFetch('/board?level='+encodeURIComponent(id));list=j.list;}catch(e){msg='Could not load the board.';form=false;}
+  draw();
+}
+$('lbBtn').onclick=()=>openLB(false);
+$('lbm').addEventListener('click',e=>{if(e.target.id==='lbm'||e.target.id==='lbClose')$('lbm').classList.remove('show');});
+addEventListener('keydown',e=>{if(e.key==='Escape')$('lbm').classList.remove('show');});
+lbFetch('/board?level='+LEVELS[0].id).then(()=>{lbOK=true;lbShow();}).catch(()=>{});
 const undo=()=>{if(!hist.length)return;asg=hist.pop();showBot=false;active=lowestIncomplete();render();};
 $('undoBtn').onclick=undo;
 $('clearBtn').onclick=()=>{if(!asg.some(g=>g>=0))return;hist.push(asg.slice());asg.fill(-1);active=0;showBot=false;render();};
@@ -680,5 +747,6 @@ loadLevel(start);
 window.__spot={evaluate,botSolve,LEVELS,prepLevel,fromGrid,fromDW,setSplit:v=>{SPLIT_COST=v;},get L(){return L;},get res(){return res;}};
 })();
 </script>
+<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "6d08106faade48f68957a8acc243a6cf"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
 </html>
