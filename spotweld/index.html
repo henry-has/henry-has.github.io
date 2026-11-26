@@ -762,7 +762,7 @@ async function openLB(pop){
   let list=[],msg='',form=beat;
   const draw=()=>{
     sheet.innerHTML=head+(beat?`<p class="lead"><b>You beat par!</b> ${fmt(score,2)} mΩ</p>`:`<p class="lead">Par is ${pr!=null?fmt(pr,2):'…'} mΩ. Beat par to join.</p>`)
-      +(form?`<div class="lbform"><input id="lbName" maxlength="24" placeholder="Your name" autocomplete="nickname" value="${esc(lbMe)}"${lbLocked?' disabled':''}><button class="btn primary" type="button" id="lbSubmit">Submit ${fmt(score,2)} mΩ</button></div><p class="lbrules">Your name is fixed after your first submission. A layout already on the board can't be submitted again.</p>`:'')
+      +(form?`<div class="lbform"><input id="lbName" maxlength="24" placeholder="Your name" autocomplete="nickname" value="${esc(lbMe)}"${lbLocked?' disabled':''}><button class="btn primary" type="button" id="lbSubmit">Submit ${fmt(score,2)} mΩ</button></div><p class="lbrules">Your name is fixed after your first submission. Ties go to whoever submitted first.</p>`:'')
       +(msg?`<p class="lbmsg" id="lbMsg">${msg}</p>`:'')+lbRows(list,lbMe,pr)+close;
     const sb=$('lbSubmit');if(sb)sb.onclick=submit;const ni=$('lbName');if(ni){ni.onkeydown=e=>{if(e.key==='Enter')submit();};if(pop)ni.focus();}
   };

@@ -32,7 +32,6 @@ export default {
       if(!r.complete||r.open||!isFinite(r.total))return json({error:'That is not a complete, connected pack.'},400);
       const score=Math.round(r.total*100)/100,key=name.toLowerCase();
       const list=JSON.parse(await env.LB.get('lb:'+id)||'[]'),prev=list.find(e=>e.name.toLowerCase()===key);
-      if(list.some(e=>e.layout===lay))return json({error:'That exact layout is already on the board.'},409);
       let improved=false;
       if(!prev||score<prev.score){improved=true;
         const next=list.filter(e=>e.name.toLowerCase()!==key);next.push({name,score,layout:lay,t:Date.now()});
