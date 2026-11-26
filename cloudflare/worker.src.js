@@ -5,7 +5,7 @@ const CACHE={};
 const level=id=>{if(!CACHE[id]){const d=DEMOS.find(x=>x.id===id);if(!d)return null;CACHE[id]=prepLevel(JSON.parse(JSON.stringify(d)));}return CACHE[id];};
 const H={'access-control-allow-origin':'*','access-control-allow-methods':'GET,POST,OPTIONS','access-control-allow-headers':'content-type','content-type':'application/json'};
 const json=(o,s=200)=>new Response(JSON.stringify(o),{status:s,headers:H});
-const top=(list,n)=>list.slice(0,n).map(e=>({name:e.name,score:e.score,layout:e.layout}));
+const top=(list,n)=>list.slice(0,n).map(e=>({name:e.name,score:e.score,layout:e.layout,t:e.t}));
 
 export default {
   async fetch(req,env){

@@ -134,6 +134,17 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
 .lbpar{grid-column:1/-1;display:flex;align-items:center;gap:8px;font-size:11px;color:var(--ink-3);letter-spacing:.06em;text-transform:uppercase}
 .lbpar:before,.lbpar:after{content:"";flex:1;height:1px;background:var(--line)}
 .lbmsg{font-size:13px;margin:8px 0 0;color:var(--ink-2)}
+.lbt .n small{display:block;font-size:11px;color:var(--ink-3);font-weight:400}
+.lbt .pv.lock{display:block;height:50px;border:1px solid var(--line);background:var(--bg);overflow:hidden;cursor:not-allowed}
+.lbt .pv.lock svg{filter:blur(4px)}
+.pod{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;align-items:end;margin:14px 0 4px;text-align:center}
+.pc .pn{font-size:13px;color:var(--ink);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pc .ps{font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums;margin-bottom:4px}
+.pc .pb{background:var(--stage);border:1px solid var(--line);border-bottom:0;display:grid;place-items:center}
+.pc .pb span{font-size:20px;font-weight:700;color:var(--ink-3)}
+.pc:nth-child(2) .pb{border-color:var(--star)}
+.pc:nth-child(2) .pb span{color:var(--star)}
+.pc.me .pn{color:var(--accent)}
 .lbrules{font-size:11.5px;color:var(--ink-3);margin:6px 0 0}
 button.txt.bdbtn{padding:0;text-align:left;letter-spacing:.08em;text-transform:uppercase;font-size:11px;justify-self:start}
 .sheet .sec{margin-top:12px}
@@ -707,6 +718,7 @@ addEventListener('keydown',e=>{if(e.key==='Escape')$('bdm').classList.remove('sh
 $('go').onclick=()=>{$('modal').classList.remove('show');store.set('seenRules',1);};
 $('modal').addEventListener('click',e=>{if(e.target.id==='modal')$('go').click();});
 /* ---------- leaderboard ---------- */
+const lbSubbed=new Set();
 let lbOK=null,lbQuiet=true,lbMe=store.get('lbname',''),lbLocked=!!store.get('lblock',0),lbList=[];
 const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const layoutStr=()=>asg.map(g=>g.toString(36)).join('');
@@ -732,13 +744,17 @@ function lbCheck(r,pr,done){
 }
 function lbThumb(a){const pad=0.6;return `<svg viewBox="${-pad} ${-pad} ${L.w+2*pad} ${L.h+2*pad}" preserveAspectRatio="xMidYMid meet">${L.cells.map((c,i)=>`<circle cx="${c.x}" cy="${c.y}" r="0.44" fill="${PAL[a[i]%PAL.length]}"/>`).join('')}</svg>`;}
 const unLay=t=>[...String(t||'')].map(c=>parseInt(c,36));
+const lbDate=t=>t?new Date(t).toLocaleDateString(undefined,{month:'short',day:'numeric',year:new Date(t).getFullYear()===new Date().getFullYear()?undefined:'numeric'}):'';
+function lbPodium(list,me){if(!list.length)return '';const slot=[1,0,2],h=[64,88,48];
+  return `<div class="pod">${slot.map((i,k)=>{const e=list[i];if(!e)return '<div class="pc"></div>';const m=me&&e.name.toLowerCase()===me?' me':'';
+    return `<div class="pc${m}"><div class="pn">${esc(e.name)}</div><div class="ps">${fmt(e.score,2)} mΩ</div><div class="pb" style="height:${h[k]}px"><span>${i+1}</span></div></div>`;}).join('')}</div>`;}
 function lbRows(list,me,pr){
-  me=(me||'').toLowerCase();lbList=list;let out='',parDone=pr==null;
+  me=(me||'').toLowerCase();lbList=list;const seeAll=lbSubbed.has(L.id)||!!store.get('lbsub:'+L.id,0);let out='',parDone=pr==null;
   list.forEach((e,i)=>{if(!parDone&&e.score>pr){out+=`<div class="lbpar">par ${fmt(pr,2)}</div>`;parDone=true;}
     const m=me&&e.name.toLowerCase()===me?' me':'',a=unLay(e.layout),ok=a.length===L.cells.length;
-    out+=`<span class="${m.trim()}">${i+1}</span><span class="n${m}">${esc(e.name)}</span><span class="${m.trim()}">${fmt(e.score,2)} mΩ</span>${ok?`<button class="pv" type="button" data-k="${i}" title="View ${esc(e.name)}'s layout">${lbThumb(a)}</button>`:'<span></span>'}`;});
+    out+=`<span class="${m.trim()}">${i+1}</span><span class="n${m}">${esc(e.name)}<small>${lbDate(e.t)}</small></span><span class="${m.trim()}">${fmt(e.score,2)} mΩ</span>${ok?(seeAll?`<button class="pv" type="button" data-k="${i}" title="View ${esc(e.name)}'s layout">${lbThumb(a)}</button>`:`<span class="pv lock" title="Submit a layout to see others' layouts">${lbThumb(a)}</span>`):'<span></span>'}`;});
   if(!parDone)out+=`<div class="lbpar">par ${fmt(pr,2)}</div>`;
-  return list.length?`<div class="lbt">${out}</div>`:'<p class="lbmsg">No scores yet.</p>';
+  return list.length?lbPodium(list,me)+(seeAll?'':'<p class="lbrules">Submit a layout on this level to see everyone\'s layouts.</p>')+`<div class="lbt">${out}</div>`:'<p class="lbmsg">No scores yet. Beat par to be first.</p>';
 }
 async function openLB(pop){
   const id=L.id,sheet=$('lbSheet'),r=res,pr=par&&par.score,beat=!!(r&&r.complete&&!r.open&&!showBot&&beatsPar(r.total,pr)),lay=layoutStr(),score=r&&r.total;
@@ -753,7 +769,7 @@ async function openLB(pop){
   const submit=async()=>{
     const name=$('lbName').value.trim();if(!name){$('lbName').focus();return;}
     $('lbSubmit').disabled=true;
-    try{const j=await lbFetch('/submit',{level:id,name,layout:lay});list=j.list;form=false;lbMe=name;lbLocked=true;store.set('lbname',name);store.set('lblock',1);
+    try{const j=await lbFetch('/submit',{level:id,name,layout:lay});list=j.list;form=false;lbMe=name;lbLocked=true;store.set('lbname',name);store.set('lblock',1);store.set('lbsub:'+id,1);lbSubbed.add(id);
       msg=j.improved?`<b>You're #${j.rank} of ${j.total}</b>`:`Your best is still #${j.rank} of ${j.total} (${fmt(j.best,2)} mΩ).`;}
     catch(e){msg=esc(e.name==='AbortError'?'The leaderboard did not answer.':e.message||'Could not submit.');}
     draw();
