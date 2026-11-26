@@ -106,19 +106,35 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
 .sheet ol{padding-left:20px;margin:10px 0 14px;font-size:13px;color:var(--ink-2)}
 .sheet li{margin:6px 0}
 .sheet b{color:var(--ink)}
+.lbl2{display:grid;gap:2px;margin:10px 0 12px}
+.lbr{display:grid;grid-template-columns:28px 1fr auto 96px;gap:10px;align-items:center;padding:4px 6px;font-size:13px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.lbr.me{background:var(--stage);color:var(--ink);font-weight:600}
+.lbr .rk{color:var(--ink-3);text-align:right}
+.lbr .sc{color:var(--ink);text-align:right}
+.lbr button.pv{padding:0;border:1px solid var(--line);background:var(--bg);border-radius:0;height:52px;cursor:pointer}
+.lbr button.pv:hover{border-color:var(--ink)}
+.lbr svg{display:block;width:100%;height:100%}
+.lbpar{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--ink-3);letter-spacing:.06em;text-transform:uppercase;padding:2px 6px}
+.lbpar:before,.lbpar:after{content:"";flex:1;height:1px;background:var(--line)}
+.lbform{display:flex;gap:8px;align-items:center;margin-top:8px}
+.lbform input{font:inherit;font-size:14px;padding:6px 8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);flex:1;min-width:0}
+.lbnote{font-size:12.5px;color:var(--ink-2);margin:4px 0}
 .sheet .lead{margin:6px 0 0;font-size:13px;color:var(--ink-2)}
-.sheet .more{margin:0 0 14px;font-size:13px;color:var(--ink-2)}
-.sheet .more summary{cursor:pointer;color:var(--ink);font-weight:600}
-.sheet .more ul{padding-left:20px;margin:8px 0 0}
-.sheet .more li{margin:5px 0}
 .lbhint{font-size:11px;color:var(--ink-3);margin-top:2px}
 .sheet input{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:3px;padding:4px 8px;min-width:0;width:11em;max-width:100%}
+.sheet input:disabled{opacity:.7}
 .lbform{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:10px 0 0}
-.lbt{display:grid;grid-template-columns:2.4em minmax(0,1fr) auto;gap:2px 10px;margin:10px 0 0;font-size:13px;font-variant-numeric:tabular-nums;color:var(--ink-2)}
+.lbt{display:grid;grid-template-columns:2.4em minmax(0,1fr) auto 96px;gap:4px 10px;align-items:center;margin:10px 0 0;font-size:13px;font-variant-numeric:tabular-nums;color:var(--ink-2)}
 .lbt span{padding:1px 0}
 .lbt .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lbt .me{color:var(--ink);font-weight:600}
+.lbt button.pv{padding:0;border:1px solid var(--line);background:var(--bg);border-radius:0;height:50px;cursor:pointer}
+.lbt button.pv:hover{border-color:var(--ink)}
+.lbt svg{display:block;width:100%;height:100%}
+.lbpar{grid-column:1/-1;display:flex;align-items:center;gap:8px;font-size:11px;color:var(--ink-3);letter-spacing:.06em;text-transform:uppercase}
+.lbpar:before,.lbpar:after{content:"";flex:1;height:1px;background:var(--line)}
 .lbmsg{font-size:13px;margin:8px 0 0;color:var(--ink-2)}
+.lbrules{font-size:11.5px;color:var(--ink-3);margin:6px 0 0}
 button.txt.bdbtn{padding:0;text-align:left;letter-spacing:.08em;text-transform:uppercase;font-size:11px;justify-self:start}
 .sheet .sec{margin-top:12px}
 .sheet .sec h3{font-size:13px;margin:0 0 4px;display:flex;justify-content:space-between}
@@ -141,11 +157,17 @@ button.txt.bdbtn{padding:0;text-align:left;letter-spacing:.08em;text-transform:u
 .wrap{max-width:1040px;gap:14px;padding-top:22px}
 header{align-items:baseline}
 h1{font-size:20px;font-weight:600}
-.tabs{display:flex;gap:2px 22px;overflow-x:auto;border-bottom:1px solid var(--line);margin-top:-4px;scrollbar-width:none}
+.tabs{display:flex;flex-wrap:wrap;gap:0 22px;overflow-x:auto;border-bottom:1px solid var(--line);margin-top:-4px;scrollbar-width:none}
 .tabs button{border:0;border-bottom:2px solid transparent;border-radius:0;background:transparent;color:var(--ink-3);font-size:14px;padding:8px 0 9px;white-space:nowrap;margin-bottom:-1px}
 .tabs button:hover{color:var(--ink)}
 .tabs button[aria-current="true"]{color:var(--ink);border-bottom-color:var(--ink);font-weight:600}
 .tabs .cfg{font-size:11px;color:var(--ink-3);margin-left:5px;font-weight:400}
+.tabs .sec{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);align-self:center;width:62px;margin-right:-10px;white-space:nowrap}
+.tabs .div{flex-basis:100%;height:0}
+.tabs .num{display:inline-grid;place-items:center;width:16px;height:16px;border:1px solid var(--line);font-size:10px;margin-right:6px;color:var(--ink-3)}
+.tabs button[aria-current="true"] .num{border-color:var(--ink);color:var(--ink)}
+.lesson{margin-top:4px;font-size:14px;color:var(--good)}
+.lesson b{color:var(--good)}
 .tabs .st{color:var(--star);font-size:11px;margin-left:4px}
 button.txt{border:0;background:transparent;color:var(--ink-3);font-size:13px;padding:4px 6px}
 button.txt:hover{color:var(--ink)}
@@ -220,8 +242,8 @@ button.txt.on{color:var(--crit);background:transparent}
   <div class="boards"><div class="face"><div class="lbl">top</div><svg class="bd" id="boardT"></svg></div><div class="face"><div class="lbl">bottom</div><svg class="bd" id="boardB"></svg></div></div>
 
   <div class="tools2">
-    <div class="edit"><button class="txt" id="undoBtn" type="button">Undo</button><button class="txt" id="eraseBtn" type="button">Erase</button><button class="txt" id="clearBtn" type="button">Clear</button></div>
-    <div class="after"><button class="txt" id="botBtn" type="button">Show par</button><button class="txt pri" id="nextBtn" type="button" hidden>Next level →</button></div>
+    <div class="edit"><button class="txt pri" id="submitBtn" type="button" hidden>Submit score</button><button class="txt" id="undoBtn" type="button">Undo</button><button class="txt" id="clearBtn" type="button">Clear</button></div>
+    <div class="after"><button class="txt" id="bestBtn" type="button" hidden>Show my best</button><button class="txt" id="botBtn" type="button">Show par</button><button class="txt pri" id="nextBtn" type="button" hidden>Next level →</button></div>
   </div>
 
   <section class="loss" id="bd"></section>
@@ -240,14 +262,6 @@ button.txt.on{color:var(--crit);background:transparent}
     <li>Touching cells get a strip. Each group must touch the one before it. More strips between groups is better; hot strips glow.</li>
     <li>★ finish · ★★ within 5% of par · ★★★ beat par.</li>
   </ol>
-  <details class="more"><summary>How batteries work</summary>
-    <ul>
-      <li><b>Series</b> (S) stacks groups end to end to add voltage. Every group carries the full pack current.</li>
-      <li><b>Parallel</b> (P) puts cells side by side in a group to share that current.</li>
-      <li>Current passes from one group to the next through nickel <b>strips</b> where cells touch. More strips between two groups means less resistance and less heat.</li>
-      <li>The cell that carries the most current runs hottest and wears out first, so you want every cell in a group doing an equal share.</li>
-    </ul>
-  </details>
   <button class="btn primary" id="go" type="button">Got it</button>
 </div></div>
 <div id="tip"></div>
@@ -279,14 +293,23 @@ function axial(q,r){return {x:q+r/2,y:r*SQ3/2};}
 function hexagon(R,hole=-1){const c=[];for(let q=-R;q<=R;q++)for(let r=-R;r<=R;r++){const d=Math.max(Math.abs(q),Math.abs(r),Math.abs(q+r));if(d<=R&&d>hole)c.push(axial(q,r));}return c;}
 
 const DEMOS=[
- {id:'first',name:'First Weld',S:4,P:2,grid:true,optimal:true,cells:fromGrid(['####','####']),
-  blurb:'Tip: make each group a straight line beside the last, so every cell touches the next group.'},
- {id:'brick',name:'LVB',S:7,P:3,optimal:true,cells:fromDW(['o o o o o o o',' o o o o o o o','o o o o o o o']),
-  blurb:'Tip: straight columns give the most strips between neighbouring groups.'},
- {id:'uturn',name:'U-Turn',S:6,P:2,grid:true,cells:fromGrid(['#..#','#..#','#..#','#..#','####']),
-  blurb:'Tip: a group doesn\'t have to be one piece. Its cells can sit on different arms, and splitting only costs a little.'},
+ {id:'pairs',name:'Pairs',S:3,P:2,grid:true,optimal:true,learn:1,cells:fromGrid(['###','###']),
+  blurb:'Parallel cells share current; series groups pass it on, S1 → S2 → S3.',
+  lesson:'Series adds voltage, parallel splits current.'},
+ {id:'lines',name:'Lines',S:4,P:3,optimal:true,learn:1,cells:fromDW(['o o o o',' o o o o','o o o o']),
+  blurb:'Every touching pair between groups is another path for current.',
+  lesson:'Maximise contact between neighbouring groups.'},
+ {id:'neck',name:'Neck',S:6,P:3,learn:1,cells:fromDW(['o o o     o o o',' o o o o o o','o o o     o o o']),
+  blurb:'Full pack current crosses the narrowest link.',
+  lesson:'Fewer strips per link means more heat per strip. Spend the neck on series links.'},
+ {id:'corner',name:'Corner',S:8,P:2,grid:true,learn:1,cells:fromGrid(['##....','##....','######','######']),
+  blurb:'Geometry skews current. Find the busiest cell.',
+  lesson:'The busiest cell sets the pack\'s thermal limit and lifetime.'},
+ {id:'uturn',learn:1,lesson:'A split group can share current better than a compact one.',name:'U-Turn',S:6,P:2,grid:true,cells:fromGrid(['#..#','#..#','#..#','#..#','####']),
+  blurb:'Groups need not be contiguous. Splitting costs 10% per extra piece.'},
  {id:'wedgejr',name:'Wedge Jr',S:9,P:4,cells:fromRows([8,7,6,5,4,3,2,1])},
  {id:'wedge',name:'Wedge',S:14,P:6,cells:fromRows([13,12,12,10,9,7,6,5,4,3,2,1])},
+ {id:'hive',name:'Hive',S:9,P:4,cells:hexagon(3,0)},
  {id:'para3',name:'Parallelogram',S:15,P:4,cells:fromRows([10,10,10,10,10,10],r=>r/2)},
 ];
 
@@ -457,9 +480,12 @@ function botSolve(L,iters=400){
 }
 
 /* ---------- state ---------- */
-const store={get(k,d){try{const v=localStorage.getItem('spotweld5:'+k);return v==null?d:JSON.parse(v);}catch(e){return d;}},set(k,v){try{localStorage.setItem('spotweld5:'+k,JSON.stringify(v));}catch(e){}}};
+const store={get(k,d){try{const v=localStorage.getItem('spotweld6:'+k);return v==null?d:JSON.parse(v);}catch(e){return d;}},set(k,v){try{localStorage.setItem('spotweld6:'+k,JSON.stringify(v));}catch(e){}}};
 const LEVELS=DEMOS.map(prepLevel);
-let L,asg,active,hist=[],showVals=false,eraseMode=false,stroke=null,res,par=null,showBot=false;
+let L,asg,active,hist=[],showVals=false,eraseMode=false,stroke=null,res,par=null,showBot=false,viewWhat='par';
+const bestLay=()=>{const a=store.get('bestA:'+L.id,null);return a&&a.length===L.cells.length?a:null;};
+let lbView=null;
+const VIEW=()=>showBot?(viewWhat==='best'?bestLay()||asg:viewWhat==='lb'&&lbView?lbView.asg:(par&&par.asg)||asg):asg;
 
 function loadLevel(k){
   L=LEVELS[k];store.set('last2',k);
@@ -487,7 +513,7 @@ const starStr=n=>'★'.repeat(n)+'☆'.repeat(3-n);
 function heatDark(t){const st=[[0,[250,204,21]],[.5,[251,146,60]],[1,[244,63,94]]];t=clamp(t);for(let k=1;k<st.length;k++)if(t<=st[k][0]){const [a,ca]=st[k-1],[b,cb]=st[k],f=(t-a)/(b-a);return `rgb(${ca.map((v,i)=>Math.round(v+(cb[i]-v)*f)).join(',')})`;}return 'rgb(244,63,94)';}
 const fmt=(v,d=1)=>v==null||!isFinite(v)?'—':v.toFixed(d);
 function render(){
-  const view=showBot&&par&&par.asg?par.asg:asg;
+  const view=VIEW();
   res=evaluate(L,view);
   if(!showBot){store.set('asg:'+L.id,asg);}
   renderBoard(view);renderSide();
@@ -551,13 +577,14 @@ function renderSide(){
   const el=$('goalStep');el.className='step';
   const need=P-r.groups[active].length;
   const firstBad=r.groups.findIndex((gr,g)=>gr.length&&!(g===active&&gr.length<P)&&!r.touch[g]);
-  if(showBot)el.textContent='Bot\'s layout. Click the board to return.';
+  if(showBot)el.textContent=viewWhat==='best'?'Your best attempt. Click the board to return.':viewWhat==='lb'&&lbView?`${lbView.name}'s layout. Click the board to return.`:'Par layout. Click the board to return.';
   else if(r.complete&&r.open){el.className='step bad';el.textContent='Open circuit: a group isn\'t touching the next.';}
   else if(firstBad>=0){el.className='step bad';el.textContent=`S${firstBad+1} isn't touching S${firstBad}`;}
   else if(done){const w=weakLinks(r);
     const pr=par&&par.score,n=starsFor(r.total,pr,L.optimal);el.className=n===3?'step good':'step';
     el.textContent=n===3?(L.optimal?'Best possible layout.':'You beat par.'):(w.length>2?`${w.length} links tie for weakest at ${fmt(w[0].R,2)} mΩ (red in the chain).`:w.length?`Weakest link${w.length>1?'s are ':' is '}${w.map(j=>`S${j.q}→S${j.q+1}`).join(' and ')}. Re-weld around ${w.length>1?'them':'it'} to beat par.`:'All links are equal. Even out the cells to beat par.');}
   else el.innerHTML=`Place ${need} more cell${need===1?'':'s'} in S${active+1}`+(active>0?`, touching S${active}`:', the PACK − group');
+  if(done&&L.lesson&&!showBot){el.className='step good';el.innerHTML=`✓ ${L.lesson}`;}
   // chain: groups with fill bars, links between them
   const J=r.junc||[],weak=weakLinks(r);
   const sc=[];
@@ -570,7 +597,7 @@ function renderSide(){
   $('schem').style.gridTemplateColumns=`repeat(${S-1},minmax(0,1fr) var(--kw)) minmax(0,1fr)`;
   // score vs par
   const best=store.get('best7:'+L.id,null);
-  if(done&&!showBot&&(best==null||r.total<best)){store.set('best7:'+L.id,r.total);renderLevels();}
+  if(done&&!showBot&&(best==null||r.total<best-1e-9||!bestLay())){store.set('best7:'+L.id,Math.min(r.total,best==null?Infinity:best));if(best==null||r.total<best-1e-9)store.set('bestA:'+L.id,asg.slice());else if(!bestLay())store.set('bestA:'+L.id,asg.slice());renderLevels();}
   const b2=store.get('best7:'+L.id,null),pr=par&&par.score;
   $('bigScore').innerHTML=done?`${fmt(r.total,2)}<small> mΩ</small>`:`<small>par</small> ${pr!=null?fmt(pr,2):'…'}<small> mΩ</small>`;
   const n=done&&!showBot?starsFor(r.total,pr,L.optimal):starsFor(b2,pr,L.optimal);
@@ -590,14 +617,19 @@ function renderSide(){
     const big=Math.max(strips,uneven,split);
     bd.innerHTML=`<button type="button" class="txt h bdbtn" id="bdOpen">Score breakdown <span aria-hidden="true">›</span></button><div class="bar">${parts.map((p,k)=>`<i style="width:${p[0]/r.total*100}%;background:${C[k]}"></i>`).join('')}</div><div class="rows">${parts.map((p,k)=>`<span class="v">${k?'+':''}${fmt(p[0],2)}</span><span${k&&p[0]===big&&big>0.01?' style="color:var(--ink);font-weight:600"':''}><span class="sw" style="background:${C[k]}"></span> ${p[1]}</span><span class="m">${math[k]}${k===2?(bc.length?` · <span class="busy" data-busy="1">${bc.length>1?bc.length+' busiest cells in '+bgs.map(g=>'S'+g).join(', '):'busiest is an S'+bgs[0]+' cell'}</span>`:' · cells share evenly'):''}</span>`).join('')}<span class="v" style="border-top:1px solid var(--line);padding-top:3px">${fmt(r.total,2)}</span><span style="border-top:1px solid var(--line);padding-top:3px">mΩ</span><span></span></div>`;
   }else bd.innerHTML='';
-  $('botBtn').textContent=showBot?'Hide par':'Show par';
+  $('botBtn').textContent=showBot&&viewWhat==='par'?'Hide par':'Show par';
+  $('botBtn').hidden=b2==null&&!showBot;
+  $('submitBtn').hidden=!(done&&!showBot);
+  $('bestBtn').hidden=!bestLay();
   lbCheck(r,pr,done);
+  $('submitBtn').hidden=!(done&&!showBot);$('bestBtn').textContent=showBot&&viewWhat==='best'?'Hide my best':'Show my best';
 }
 function renderLevels(){
-  const cur=LEVELS.indexOf(L);
-  $('levels').innerHTML=DEMOS.map((d,k)=>{const b=store.get('best7:'+d.id,null),pp=store.get('par8:'+d.id,null),n=b==null?0:starsFor(b,pp&&pp.score,d.optimal);
-    return `<button type="button" data-k="${k}" aria-current="${k===cur}">${d.name}<span class="cfg">${d.S}S${d.P}P</span>${n?`<span class="st">${'★'.repeat(n)}</span>`:''}</button>`;}).join('');
-  const on=$('levels').querySelector('[aria-current="true"]');if(on)on.scrollIntoView({block:'nearest',inline:'nearest'});
+  const cur=LEVELS.indexOf(L);let li=0;
+  const btn=(d,k)=>{const b=store.get('best7:'+d.id,null),pp=store.get('par8:'+d.id,null),n=b==null?0:starsFor(b,pp&&pp.score,d.optimal);
+    return `<button type="button" data-k="${k}" aria-current="${k===cur}">${d.learn?`<span class="num">${++li}</span>`:''}${d.name}<span class="cfg">${d.S}S${d.P}P</span>${b!=null?(d.learn?'<span class="st">✓</span>':`<span class="st">${'★'.repeat(n)}</span>`):''}</button>`;};
+  const all=DEMOS.map((d,k)=>[d,k]);
+  $('levels').innerHTML=`<span class="sec">Learn</span>${all.filter(([d])=>d.learn).map(x=>btn(...x)).join('')}<span class="div"></span><span class="sec">Puzzles</span>${all.filter(([d])=>!d.learn).map(x=>btn(...x)).join('')}`;
 }
 
 /* ---------- input ---------- */
@@ -636,10 +668,10 @@ function hideTip(){tipEl.style.display='none';}
 function tip(e){
   const t=e.target;let html='';
   if(t.classList&&t.classList.contains('lk')){
-    const [f,k]=t.dataset.l.split(':').map(Number),l=strips[f][k],v=showBot&&par?par.asg:asg,a=v[l.i],b=v[l.j];
+    const [f,k]=t.dataset.l.split(':').map(Number),l=strips[f][k],v=VIEW(),a=v[l.i],b=v[l.j];
     html=`<span class="h">${a!==b?'series strip S'+(Math.min(a,b)+1)+'→S'+(Math.max(a,b)+1):'parallel strip in S'+(a+1)}</span><br>`+(l.bus||l.tbus?'pack terminal plate':'1 mΩ');
   }else if(t.classList&&t.classList.contains('cellhit')){
-    const i=+t.dataset.c,g=(showBot&&par?par.asg:asg)[i];
+    const i=+t.dataset.c,g=(VIEW())[i];
     html=g<0?'<span class="h">empty cell</span>':`<span class="h">cell in group S${g+1}</span><br>10 mΩ`;
   }
   if(!html)return hideTip();
@@ -648,12 +680,11 @@ function tip(e){
 }
 
 $('levels').addEventListener('click',e=>{const b=e.target.closest('button');if(b)loadLevel(+b.dataset.k);});
-$('schem').addEventListener('mouseover',e=>{const r=e.target.closest('.k[data-q]');const q=r?+r.dataset.q:0;if(q!==hlJ){hlJ=q;renderBoard(showBot&&par&&par.asg?par.asg:asg);}});
-$('schem').addEventListener('mouseleave',()=>{if(hlJ){hlJ=0;renderBoard(showBot&&par&&par.asg?par.asg:asg);}});
+$('schem').addEventListener('mouseover',e=>{const r=e.target.closest('.k[data-q]');const q=r?+r.dataset.q:0;if(q!==hlJ){hlJ=q;renderBoard(VIEW());}});
+$('schem').addEventListener('mouseleave',()=>{if(hlJ){hlJ=0;renderBoard(VIEW());}});
 $('schem').addEventListener('click',e=>{const g=e.target.closest('button.g');if(g){active=+g.dataset.g;showBot=false;render();}});
-$('eraseBtn').onclick=()=>{eraseMode=!eraseMode;$('eraseBtn').classList.toggle('on',eraseMode);};
-$('bd').addEventListener('mouseover',e=>{const on=!!e.target.closest('[data-busy]');if(on!==showBusy){showBusy=on;renderBoard(showBot&&par&&par.asg?par.asg:asg);}});
-$('bd').addEventListener('mouseleave',()=>{if(showBusy){showBusy=false;renderBoard(showBot&&par&&par.asg?par.asg:asg);}});
+$('bd').addEventListener('mouseover',e=>{const on=!!e.target.closest('[data-busy]');if(on!==showBusy){showBusy=on;renderBoard(VIEW());}});
+$('bd').addEventListener('mouseleave',()=>{if(showBusy){showBusy=false;renderBoard(VIEW());}});
 $('nextBtn').onclick=()=>loadLevel(LEVELS.indexOf(L)+1);
 $('help').onclick=()=>$('modal').classList.add('show');
 function openBD(){const r=res,{S,P}=L;if(!(r.complete&&!r.open))return;
@@ -676,7 +707,7 @@ addEventListener('keydown',e=>{if(e.key==='Escape')$('bdm').classList.remove('sh
 $('go').onclick=()=>{$('modal').classList.remove('show');store.set('seenRules',1);};
 $('modal').addEventListener('click',e=>{if(e.target.id==='modal')$('go').click();});
 /* ---------- leaderboard ---------- */
-let lbOK=null,lbQuiet=true,lbMe=store.get('lbname','');
+let lbOK=null,lbQuiet=true,lbMe=store.get('lbname',''),lbLocked=!!store.get('lblock',0),lbList=[];
 const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const layoutStr=()=>asg.map(g=>g.toString(36)).join('');
 const beatsPar=(t,pr)=>pr!=null&&t<pr-0.005;
@@ -699,9 +730,15 @@ function lbCheck(r,pr,done){
   store.set('lbseen:'+L.id,r.total);
   if(!quiet&&lbOK)openLB(true);
 }
-function lbRows(list,me){
-  me=(me||'').toLowerCase();
-  return list.length?`<div class="lbt">${list.map((e,i)=>{const m=me&&e.name.toLowerCase()===me?' me':'';return `<span class="${m.trim()}">${i+1}</span><span class="n${m}">${esc(e.name)}</span><span class="${m.trim()}">${fmt(e.score,2)} mΩ</span>`;}).join('')}</div>`:'<p class="lbmsg">No scores yet.</p>';
+function lbThumb(a){const pad=0.6;return `<svg viewBox="${-pad} ${-pad} ${L.w+2*pad} ${L.h+2*pad}" preserveAspectRatio="xMidYMid meet">${L.cells.map((c,i)=>`<circle cx="${c.x}" cy="${c.y}" r="0.44" fill="${PAL[a[i]%PAL.length]}"/>`).join('')}</svg>`;}
+const unLay=t=>[...String(t||'')].map(c=>parseInt(c,36));
+function lbRows(list,me,pr){
+  me=(me||'').toLowerCase();lbList=list;let out='',parDone=pr==null;
+  list.forEach((e,i)=>{if(!parDone&&e.score>pr){out+=`<div class="lbpar">par ${fmt(pr,2)}</div>`;parDone=true;}
+    const m=me&&e.name.toLowerCase()===me?' me':'',a=unLay(e.layout),ok=a.length===L.cells.length;
+    out+=`<span class="${m.trim()}">${i+1}</span><span class="n${m}">${esc(e.name)}</span><span class="${m.trim()}">${fmt(e.score,2)} mΩ</span>${ok?`<button class="pv" type="button" data-k="${i}" title="View ${esc(e.name)}'s layout">${lbThumb(a)}</button>`:'<span></span>'}`;});
+  if(!parDone)out+=`<div class="lbpar">par ${fmt(pr,2)}</div>`;
+  return list.length?`<div class="lbt">${out}</div>`:'<p class="lbmsg">No scores yet.</p>';
 }
 async function openLB(pop){
   const id=L.id,sheet=$('lbSheet'),r=res,pr=par&&par.score,beat=!!(r&&r.complete&&!r.open&&!showBot&&beatsPar(r.total,pr)),lay=layoutStr(),score=r&&r.total;
@@ -709,14 +746,14 @@ async function openLB(pop){
   let list=[],msg='',form=beat;
   const draw=()=>{
     sheet.innerHTML=head+(beat?`<p class="lead"><b>You beat par!</b> ${fmt(score,2)} mΩ</p>`:`<p class="lead">Par is ${pr!=null?fmt(pr,2):'…'} mΩ. Beat par to join.</p>`)
-      +(form?`<div class="lbform"><input id="lbName" maxlength="24" placeholder="Your name" autocomplete="nickname" value="${esc(lbMe)}"><button class="btn primary" type="button" id="lbSubmit">Submit</button></div>`:'')
-      +(msg?`<p class="lbmsg" id="lbMsg">${msg}</p>`:'')+lbRows(list,lbMe)+close;
+      +(form?`<div class="lbform"><input id="lbName" maxlength="24" placeholder="Your name" autocomplete="nickname" value="${esc(lbMe)}"${lbLocked?' disabled':''}><button class="btn primary" type="button" id="lbSubmit">Submit ${fmt(score,2)} mΩ</button></div><p class="lbrules">Your name is fixed after your first submission. A layout already on the board can't be submitted again.</p>`:'')
+      +(msg?`<p class="lbmsg" id="lbMsg">${msg}</p>`:'')+lbRows(list,lbMe,pr)+close;
     const sb=$('lbSubmit');if(sb)sb.onclick=submit;const ni=$('lbName');if(ni){ni.onkeydown=e=>{if(e.key==='Enter')submit();};if(pop)ni.focus();}
   };
   const submit=async()=>{
     const name=$('lbName').value.trim();if(!name){$('lbName').focus();return;}
-    lbMe=name;store.set('lbname',name);$('lbSubmit').disabled=true;
-    try{const j=await lbFetch('/submit',{level:id,name,layout:lay});list=j.list;form=false;
+    $('lbSubmit').disabled=true;
+    try{const j=await lbFetch('/submit',{level:id,name,layout:lay});list=j.list;form=false;lbMe=name;lbLocked=true;store.set('lbname',name);store.set('lblock',1);
       msg=j.improved?`<b>You're #${j.rank} of ${j.total}</b>`:`Your best is still #${j.rank} of ${j.total} (${fmt(j.best,2)} mΩ).`;}
     catch(e){msg=esc(e.name==='AbortError'?'The leaderboard did not answer.':e.message||'Could not submit.');}
     draw();
@@ -727,16 +764,25 @@ async function openLB(pop){
   draw();
 }
 $('lbBtn').onclick=()=>openLB(false);
+$('submitBtn').onclick=()=>openLB(false);
+$('lbSheet').addEventListener('click',e=>{const pv=e.target.closest('button.pv');if(!pv)return;const en=lbList[+pv.dataset.k];if(!en)return;
+  lbView={name:en.name,asg:unLay(en.layout)};viewWhat='lb';showBot=true;$('lbm').classList.remove('show');render();});
 $('lbm').addEventListener('click',e=>{if(e.target.id==='lbm'||e.target.id==='lbClose')$('lbm').classList.remove('show');});
 addEventListener('keydown',e=>{if(e.key==='Escape')$('lbm').classList.remove('show');});
 lbFetch('/board?level='+LEVELS[0].id).then(()=>{lbOK=true;lbShow();}).catch(()=>{});
 const undo=()=>{if(!hist.length)return;asg=hist.pop();showBot=false;active=lowestIncomplete();render();};
 $('undoBtn').onclick=undo;
 $('clearBtn').onclick=()=>{if(!asg.some(g=>g>=0))return;hist.push(asg.slice());asg.fill(-1);active=0;showBot=false;render();};
-$('botBtn').onclick=()=>{if(!par||!par.asg)return;showBot=!showBot;render();};
+$('botBtn').onclick=()=>{if(!par||!par.asg)return;showBot=!(showBot&&viewWhat==='par');viewWhat='par';render();};
+$('bestBtn').onclick=()=>{if(!bestLay())return;showBot=!(showBot&&viewWhat==='best');viewWhat='best';render();};
+let keyBuf='',keyT=0;
 addEventListener('keydown',e=>{
+  if(!e.ctrlKey&&!e.metaKey&&!e.altKey&&/^[0-9]$/.test(e.key)&&!/INPUT|TEXTAREA/.test(e.target.tagName)){
+    const now=Date.now();keyBuf=(now-keyT<700?keyBuf:'')+e.key;keyT=now;
+    let g=parseInt(keyBuf,10);if(!(g>=1&&g<=L.S)){keyBuf=e.key;g=parseInt(e.key,10);}
+    if(g>=1&&g<=L.S){active=g-1;showBot=false;render();}return;}
+  if(e.key==='['||e.key===']'){active=(active+(e.key===']'?1:L.S-1))%L.S;showBot=false;render();return;}
     if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();undo();return;}
-  if(e.key==='e'||e.key==='E')$('eraseBtn').click();
 });
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('show'),1800);}
 
