@@ -136,7 +136,7 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
 .lbmsg{font-size:13px;margin:8px 0 0;color:var(--ink-2)}
 .lbt .n small{display:block;font-size:11px;color:var(--ink-3);font-weight:400}
 .lbt .pv.lock{display:block;height:50px;border:1px solid var(--line);background:var(--bg);overflow:hidden;cursor:not-allowed}
-.lbt .pv.lock svg{filter:blur(4px)}
+.lbt .pv.lock svg{filter:blur(7px)}
 .pod{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;align-items:end;margin:14px 0 4px;text-align:center}
 .pc .pn{font-size:13px;color:var(--ink);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pc .ps{font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums;margin-bottom:4px}
@@ -145,6 +145,12 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
 .pc:nth-child(2) .pb{border-color:var(--star)}
 .pc:nth-child(2) .pb span{color:var(--star)}
 .pc.me .pn{color:var(--accent)}
+.lbdet{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px}
+@media (max-width:640px){.lbdet{grid-template-columns:1fr}}
+.lbdet .lbl{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);text-align:center}
+.lbdet svg{width:100%;height:auto;max-height:52vh;pointer-events:none}
+.lbsum{font-size:12.5px;color:var(--ink-2);margin-top:8px;font-variant-numeric:tabular-nums}
+#lbSheet:has(.lbdet){max-width:min(980px,96vw)}
 .lbrules{font-size:11.5px;color:var(--ink-3);margin:6px 0 0}
 button.txt.bdbtn{padding:0;text-align:left;letter-spacing:.08em;text-transform:uppercase;font-size:11px;justify-self:start}
 .sheet .sec{margin-top:12px}
@@ -780,8 +786,15 @@ async function openLB(pop){
 }
 $('lbBtn').onclick=()=>openLB(false);
 $('submitBtn').onclick=()=>openLB(false);
-$('lbSheet').addEventListener('click',e=>{const pv=e.target.closest('button.pv');if(!pv)return;const en=lbList[+pv.dataset.k];if(!en)return;
-  lbView={name:en.name,asg:unLay(en.layout)};viewWhat='lb';showBot=true;$('lbm').classList.remove('show');render();});
+function lbDetail(en,rank){
+  const a=unLay(en.layout),sheet=$('lbSheet'),saved=res,savedB=showBot;
+  sheet.innerHTML=`<button class="txt" type="button" id="lbBack">‹ Back</button><h2 style="margin-top:6px">${esc(en.name)} · #${rank} · ${fmt(en.score,2)} mΩ</h2><p class="lbmsg">${esc(L.name)} ${L.S}S${L.P}P${en.t?' · '+lbDate(en.t):''}</p><div class="lbdet"><div><div class="lbl">top</div><svg class="bd" id="lbT"></svg></div><div><div class="lbl">bottom</div><svg class="bd" id="lbB"></svg></div></div><div class="lbsum" id="lbSum"></div><div style="margin-top:12px"><button class="btn primary" type="button" id="lbClose">Close</button></div>`;
+  try{res=evaluate(L,a);showBot=true;renderFace(a,1,$('lbT'));renderFace(a,0,$('lbB'));
+    const r=res;$('lbSum').textContent=`pack ${fmt(r.Rpack,2)} mΩ · busiest cell +${fmt((r.load-1)*100,1)}% · ${r.extra} split piece${r.extra===1?'':'s'}`;}
+  finally{res=saved;showBot=savedB;}
+  $('lbBack').onclick=()=>openLB(false);
+}
+$('lbSheet').addEventListener('click',e=>{const pv=e.target.closest('button.pv');if(!pv)return;const k=+pv.dataset.k,en=lbList[k];if(en)lbDetail(en,k+1);});
 $('lbm').addEventListener('click',e=>{if(e.target.id==='lbm'||e.target.id==='lbClose')$('lbm').classList.remove('show');});
 addEventListener('keydown',e=>{if(e.key==='Escape')$('lbm').classList.remove('show');});
 lbFetch('/board?level='+LEVELS[0].id).then(()=>{lbOK=true;lbShow();}).catch(()=>{});
