@@ -37,7 +37,7 @@ const DEMOS=[
   blurb:'Geometry skews current. Find the busiest cell.',
   lesson:'The busiest cell sets the pack\'s thermal limit and lifetime.'},
  {id:'uturn',learn:1,lesson:'A split group can share current better than a compact one.',name:'U-Turn',S:6,P:2,grid:true,cells:fromGrid(['#..#','#..#','#..#','#..#','####']),
-  blurb:'Groups need not be contiguous. Splitting costs 10% per extra piece.'},
+  blurb:'Groups need not be contiguous. Splitting costs a little, and less in packs with more series groups.'},
  {id:'wedgejr',name:'Wedge Jr',S:9,P:4,cells:fromRows([8,7,6,5,4,3,2,1])},
  {id:'wedge',name:'Wedge',S:14,P:6,cells:fromRows([13,12,12,10,9,7,6,5,4,3,2,1])},
  {id:'hive',name:'Hive',S:9,P:4,cells:hexagon(3,0)},

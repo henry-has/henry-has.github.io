@@ -243,7 +243,6 @@ button.txt.on{color:var(--crit);background:transparent}
     <div class="score2">
       <div><span class="v" id="bigScore">–</span> <span class="stars" id="stars"></span></div>
       <div class="d" id="roParD"></div>
-      <div class="lbhint" id="lbHint" hidden>Beat par to join the leaderboard</div>
       <span id="roPar" hidden></span><span id="roBest" hidden></span>
     </div>
   </section>
@@ -317,7 +316,7 @@ const DEMOS=[
   blurb:'Geometry skews current. Find the busiest cell.',
   lesson:'The busiest cell sets the pack\'s thermal limit and lifetime.'},
  {id:'uturn',learn:1,lesson:'A split group can share current better than a compact one.',name:'U-Turn',S:6,P:2,grid:true,cells:fromGrid(['#..#','#..#','#..#','#..#','####']),
-  blurb:'Groups need not be contiguous. Each extra piece costs 10% ÷ the number of series groups: 10% ÷ 6 ≈ 1.7% here.'},
+  blurb:'Groups need not be contiguous. Splitting costs a little, and less in packs with more series groups.'},
  {id:'wedgejr',name:'Wedge Jr',S:9,P:4,cells:fromRows([8,7,6,5,4,3,2,1])},
  {id:'wedge',name:'Wedge',S:14,P:6,cells:fromRows([13,12,12,10,9,7,6,5,4,3,2,1])},
  {id:'hive',name:'Hive',S:9,P:4,cells:hexagon(3,0)},
@@ -729,7 +728,7 @@ async function lbFetch(path,body){
     const j=await r.json();if(!r.ok)throw new Error(j.error||'Request failed');return j;}
   finally{clearTimeout(t);}
 }
-function lbShow(){$('lbBtn').hidden=!lbOK;$('lbHint').hidden=!(lbOK&&!lbBeat);}
+function lbShow(){$('lbBtn').hidden=!lbOK;}
 let lbBeat=false;
 function lbCheck(r,pr,done){
   lbBeat=!!(done&&!showBot&&beatsPar(r.total,pr));
@@ -754,14 +753,15 @@ function lbRows(list,me,pr){
     const m=me&&e.name.toLowerCase()===me?' me':'',a=unLay(e.layout),ok=a.length===L.cells.length;
     out+=`<span class="${m.trim()}">${i+1}</span><span class="n${m}">${esc(e.name)}<small>${lbDate(e.t)}</small></span><span class="${m.trim()}">${fmt(e.score,2)} mΩ</span>${ok?(seeAll?`<button class="pv" type="button" data-k="${i}" title="View ${esc(e.name)}'s layout">${lbThumb(a)}</button>`:`<span class="pv lock" title="Submit a layout to see others' layouts">${lbThumb(a)}</span>`):'<span></span>'}`;});
   if(!parDone)out+=`<div class="lbpar">par ${fmt(pr,2)}</div>`;
-  return list.length?lbPodium(list,me)+(seeAll?'':'<p class="lbrules">Submit a layout on this level to see everyone\'s layouts.</p>')+`<div class="lbt">${out}</div>`:'<p class="lbmsg">No scores yet. Beat par to be first.</p>';
+  return list.length?lbPodium(list,me)+(seeAll?'':'<p class="lbrules">Submit a layout on this level to see everyone\'s layouts.</p>')+`<div class="lbt">${out}</div>`:'<p class="lbmsg">No scores yet.</p>';
 }
 async function openLB(pop){
   const id=L.id,sheet=$('lbSheet'),r=res,pr=par&&par.score,beat=!!(r&&r.complete&&!r.open&&!showBot&&beatsPar(r.total,pr)),lay=layoutStr(),score=r&&r.total;
   const head=`<h2>Leaderboard · ${esc(L.name)} ${L.S}S${L.P}P</h2>`,close=`<div style="margin-top:14px"><button class="btn primary" type="button" id="lbClose">Close</button></div>`;
-  let list=[],msg='',form=beat;
+  const fin=!!(r&&r.complete&&!r.open&&!showBot);
+  let list=[],msg='',form=fin;
   const draw=()=>{
-    sheet.innerHTML=head+(beat?`<p class="lead"><b>You beat par!</b> ${fmt(score,2)} mΩ</p>`:`<p class="lead">Par is ${pr!=null?fmt(pr,2):'…'} mΩ. Beat par to join.</p>`)
+    sheet.innerHTML=head+(beat?`<p class="lead"><b>You beat par!</b> ${fmt(score,2)} mΩ</p>`:fin?`<p class="lead">Your pack: ${fmt(score,2)} mΩ · par ${pr!=null?fmt(pr,2):'…'} mΩ</p>`:`<p class="lead">Finish a pack to submit. Par is ${pr!=null?fmt(pr,2):'…'} mΩ.</p>`)
       +(form?`<div class="lbform"><input id="lbName" maxlength="24" placeholder="Your name" autocomplete="nickname" value="${esc(lbMe)}"${lbLocked?' disabled':''}><button class="btn primary" type="button" id="lbSubmit">Submit ${fmt(score,2)} mΩ</button></div><p class="lbrules">Your name is fixed after your first submission. Ties go to whoever submitted first.</p>`:'')
       +(msg?`<p class="lbmsg" id="lbMsg">${msg}</p>`:'')+lbRows(list,lbMe,pr)+close;
     const sb=$('lbSubmit');if(sb)sb.onclick=submit;const ni=$('lbName');if(ni){ni.onkeydown=e=>{if(e.key==='Enter')submit();};if(pop)ni.focus();}
