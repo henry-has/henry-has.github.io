@@ -316,7 +316,7 @@ const DEMOS=[
   blurb:'Geometry skews current. Find the busiest cell.',
   lesson:'The busiest cell sets the pack\'s thermal limit and lifetime.'},
  {id:'uturn',learn:1,lesson:'A split group can share current better than a compact one.',name:'U-Turn',S:6,P:2,grid:true,cells:fromGrid(['#..#','#..#','#..#','#..#','####']),
-  blurb:'Groups need not be contiguous. Splitting costs a little, and less in packs with more series groups.'},
+  blurb:'Groups need not be contiguous.'},
  {id:'wedgejr',name:'Wedge Jr',S:9,P:4,cells:fromRows([8,7,6,5,4,3,2,1])},
  {id:'wedge',name:'Wedge',S:14,P:6,cells:fromRows([13,12,12,10,9,7,6,5,4,3,2,1])},
  {id:'hive',name:'Hive',S:9,P:4,cells:hexagon(3,0)},
@@ -594,7 +594,6 @@ function renderSide(){
     const pr=par&&par.score,n=starsFor(r.total,pr,L.optimal);el.className=n===3?'step good':'step';
     el.textContent=n===3?(L.optimal?'Best possible layout.':'You beat par.'):(w.length>2?`${w.length} links tie for weakest at ${fmt(w[0].R,2)} mΩ (red in the chain).`:w.length?`Weakest link${w.length>1?'s are ':' is '}${w.map(j=>`S${j.q}→S${j.q+1}`).join(' and ')}. Re-weld around ${w.length>1?'them':'it'} to beat par.`:'All links are equal. Even out the cells to beat par.');}
   else el.innerHTML=`Place ${need} more cell${need===1?'':'s'} in S${active+1}`+(active>0?`, touching S${active}`:', the PACK − group');
-  if(done&&L.lesson&&!showBot){el.className='step good';el.innerHTML=`✓ ${L.lesson}`;}
   // chain: groups with fill bars, links between them
   const J=r.junc||[],weak=weakLinks(r);
   const sc=[];
@@ -625,7 +624,7 @@ function renderSide(){
     const math=[`${S} series × ${RC} mΩ ÷ ${P} parallel`,stripMath,`${fmt(r.Rpack,2)} × ½ × (${fmt(r.load,3)}² − 1)`,`${fmt(r.Rpack*r.uf,2)} × 10% × ${r.extra} extra ÷ ${S} series groups`];
     const parts=[[r.Rideal,'cells','fixed by the S×P'],[strips,'strips','add strips between groups'],[uneven,'uneven cells',`busiest cell +${fmt((r.load-1)*100,1)}%`],[split,'split groups',r.extra?`${r.extra} extra pieces`:'none']];
     const big=Math.max(strips,uneven,split);
-    bd.innerHTML=`<button type="button" class="txt h bdbtn" id="bdOpen">Score breakdown <span aria-hidden="true">›</span></button><div class="bar">${parts.map((p,k)=>`<i style="width:${p[0]/r.total*100}%;background:${C[k]}"></i>`).join('')}</div><div class="rows">${parts.map((p,k)=>`<span class="v">${k?'+':''}${fmt(p[0],2)}</span><span${k&&p[0]===big&&big>0.01?' style="color:var(--ink);font-weight:600"':''}><span class="sw" style="background:${C[k]}"></span> ${p[1]}</span><span class="m">${math[k]}${k===2?(bc.length?` · <span class="busy" data-busy="1">${bc.length>1?bc.length+' busiest cells in '+bgs.map(g=>'S'+g).join(', '):'busiest is an S'+bgs[0]+' cell'}</span>`:' · cells share evenly'):''}</span>`).join('')}<span class="v" style="border-top:1px solid var(--line);padding-top:3px">${fmt(r.total,2)}</span><span style="border-top:1px solid var(--line);padding-top:3px">mΩ</span><span></span></div>`;
+    bd.innerHTML=`<button type="button" class="txt h bdbtn" id="bdOpen">Score breakdown <span aria-hidden="true">›</span></button><div class="bar">${parts.map((p,k)=>`<i style="width:${p[0]/r.total*100}%;background:${C[k]}"></i>`).join('')}</div><div class="rows">${parts.map((p,k)=>`<span class="v">${k?'+':''}${fmt(p[0],2)}</span><span><span class="sw" style="background:${C[k]}"></span> ${p[1]}</span><span class="m">${math[k]}${k===2?(bc.length?` · <span class="busy" data-busy="1">${bc.length>1?bc.length+' busiest cells in '+bgs.map(g=>'S'+g).join(', '):'busiest is an S'+bgs[0]+' cell'}</span>`:' · cells share evenly'):''}</span>`).join('')}<span class="v" style="border-top:1px solid var(--line);padding-top:3px">${fmt(r.total,2)}</span><span style="border-top:1px solid var(--line);padding-top:3px">mΩ</span><span></span></div>`;
   }else bd.innerHTML='';
   $('botBtn').textContent=showBot&&viewWhat==='par'?'Hide par':'Show par';
   $('botBtn').hidden=b2==null&&!showBot;
