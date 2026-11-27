@@ -12,6 +12,7 @@ const UNEVEN_W=0.5; // weight on the busiest cell's extra heat
 const HOT_I=1.02; // strips carrying more than one cell's current glow: yellow just over, red by 2×
 const PAL=['#4cc9f0','#f72585','#a7e36f','#ffb703','#9d6bff','#06d6a0','#fb8500','#5b7cff','#ff6b8b','#7fe3f0','#d08cff','#ffd166','#3ddc84','#ff8fab'];
 
+const LB_URL='https://spotweld.henry-has.workers.dev'; // leaderboard Worker
 const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
 
 /* ---------- shapes ---------- */
@@ -23,14 +24,23 @@ function axial(q,r){return {x:q+r/2,y:r*SQ3/2};}
 function hexagon(R,hole=-1){const c=[];for(let q=-R;q<=R;q++)for(let r=-R;r<=R;r++){const d=Math.max(Math.abs(q),Math.abs(r),Math.abs(q+r));if(d<=R&&d>hole)c.push(axial(q,r));}return c;}
 
 const DEMOS=[
- {id:'first',name:'First Weld',S:4,P:2,grid:true,optimal:true,cells:fromGrid(['####','####']),
-  blurb:'Tip: make each group a straight line beside the last, so every cell touches the next group.'},
- {id:'brick',name:'LVB',S:7,P:3,optimal:true,cells:fromDW(['o o o o o o o',' o o o o o o o','o o o o o o o']),
-  blurb:'Tip: straight columns give the most strips between neighbouring groups.'},
- {id:'uturn',name:'U-Turn',S:6,P:2,grid:true,cells:fromGrid(['#..#','#..#','#..#','#..#','####']),
-  blurb:'Tip: a group doesn\'t have to be one piece. Its cells can sit on different arms, and splitting only costs a little.'},
+ {id:'pairs',name:'Pairs',S:3,P:2,grid:true,optimal:true,learn:1,cells:fromGrid(['###','###']),
+  blurb:'Parallel cells share current; series groups pass it on, S1 → S2 → S3.',
+  lesson:'Series adds voltage, parallel splits current.'},
+ {id:'lines',name:'Lines',S:4,P:3,optimal:true,learn:1,cells:fromDW(['o o o o',' o o o o','o o o o']),
+  blurb:'Every touching pair between groups is another path for current.',
+  lesson:'Maximise contact between neighbouring groups.'},
+ {id:'neck',name:'Neck',S:6,P:3,learn:1,cells:fromDW(['o o o     o o o',' o o o o o o','o o o     o o o']),
+  blurb:'Full pack current crosses the narrowest link.',
+  lesson:'Fewer strips per link means more heat per strip. Spend the neck on series links.'},
+ {id:'corner',name:'Corner',S:8,P:2,grid:true,learn:1,cells:fromGrid(['##....','##....','######','######']),
+  blurb:'Geometry skews current. Find the busiest cell.',
+  lesson:'The busiest cell sets the pack\'s thermal limit and lifetime.'},
+ {id:'uturn',learn:1,lesson:'A split group can share current better than a compact one.',name:'U-Turn',S:6,P:2,grid:true,cells:fromGrid(['#..#','#..#','#..#','#..#','####']),
+  blurb:'Groups need not be contiguous. Splitting costs a little, and less in packs with more series groups.'},
  {id:'wedgejr',name:'Wedge Jr',S:9,P:4,cells:fromRows([8,7,6,5,4,3,2,1])},
  {id:'wedge',name:'Wedge',S:14,P:6,cells:fromRows([13,12,12,10,9,7,6,5,4,3,2,1])},
+ {id:'hive',name:'Hive',S:9,P:4,cells:hexagon(3,0)},
  {id:'para3',name:'Parallelogram',S:15,P:4,cells:fromRows([10,10,10,10,10,10],r=>r/2)},
 ];
 
@@ -150,7 +160,7 @@ const CACHE={};
 const level=id=>{if(!CACHE[id]){const d=DEMOS.find(x=>x.id===id);if(!d)return null;CACHE[id]=prepLevel(JSON.parse(JSON.stringify(d)));}return CACHE[id];};
 const H={'access-control-allow-origin':'*','access-control-allow-methods':'GET,POST,OPTIONS','access-control-allow-headers':'content-type','content-type':'application/json'};
 const json=(o,s=200)=>new Response(JSON.stringify(o),{status:s,headers:H});
-const top=(list,n)=>list.slice(0,n).map(e=>({name:e.name,score:e.score,layout:e.layout}));
+const top=(list,n)=>list.slice(0,n).map(e=>({name:e.name,score:e.score,layout:e.layout,t:e.t}));
 
 export default {
   async fetch(req,env){
