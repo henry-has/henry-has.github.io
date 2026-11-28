@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Photography · henry-has</title>
+<style>
+:root{--bg:#fff;--fg:#111;--mute:#777;--link:#0b5fd0}
+@media (prefers-color-scheme: dark){:root{--bg:#161616;--fg:#eee;--mute:#999;--link:#6aa5ef}}
+body{font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;max-width:960px;margin:40px auto;padding:0 16px;color:var(--fg);background:var(--bg)}
+a{color:var(--link)}
+h1{font-size:20px;margin:0 0 4px}
+p.sub{margin:0 0 20px;color:var(--mute)}
+nav{display:flex;gap:12px;margin:0 0 16px;flex-wrap:wrap}
+nav button{font:inherit;background:none;border:0;padding:0;color:var(--mute);cursor:pointer;border-bottom:1px solid transparent}
+nav button[aria-pressed=true]{color:var(--fg);border-color:var(--fg)}
+.g{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+figure{margin:0;cursor:pointer}
+figure[hidden]{display:none}
+.p{aspect-ratio:var(--r,3/2);border-radius:3px;background:linear-gradient(var(--a,160deg),var(--c1),var(--c2));transition:opacity .15s}
+figure:hover .p{opacity:.85}
+figcaption{font-size:12px;color:var(--mute);margin-top:4px;display:flex;justify-content:space-between}
+#lb{position:fixed;inset:0;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;flex-direction:column;gap:10px;color:#eee;z-index:9}
+#lb.on{display:flex}
+#lb .p{width:min(92vw,calc(78vh*var(--rn,1.5)));aspect-ratio:var(--r,3/2)}
+#lb small{color:#aaa}
+footer{margin-top:28px;color:var(--mute);font-size:13px}
+</style>
+</head>
+<body>
+<h1>Photography</h1>
+<p class="sub">Selected work. <a href="https://adobe.ly/3BKNBeR" rel="noopener">Full portfolio on Lightroom →</a></p>
+<nav id="f" aria-label="Filter">
+<button aria-pressed="true" data-t="">All</button>
+<button aria-pressed="false" data-t="landscape">Landscape</button>
+<button aria-pressed="false" data-t="street">Street</button>
+<button aria-pressed="false" data-t="detail">Detail</button>
+</nav>
+<main class="g" id="g"></main>
+<div id="lb" role="dialog" aria-modal="true"><div class="p" id="lp"></div><small id="lc"></small></div>
+<footer><a href="../">← Projects</a> · Placeholder tiles; swap in real images (see comment in source).</footer>
+<script>
+/* To use real photos: add {src:"img/name.jpg"} to an item and it will render as a lazy <img>.
+   Keep files ~1600px wide, 80% JPEG/WebP. */
+const P=[
+["Alpine dawn","landscape","3/2","#f6b26b","#3d4a7a"],
+["Wet crosswalk","street","2/3","#2b2b2b","#c9a227"],
+["Lichen","detail","1/1","#8fae6b","#2f4a2a"],
+["Dune line","landscape","3/2","#e8c9a0","#a0522d"],
+["Corner shop","street","3/2","#d4574a","#2a2f45"],
+["Rust & rivet","detail","3/2","#b5651d","#3a2a20"],
+["Fog ridge","landscape","2/3","#cfd8dc","#546e7a"],
+["Night bus","street","1/1","#1a1a2e","#e94560"],
+["Frost","detail","1/1","#e0f2f7","#7fb3c8"],
+["Coast road","landscape","3/2","#7ec8e3","#1d3557"],
+["Umbrellas","street","3/2","#f2c14e","#6a4c93"],
+["Seed head","detail","2/3","#d9c9a3","#5b4a2e"]
+];
+const g=document.getElementById('g'),lb=document.getElementById('lb'),lp=document.getElementById('lp'),lc=document.getElementById('lc');
+P.forEach(([t,k,r,a,b],i)=>{
+ const f=document.createElement('figure');f.dataset.t=k;
+ f.innerHTML='<div class="p" style="--r:'+r+';--c1:'+a+';--c2:'+b+';--a:'+(120+i*23)%360+'deg"></div><figcaption><span>'+t+'</span><span>'+k+'</span></figcaption>';
+ f.onclick=()=>{const p=f.firstChild;lp.style.cssText=p.style.cssText+';--rn:'+eval(r);lc.textContent=t+' · '+k;lb.classList.add('on')};
+ g.appendChild(f);
+});
+lb.onclick=()=>lb.classList.remove('on');
+addEventListener('keydown',e=>e.key==='Escape'&&lb.classList.remove('on'));
+document.getElementById('f').onclick=e=>{
+ const t=e.target.dataset.t;if(t===undefined)return;
+ [...e.currentTarget.children].forEach(c=>c.setAttribute('aria-pressed',c===e.target));
+ [...g.children].forEach(c=>c.hidden=t&&c.dataset.t!==t);
+};
+</script>
+</body>
+</html>
