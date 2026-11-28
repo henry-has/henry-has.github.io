@@ -11,65 +11,32 @@ body{font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;max-widt
 a{color:var(--link)}
 h1{font-size:20px;margin:0 0 4px}
 p.sub{margin:0 0 20px;color:var(--mute)}
-nav{display:flex;gap:12px;margin:0 0 16px;flex-wrap:wrap}
-nav button{font:inherit;background:none;border:0;padding:0;color:var(--mute);cursor:pointer;border-bottom:1px solid transparent}
-nav button[aria-pressed=true]{color:var(--fg);border-color:var(--fg)}
-.g{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
-figure{margin:0;cursor:pointer}
-figure[hidden]{display:none}
-.p{aspect-ratio:var(--r,3/2);border-radius:3px;background:linear-gradient(var(--a,160deg),var(--c1),var(--c2));transition:opacity .15s}
-figure:hover .p{opacity:.85}
-figcaption{font-size:12px;color:var(--mute);margin-top:4px;display:flex;justify-content:space-between}
-#lb{position:fixed;inset:0;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;flex-direction:column;gap:10px;color:#eee;z-index:9}
+.g{columns:3 220px;column-gap:8px}
+figure{margin:0 0 8px;break-inside:avoid;cursor:zoom-in}
+figure img{display:block;width:100%;height:auto;border-radius:3px;background:var(--mute);opacity:.999;transition:opacity .15s}
+figure:hover img{opacity:.85}
+figcaption{font-size:12px;color:var(--mute);margin-top:3px}
+#lb{position:fixed;inset:0;background:rgba(0,0,0,.94);display:none;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:#bbb;z-index:9;font-size:13px;cursor:zoom-out}
 #lb.on{display:flex}
-#lb .p{width:min(92vw,calc(78vh*var(--rn,1.5)));aspect-ratio:var(--r,3/2)}
-#lb small{color:#aaa}
-footer{margin-top:28px;color:var(--mute);font-size:13px}
+#lb img{max-width:96vw;max-height:84vh;object-fit:contain}
+#lb a{color:#9bc1f5}
+footer{margin-top:24px;color:var(--mute);font-size:13px}
 </style>
 </head>
 <body>
 <h1>Photography</h1>
-<p class="sub">Selected work. <a href="https://adobe.ly/3BKNBeR" rel="noopener">Full portfolio on Lightroom →</a></p>
-<nav id="f" aria-label="Filter">
-<button aria-pressed="true" data-t="">All</button>
-<button aria-pressed="false" data-t="landscape">Landscape</button>
-<button aria-pressed="false" data-t="street">Street</button>
-<button aria-pressed="false" data-t="detail">Detail</button>
-</nav>
+<p class="sub">37 photos, newest first. <a href="https://adobe.ly/3BKNBeR" rel="noopener">Full portfolio on Lightroom →</a></p>
 <main class="g" id="g"></main>
-<div id="lb" role="dialog" aria-modal="true"><div class="p" id="lp"></div><small id="lc"></small></div>
-<footer><a href="../">← Projects</a> · Placeholder tiles; swap in real images (see comment in source).</footer>
+<div id="lb" role="dialog" aria-modal="true"><img id="li" alt=""><span><span id="lc"></span> · <a id="dl" href="#" target="_blank" rel="noopener">open full size</a></span></div>
+<footer><a href="../">← Projects</a></footer>
 <script>
-/* To use real photos: add {src:"img/name.jpg"} to an item and it will render as a lazy <img>.
-   Keep files ~1600px wide, 80% JPEG/WebP. */
-const P=[
-["Alpine dawn","landscape","3/2","#f6b26b","#3d4a7a"],
-["Wet crosswalk","street","2/3","#2b2b2b","#c9a227"],
-["Lichen","detail","1/1","#8fae6b","#2f4a2a"],
-["Dune line","landscape","3/2","#e8c9a0","#a0522d"],
-["Corner shop","street","3/2","#d4574a","#2a2f45"],
-["Rust & rivet","detail","3/2","#b5651d","#3a2a20"],
-["Fog ridge","landscape","2/3","#cfd8dc","#546e7a"],
-["Night bus","street","1/1","#1a1a2e","#e94560"],
-["Frost","detail","1/1","#e0f2f7","#7fb3c8"],
-["Coast road","landscape","3/2","#7ec8e3","#1d3557"],
-["Umbrellas","street","3/2","#f2c14e","#6a4c93"],
-["Seed head","detail","2/3","#d9c9a3","#5b4a2e"]
-];
-const g=document.getElementById('g'),lb=document.getElementById('lb'),lp=document.getElementById('lp'),lc=document.getElementById('lc');
-P.forEach(([t,k,r,a,b],i)=>{
- const f=document.createElement('figure');f.dataset.t=k;
- f.innerHTML='<div class="p" style="--r:'+r+';--c1:'+a+';--c2:'+b+';--a:'+(120+i*23)%360+'deg"></div><figcaption><span>'+t+'</span><span>'+k+'</span></figcaption>';
- f.onclick=()=>{const p=f.firstChild;lp.style.cssText=p.style.cssText+';--rn:'+eval(r);lc.textContent=t+' · '+k;lb.classList.add('on')};
- g.appendChild(f);
-});
-lb.onclick=()=>lb.classList.remove('on');
-addEventListener('keydown',e=>e.key==='Escape'&&lb.classList.remove('on'));
-document.getElementById('f').onclick=e=>{
- const t=e.target.dataset.t;if(t===undefined)return;
- [...e.currentTarget.children].forEach(c=>c.setAttribute('aria-pressed',c===e.target));
- [...g.children].forEach(c=>c.hidden=t&&c.dataset.t!==t);
-};
+const P=[["img/36t.jpg",[4000,6000],"2025-06-11","img/36l.jpg"],["img/37t.jpg",[5618,3160],"2025-06-11","img/37l.jpg"],["img/34t.jpg",[6000,3375],"2025-06-07","img/34l.jpg"],["img/35t.jpg",[4762,3810],"2025-06-07","img/35l.jpg"],["img/32t.jpg",[3995,5992],"2025-06-06","img/32l.jpg"],["img/33t.jpg",[4000,6000],"2025-06-06","img/33l.jpg"],["img/30t.jpg",[3796,2531],"2025-06-05","img/30l.jpg"],["img/31t.jpg",[4000,6000],"2025-06-05","img/31l.jpg"],["img/29t.jpg",[5563,3129],"2025-06-03","img/29l.jpg"],["img/28t.jpg",[6000,4000],"2025-05-31","img/28l.jpg"],["img/26t.jpg",[6000,4000],"2024-03-16","img/26l.jpg"],["img/27t.jpg",[6000,3375],"2024-03-16","img/27l.jpg"],["img/25t.jpg",[4304,2869],"2023-07-20","img/25l.jpg"],["img/24t.jpg",[5384,3029],"2023-07-18","img/24l.jpg"],["img/23t.jpg",[5709,3806],"2023-06-10","img/23l.jpg"],["img/16t.jpg",[5483,3084],"2023-04-04","img/16l.jpg"],["img/17t.jpg",[5874,3304],"2023-04-04","img/17l.jpg"],["img/18t.jpg",[5416,3047],"2023-04-04","img/18l.jpg"],["img/19t.jpg",[3736,5603],"2023-04-04","img/19l.jpg"],["img/20t.jpg",[3949,5924],"2023-04-04","img/20l.jpg"],["img/21t.jpg",[3921,5881],"2023-04-04","img/21l.jpg"],["img/22t.jpg",[5997,3373],"2023-04-04","img/22l.jpg"],["img/15t.jpg",[3689,4918],"2022-09-29","img/15l.jpg"],["img/14t.jpg",[6000,3375],"2022-07-22","img/14l.jpg"],["img/10t.jpg",[3440,2580],"2022-07-21","img/10l.jpg"],["img/11t.jpg",[3460,2595],"2022-07-21","img/11l.jpg"],["img/12t.jpg",[3842,2161],"2022-07-21","img/12l.jpg"],["img/13t.jpg",[5767,3244],"2022-07-21","img/13l.jpg"],["img/09t.jpg",[3612,5418],"2022-07-20","img/09l.jpg"],["img/08t.jpg",[3781,2127],"2022-07-19","img/08l.jpg"],["img/06t.jpg",[5155,3436],"2022-07-18","img/06l.jpg"],["img/07t.jpg",[5029,2829],"2022-07-18","img/07l.jpg"],["img/05t.jpg",[6000,3375],"2022-07-10","img/05l.jpg"],["img/03t.jpg",[5103,3402],"2022-07-06","img/03l.jpg"],["img/04t.jpg",[6000,4000],"2022-07-06","img/04l.jpg"],["img/02t.jpg",[4000,5333],"2022-07-05","img/02l.jpg"],["img/01t.jpg",[5333,4000],"2021-11-25","img/01l.jpg"]];
+const g=document.getElementById('g'),lb=document.getElementById('lb'),li=document.getElementById('li'),lc=document.getElementById('lc'),dl=document.getElementById('dl');
+let cur=0;
+function show(i){cur=(i+P.length)%P.length;const p=P[cur];li.src=p[3]||p[0];lc.textContent=p[2]+' · '+(cur+1)+'/'+P.length;dl.href=p[3]||p[0];lb.classList.add('on')}
+P.forEach((p,i)=>{const f=document.createElement('figure');f.innerHTML='<img loading="lazy" decoding="async" width="'+p[1][0]+'" height="'+p[1][1]+'" src="'+p[0]+'" alt="Photo from '+p[2]+'"><figcaption>'+p[2]+'</figcaption>';f.onclick=()=>show(i);g.appendChild(f)});
+lb.onclick=e=>{if(e.target.id!=='dl')lb.classList.remove('on')};
+addEventListener('keydown',e=>{if(!lb.classList.contains('on'))return;if(e.key==='Escape')lb.classList.remove('on');if(e.key==='ArrowRight')show(cur+1);if(e.key==='ArrowLeft')show(cur-1)});
 </script>
 </body>
 </html>
