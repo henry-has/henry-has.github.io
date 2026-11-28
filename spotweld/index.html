@@ -128,7 +128,7 @@ footer{color:var(--ink-3);font-size:11px;border-top:1px solid var(--line);paddin
 .lbt span{padding:1px 0}
 .lbt .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lbt .me{color:var(--ink);font-weight:600}
-.lbt button.pv{padding:0;border:1px solid var(--line);background:var(--bg);border-radius:0;height:50px;cursor:pointer}
+.lbt button.pv{padding:0;border:1px solid var(--line);background:var(--bg);border-radius:0;height:64px;cursor:pointer}
 .lbt button.pv:hover{border-color:var(--ink)}
 .lbt svg{display:block;width:100%;height:100%}
 .lbpar{grid-column:1/-1;display:flex;align-items:center;gap:8px;font-size:11px;color:var(--ink-3);letter-spacing:.06em;text-transform:uppercase}
@@ -746,7 +746,14 @@ function lbCheck(r,pr,done){
   store.set('lbseen:'+L.id,r.total);
   if(!quiet&&lbOK)openLB(true);
 }
-function lbThumb(a){const pad=0.6;return `<svg viewBox="${-pad} ${-pad} ${L.w+2*pad} ${L.h+2*pad}" preserveAspectRatio="xMidYMid meet">${L.cells.map((c,i)=>`<circle cx="${c.x}" cy="${c.y}" r="0.44" fill="${PAL[a[i]%PAL.length]}"/>`).join('')}</svg>`;}
+let lbThumbN=0;
+function lbThumb(a){
+  // same look as the board (top face): bordered cells, nickel strips, heat; ids made unique per thumbnail
+  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg'),saved=res,savedB=showBot,n=++lbThumbN;
+  try{res=evaluate(L,a);showBot=true;renderFace(a,1,svg);}finally{res=saved;showBot=savedB;}
+  svg.setAttribute('preserveAspectRatio','xMidYMid meet');
+  return svg.outerHTML.replace(/id="hg/g,`id="t${n}hg`).replace(/url\(#hg/g,`url(#t${n}hg`).replace(/ class="(cellhit|hov|lk)"/g,' class="x"');
+}
 const unLay=t=>[...String(t||'')].map(c=>parseInt(c,36));
 const lbDate=t=>t?new Date(t).toLocaleDateString(undefined,{month:'short',day:'numeric',year:new Date(t).getFullYear()===new Date().getFullYear()?undefined:'numeric'}):'';
 function lbPodium(list,me){if(!list.length)return '';const slot=[1,0,2],h=[64,88,48];
